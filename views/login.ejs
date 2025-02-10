@@ -1,0 +1,33 @@
+<%- include('header.ejs') %>
+
+
+<!-- Login Start -->
+<div class="container-xxl py-5">
+    <div class="container">
+        <h2 class="text-center mb-4">Login</h2>
+        <form action="/login" method="POST">
+            <!-- Email Address -->
+            <div class="mb-3">
+                <label for="email" class="form-label">Email Address</label>
+                <input type="email" class="form-control" id="email" name="email" required>
+            </div>
+
+            <!-- Password -->
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" name="password" required>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn btn-primary py-3 px-5">Login</button>
+        </form>
+    </div>
+
+</div>
+<% if (locals.error) { %>
+    <div class="error-message">
+        <p style="color: red;"><%= error %></p>
+    </div>
+<% } %>
+<!-- Login End -->
+<%- include('footer.ejs') %>

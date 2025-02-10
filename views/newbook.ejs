@@ -1,0 +1,35 @@
+<%- include('header.ejs') %>
+<main class="container my-5">
+    <h2 class="text-center mb-4"><%= listTitle %></h2>
+    <form action="/add-book" method="POST">
+        <div class="mb-3">
+            <label for="title" class="form-label">Book Title</label>
+            <input type="text" class="form-control" id="title" name="title" placeholder="Enter book title" required>
+        </div>
+        <div class="mb-3">
+            <label for="date" class="form-label">Date Read</label>
+            <input type="date" class="form-control" id="date" name="date" required>
+        </div>
+        <div class="mb-3">
+            <label for="rating" class="form-label">Rating (0-10)</label>
+            <div class="d-flex align-items-center">
+                <input type="range" class="form-range" id="rating" name="rating" min="0" max="10" value="5" oninput="updateRatingValue(this.value)">
+                <span class="ms-3" id="ratingValue">5</span>
+            </div>
+        </div>
+        <div class="mb-3">
+            <label for="notes" class="form-label">Notes</label>
+            <textarea class="form-control" id="notes" name="notes" rows="5" placeholder="Write your notes here..." required></textarea>
+        </div>
+        <div class="text-center">
+            <button type="submit" class="btn btn-primary">Save Book</button>
+            <a href="/" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+    <script>
+        function updateRatingValue(value) {
+            document.getElementById('ratingValue').textContent = value;
+        }
+    </script>
+</main>
+<%- include('footer.ejs') %>
