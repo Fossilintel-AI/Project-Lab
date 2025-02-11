@@ -42,83 +42,23 @@ db.connect((err) => {
         console.log("Connected to the database.");
     }
 });
-// let books = [
-//     {
-//         title: 'Lion King',
-//         date: '2025-01-24',
-//         rating: '5',
-//         notes: 'Nothing crazy',
-//     },
-//     {
-//         title: 'The Great Gatsby',
-//         date: '2025-01-12',
-//         rating: '8',
-//         notes: 'A classic that captures the essence of the roaring twenties.',
-//     },
-//     {
-//         title: 'To Kill a Mockingbird',
-//         date: '2025-01-18',
-//         rating: '9',
-//         notes: 'Profound and thought-provoking, a must-read.',
-//     },
-//     {
-//         title: '1984',
-//         date: '2025-01-05',
-//         rating: '10',
-//         notes: 'Dystopian brilliance, deeply chilling.',
-//     },
-//     {
-//         title: 'The Hobbit',
-//         date: '2025-01-20',
-//         rating: '7',
-//         notes: 'A whimsical adventure through Middle-earth.',
-//     },
-//     {
-//         title: 'Pride and Prejudice',
-//         date: '2025-01-08',
-//         rating: '9',
-//         notes: 'A timeless tale of love and social standing.',
-//     },
-//     {
-//         title: 'The Catcher in the Rye',
-//         date: '2025-01-15',
-//         rating: '6',
-//         notes: 'Raw and relatable, a dive into teenage angst.',
-//     },
-//     {
-//         title: 'Moby Dick',
-//         date: '2025-01-10',
-//         rating: '7',
-//         notes: 'A detailed and metaphorical seafaring tale.',
-//     },
-//     {
-//         title: 'Brave New World',
-//         date: '2025-01-17',
-//         rating: '8',
-//         notes: 'An unnervingly accurate vision of the future.',
-//     },
-//     {
-//         title: 'The Alchemist',
-//         date: '2025-01-22',
-//         rating: '10',
-//         notes: 'Inspiring and deeply spiritual, a journey for the soul.',
-//     },
-// ];
 
+let items = [
+    // { id: 1, title: "Buy milk" },
+    // { id: 2, title: "Finish homework" },
+];
 
-
+//Main ,Login and Sign-up Route
 app.get("/", async (req, res) => {
 
     res.render("index.ejs", );
 });
-
 app.get("/login", async (req, res) => {
 
 
 
     res.render("login.ejs" );
 });
-
 app.get("/register", async (req, res) => {
 
 
@@ -129,7 +69,6 @@ app.get("/register", async (req, res) => {
     // res.render("index.ejs", { secret: "" ,user: ""});
 });
 
-// Sign-up Route
 app.post("/signup", async (req, res) => {
     const { first_name, last_name, email, password } = req.body;
 
@@ -153,18 +92,19 @@ app.post("/signup", async (req, res) => {
                     // Insert the new user into the database
                     try {
                         const result = await db.query(
-                            "INSERT INTO users (first_name, last_name, email, password) VALUES ($1, $2, $3, $4) RETURNING id",
+                            "INSERT INTO users (first_name, last_name, email, password) VALUES ($1, $2, $3, $4) RETURNING user_id",
                             [first_name, last_name, email, hash]
                         );
 
                         user_id = result.rows[0].user_id;
 
-                        // Fetch the books that the new user has read
-                        const booksResult = await db.query("SELECT * FROM readBooks WHERE userid = $1", [user_id]);
-                        const books = booksResult.rows;
-
-                        // Render the welcome page with the books
-                        res.render("welcome.ejs", { books: books });
+                        // // Fetch the books that the new user has read
+                        // const booksResult = await db.query("SELECT * FROM readBooks WHERE userid = $1", [user_id]);
+                        // const books = booksResult.rows;
+                        //
+                        // // Render the welcome page with the books
+                        // res.render("welcome.ejs", { books: books });
+                        res.redirect("/main");
                     } catch (error) {
                         console.log("Error inserting user:", error);
                         res.render("signup.ejs", { error: "An error occurred. Please try again." });
@@ -177,9 +117,6 @@ app.post("/signup", async (req, res) => {
         res.render("signup.ejs", { error: "An error occurred. Please try again." });
     }
 });
-
-
-
 app.post('/login', async (req, res) => {
     const email = req.body.email;
     const loginPassword = req.body.password;
@@ -200,12 +137,13 @@ app.post('/login', async (req, res) => {
                     if (isMatch) {
                         // Fetch the books that the user has read
                         user_id = user.user_id;
-                        console.log(user_id);
-                        const booksResult = await db.query("SELECT * FROM readBooks WHERE userid = $1", [user_id]);
-                        const books = booksResult.rows;
-
-                        // Render the welcome page with the books
-                        res.render("welcome.ejs", { books: books });
+                        // console.log(user_id);
+                        // const booksResult = await db.query("SELECT * FROM readBooks WHERE userid = $1", [user_id]);
+                        // const books = booksResult.rows;
+                        //
+                        // // Render the welcome page with the books
+                        // res.render("welcome.ejs", { books: books });
+                        res.redirect("/main");
                     } else {
                         // Render the login page with an error message
                         res.render("login.ejs", { error: "Incorrect Password" });
@@ -223,8 +161,22 @@ app.post('/login', async (req, res) => {
 });
 
 
+app.get("/main", async (req, res) => {
 
+    //book feature
+    const booksResult = await db.query("SELECT * FROM readBooks WHERE userid = $1", [user_id]);
+    const books = booksResult.rows;
 
+    //To do feature
+    const result = await db.query("SELECT * FROM items WHERE userid = $1", [user_id]);
+    items = result.rows;
+
+    // Render the welcome page with the books
+    res.render("welcome.ejs", { books: books, listTitle: "Today",
+        listItems: items, });
+});
+
+//The Book Feature
 app.get('/newbook', (req, res) => {
     res.render('newbook.ejs',{listTitle:"Add a New Book"}); // Renders the newbook.ejs file
 });
@@ -269,6 +221,38 @@ app.post('/edit-book', async (req, res) => {
     const booksResult = await db.query("SELECT * FROM readBooks WHERE userid = $1", [user_id]);
     const books = booksResult.rows;
     res.render("welcome.ejs", {books: books});
+});
+
+
+//To do Feature
+app.post("/addItem", (req, res) => {
+    const item = req.body.newItem;
+    db.query("INSERT INTO items (title,userid) VALUES($1,$2)",[item,user_id]);
+    res.redirect("/main");
+});
+
+app.post("/editItem", (req, res) => {
+    console.log(req.body);
+    db.query("UPDATE items SET title = $1 WHERE id = $2",[req.body.updatedItemTitle,req.body.updatedItemId],(err, result) => {
+        if (err) {
+            console.error("Error updating item:", err.stack);
+        } else {
+            console.log("Item updated successfully!");
+            res.redirect("/main");
+        }
+    });
+});
+
+app.post("/deleteItem", (req, res) => {
+    console.log(req.body);
+    db.query("Delete FROM items WHERE id = $1",[req.body.deleteItemId],(err, result) => {
+        if (err) {
+            console.error("Error updating item:", err.stack);
+        } else {
+            console.log("Item updated successfully!");
+            res.redirect("/main");
+        }
+    });
 });
 
 
