@@ -1,34 +1,28 @@
 <%- include('header.ejs') %>
-<main>
-    <div class="container my-5">
-        <h3 class="mb-4 text-center" style="color: #A5B68D;">Books I've Read</h3>
-        <div class="row">
-            <% books.forEach(book => { %>
-                <div class="col-md-4 mb-4">
-                    <div class="card shadow-sm">
-                        <div class="card-body">
-                            <h5 class="card-title" style="color: #2F3B20;"><%= book.title %></h5>
-                            <p class="card-text"><strong>Date:</strong> <%= book.date %></p>
-                            <p class="card-text"><strong>Rating:</strong> <%= book.rating %></p>
-                            <p class="card-text"><strong>Notes:</strong> <%= book.notes %></p>
-                            <div class="d-flex justify-content-between">
-                                <a href="/edit?id=<%= book.id %>" class="btn" style="background-color: #DECDF8; color: #2F3B20;">Edit</a>
-                                <a href="/delete?id=<%= book.id %>" class="btn btn-danger">Delete</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            <% }) %>
-        </div>
+
+<!--This is the first line buttons -->
+<section class="row-buttons">
+    <div class="button-container">
+        <button class="dashboard-button" onclick="window.location.href='/my-courses'">
+            <i class="bi bi-book"></i> My Courses
+        </button>
+        <button class="dashboard-button" onclick="window.location.href='/todo-list'">
+            <i class="bi bi-list-check"></i> To-Do List
+        </button>
+        <button class="dashboard-button" onclick="window.location.href='/books'">
+            <i class="bi bi-journal-bookmark"></i> Books I've Read
+        </button>
+        <button class="dashboard-button" onclick="window.location.href='/dictionary'">
+            <i class="bi bi-file-earmark-text"></i> Dictionary
+        </button>
+        <button class="dashboard-button" onclick="window.location.href='/forums'">
+            <i class="bi bi-chat-dots"></i> Forums
+        </button>
     </div>
-    <div class="container text-center my-5">
-        <a href="/newbook" class="btn" style="background-color: #A5B68D; color: #fff;">Add New Book</a>
-    </div>
+</section>
 
 
 
-
-</main>
 
 
 

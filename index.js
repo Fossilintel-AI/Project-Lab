@@ -52,6 +52,7 @@ let items = [
 app.get("/", async (req, res) => {
 
     res.render("index.ejs", );
+    //res.render("test.ejs");
 });
 app.get("/login", async (req, res) => {
 
@@ -163,20 +164,24 @@ app.post('/login', async (req, res) => {
 
 app.get("/main", async (req, res) => {
 
+
+    //To do feature
+
+
+    // Render the welcome page with the books
+    res.render("welcome.ejs");
+});
+
+//The Book Feature
+app.get("/books", async (req, res) => {
+
+    //res.render("index.ejs", );
     //book feature
     const booksResult = await db.query("SELECT * FROM readBooks WHERE userid = $1", [user_id]);
     const books = booksResult.rows;
 
-    //To do feature
-    const result = await db.query("SELECT * FROM items WHERE userid = $1", [user_id]);
-    items = result.rows;
-
-    // Render the welcome page with the books
-    res.render("welcome.ejs", { books: books, listTitle: "Today",
-        listItems: items, });
+    res.render("booksRead.ejs", {books: books});
 });
-
-//The Book Feature
 app.get('/newbook', (req, res) => {
     res.render('newbook.ejs',{listTitle:"Add a New Book"}); // Renders the newbook.ejs file
 });
@@ -224,13 +229,24 @@ app.post('/edit-book', async (req, res) => {
 });
 
 
-//To do Feature
+//To-do Feature
+app.get("/todo-list", async (req, res) => {
+
+    //res.render("index.ejs", );
+    //Todo feature
+    const result = await db.query("SELECT * FROM items WHERE userid = $1", [user_id]);
+    items = result.rows;
+
+    res.render("todolist.ejs", {
+        listTitle: "Today",
+        listItems: items,
+    });
+});
 app.post("/addItem", (req, res) => {
     const item = req.body.newItem;
     db.query("INSERT INTO items (title,userid) VALUES($1,$2)",[item,user_id]);
     res.redirect("/main");
 });
-
 app.post("/editItem", (req, res) => {
     console.log(req.body);
     db.query("UPDATE items SET title = $1 WHERE id = $2",[req.body.updatedItemTitle,req.body.updatedItemId],(err, result) => {
@@ -242,7 +258,6 @@ app.post("/editItem", (req, res) => {
         }
     });
 });
-
 app.post("/deleteItem", (req, res) => {
     console.log(req.body);
     db.query("Delete FROM items WHERE id = $1",[req.body.deleteItemId],(err, result) => {
@@ -254,6 +269,49 @@ app.post("/deleteItem", (req, res) => {
         }
     });
 });
+
+//The forum feature
+app.get("/forums", async (req, res) => {
+    const { subject } = req.query; // Get the selected subject from query params
+    const subjects = [
+        "Programming 1",
+        "Programming 3",
+        "Calculus",
+        "Business Law",
+        "Data Driven System",
+        "Object Oriented Design"
+    ];
+
+    let forumData = [];
+    let subjectSelected = false;
+
+    if (subject) {
+        subjectSelected = true;
+        // Fetch forum posts filtered by selected subject
+        const forumResult = await db.query("SELECT * FROM forum_posts WHERE subject = $1", [subject]);
+        forumData = forumResult.rows;
+    }
+
+    res.render("forum.ejs", { forumData, subjects, selectedSubject: subject, subjectSelected });
+});
+
+
+app.post("/addforum", async (req, res) => {
+    const { name, surname, topic, problem, selectedSubject } = req.body;
+    const date = new Date().toISOString().slice(0, 10); // YYYY-MM-DD format
+
+    try {
+        await db.query(
+            "INSERT INTO forum_posts (name, surname, subject, topic, problem, date) VALUES ($1, $2, $3, $4, $5, $6)",
+            [name, surname, selectedSubject, topic, problem, date]
+        );
+        res.redirect(`/forums?subject=${selectedSubject}`); // Redirect back to the selected subject
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error adding forum post");
+    }
+});
+
 
 
 app.listen(port, () => {

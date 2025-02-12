@@ -1,0 +1,32 @@
+<%- include('header.ejs') %>
+
+<main>
+    <div class="container my-5">
+        <h3 class="mb-4 text-center" style="color: #8B4513;">Books I've Read</h3> <!-- Updated heading color -->
+        <div class="row">
+            <% books.forEach(book => { %>
+                <div class="col-md-4 mb-4">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title"><%= book.title %></h5>
+                            <p class="card-text"><strong>Date:</strong> <%= book.date %></p>
+                            <p class="card-text"><strong>Rating:</strong> <%= book.rating %></p>
+                            <p class="card-text"><strong>Notes:</strong> <%= book.notes %></p>
+                            <div class="d-flex justify-content-between">
+                                <a href="/edit?id=<%= book.id %>" class="btn btn-brown">Edit</a> <!-- Uses theme color -->
+                                <a href="/delete?id=<%= book.id %>" class="btn btn-brown">Delete</a> <!-- Uses theme color -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <% }) %>
+        </div>
+    </div>
+    <div class="container text-center my-5">
+        <a href="/newbook" class="btn btn-brown">Add New Book</a> <!-- Uses theme color -->
+    </div>
+</main>
+
+
+
+<%- include('footer.ejs') %>
