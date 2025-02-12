@@ -1,0 +1,233 @@
+.text-brown {
+  color: #8B4513 !important;
+}
+
+.btn-brown {
+  background-color: #8B4513 !important;
+  border-color: #8B4513 !important;
+  color: white !important;
+}
+
+.btn-brown:hover {
+  background-color: #A0522D !important;
+  border-color: #A0522D !important;
+}
+.footer {
+  position: relative;
+  z-index: 10;
+  padding: 40px 0;
+}
+
+.service-item {
+  background-color: #fdf8f4 !important;
+  border-radius: 10px !important;
+  display: block !important;
+  visibility: visible !important;
+}
+
+
+.service-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.15);
+}
+
+.text-brown {
+  color: #8B4513 !important; /* Rich brown color */
+}
+
+/* Hide the navigation arrows in the carousel */
+.owl-nav {
+  display: none !important;
+}
+
+/* ---------------------------------Books I have Read CSS-------------------------------------- */
+
+/* Custom styles for the Books I've Read section */
+.card-body {
+  background-color: #FCFAE6;
+}
+
+.card-title {
+  font-weight: bold;
+  color: #2F3B20;
+}
+
+.btn {
+  font-weight: bold;
+  padding: 10px 15px;
+}
+
+/* Styling for 'Add New Book' Button */
+.btn-success {
+  background-color: #A5B68D;
+  color: white;
+}
+
+/* ----------------------------------The row of buttons-------------------------------------- */
+/* Link to your brownish theme color */
+:root {
+  --primary-brown: #8B4513;  /* Your specified brown color */
+  --hover-brown: #704214;    /* Darker shade of brown for hover */
+}
+
+/* Container for buttons */
+.button-container {
+  display: flex;
+  justify-content: space-evenly;  /* Space buttons evenly */
+  align-items: center;            /* Align buttons vertically in the center */
+  flex-wrap: wrap;                /* Allow wrapping to the next line on smaller screens */
+  margin-top: 20px;               /* Space from top, can be adjusted */
+}
+
+/* Button Styles */
+.dashboard-button {
+  display: flex;
+  align-items: center;
+  background-color: var(--primary-brown); /* Apply the primary brown color */
+  color: white;
+  font-size: 16px;
+  padding: 15px 30px;
+  margin: 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease; /* Smooth hover effect */
+}
+
+.dashboard-button i {
+  margin-right: 10px;  /* Space between icon and text */
+  font-size: 20px;     /* Adjust icon size */
+}
+
+.dashboard-button:hover {
+  background-color: var(--hover-brown); /* Apply darker shade on hover */
+}
+
+.dashboard-button:focus {
+  outline: none;
+}
+
+/* Make the buttons stack on smaller screens */
+@media (max-width: 768px) {
+  .button-container {
+    flex-direction: column;       /* Stack buttons vertically */
+    align-items: flex-start;      /* Align to the left on smaller screens */
+  }
+
+  .dashboard-button {
+    width: 100%;                  /* Make buttons full-width on small screens */
+    margin: 10px 0;               /* Adjust margin for stacked buttons */
+  }
+}
+
+/* ----------------------------------To do feature-------------------------------------- */
+
+/* Only apply these styles within the .forum-container */
+.forum-container .box {
+  max-width: 400px;
+  margin: 50px auto;
+  background: white;
+  border-radius: 5px;
+  box-shadow: 5px 5px 15px -5px rgba(0, 0, 0, 0.3);
+}
+
+/* Heading style for forum */
+.forum-container #heading {
+  background-color: #8B4513;  /* Brown */
+  text-align: center;
+  color: white;
+  padding: 10px;
+  border-radius: 5px 5px 0 0;
+}
+
+/* Form edit container */
+.forum-container form.edit {
+  display: flex;
+}
+
+/* Individual items in the forum */
+.forum-container .item {
+  min-height: 70px;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #D2B48C; /* Light brown */
+}
+
+/* Remove bottom border for the last item */
+.forum-container .item:last-child {
+  border-bottom: 0;
+}
+
+/* Checkbox input style */
+.forum-container input[type="checkbox"] {
+  margin: 20px;
+  margin-left: 0;
+}
+
+/* Style for the general form in the forum */
+.forum-container form {
+  text-align: center;
+  margin-left: 20px;
+}
+
+/* Add button styled for theme */
+.forum-container button.add {
+  min-height: 50px;
+  width: 50px;
+  border-radius: 50%;
+  border-color: transparent;
+  background-color: #8B4513; /* Brown */
+  color: #fff;
+  font-size: 30px;
+  border-width: 0;
+}
+
+/* Hover effect for the add button */
+.forum-container button.add:hover {
+  background-color: #A0522D; /* Lighter Brown */
+}
+
+/* Edit button styling */
+.forum-container button.edit {
+  margin-left: 0px;
+  margin-right: 20px;
+  border: none;
+  background: none;
+  color: #8B4513; /* Brown */
+  font-weight: bold;
+}
+
+/* Hover effect for the edit button */
+.forum-container button.edit:hover {
+  color: #A0522D; /* Lighter Brown */
+}
+
+/* Icon styling */
+.forum-container .icon {
+  height: 20px;
+}
+
+/* Text input styles */
+.forum-container input[type="text"] {
+  text-align: left;
+  height: 60px;
+  top: 10px;
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  font-weight: 200;
+  width: 80%;
+  color: #8B4513; /* Theme Color */
+}
+
+/* Focused input style */
+.forum-container input[type="text"]:focus {
+  outline: none;
+  box-shadow: inset 0 -3px 0 0 #8B4513;
+}
+
+/* Placeholder styling */
+.forum-container ::placeholder {
+  color: #D2B48C; /* Light brown */
+  opacity: 1;
+}

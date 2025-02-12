@@ -1,0 +1,83 @@
+<%- include('header.ejs') %>
+
+<div class="container my-5">
+    <h3 class="mb-4 text-center">Forum Posts</h3>
+
+    <div class="row">
+        <div class="col-12 text-center mb-4">
+            <% subjects.forEach(subject => { %>
+                <a href="/forums?subject=<%= subject %>">
+                    <button class="btn btn-brown mx-2 <%= selectedSubject === subject ? 'btn-dark' : '' %>">
+                        <%= subject %>
+                    </button>
+                </a>
+            <% }) %>
+        </div>
+
+        <!-- Only show the table if a subject is selected -->
+        <% if (subjectSelected) { %>
+            <table class="table table-bordered">
+                <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Surname</th>
+                    <th>Topic</th>
+                    <th>Problem</th>
+                    <th>Date</th>
+                </tr>
+                </thead>
+                <tbody id="forumTableBody">
+                <% forumData.forEach(post => { %>
+                    <tr class="forum-post-row" data-subject="<%= post.subject %>">
+                        <td><%= post.name %></td>
+                        <td><%= post.surname %></td>
+                        <td><%= post.topic %></td>
+                        <td><%= post.problem %></td>
+                        <td><%= post.date %></td>
+                    </tr>
+                <% }) %>
+                </tbody>
+            </table>
+        <% } else { %>
+            <p class="text-center">Please select a subject to view the forum posts.</p>
+        <% } %>
+    </div>
+
+    <!-- Add a New Forum Post -->
+    <h4 class="text-center mt-5">Add a New Forum Post</h4>
+    <form action="/addforum" method="post" class="mt-4">
+        <div class="form-group">
+            <label for="name">Name:</label>
+            <input type="text" name="name" required class="form-control">
+        </div>
+
+        <div class="form-group">
+            <label for="surname">Surname:</label>
+            <input type="text" name="surname" required class="form-control">
+        </div>
+
+        <div class="form-group">
+            <label for="topic">Topic:</label>
+            <input type="text" name="topic" required class="form-control">
+        </div>
+
+        <div class="form-group">
+            <label for="problem">Problem:</label>
+            <textarea name="problem" required class="form-control"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="subject">Select a Subject:</label>
+            <select name="selectedSubject" id="subjectSelect" class="form-control" required>
+                <option value="">Choose a subject</option>
+                <% subjects.forEach(subject => { %>
+                    <option value="<%= subject %>" <%= selectedSubject === subject ? 'selected' : '' %>><%= subject %></option>
+                <% }) %>
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-brown mt-3">Submit</button>
+    </form>
+</div>
+
+<%- include('footer.ejs') %>
