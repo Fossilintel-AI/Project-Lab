@@ -1,7 +1,7 @@
 <%- include('header.ejs') %>
+
 <div class="container">
     <h2 class="text-center my-4">Lecture Slides for <%= subject %></h2>
-
     <% if (slides.length === 0) { %>
         <p class="text-center text-muted">No slides available for this course.</p>
     <% } else { %>
@@ -9,12 +9,37 @@
             <% slides.forEach((slide, index) => { %>
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     Lecture <%= index + 1 %>: <%= slide.replace('.pdf', '') %>
-                    <a href="/Course/<%= subject %>/slides/<%= encodeURIComponent(slide) %>" target="_blank" class="btn btn-sm btn-brown ">View</a>
+                    <a href="/Course/<%= subject %>/slides/<%= encodeURIComponent(slide) %>" target="_blank" class="btn btn-sm btn-brown">View</a>
                 </li>
             <% }); %>
         </ul>
     <% } %>
 </div>
 
+<h2 class="text-center my-4">My Personal Slide Notes for <%= subject %></h2>
+
+<% if (personalslides.length === 0) { %>
+    <p class="text-center text-muted">No personal slides available for this course.</p>
+<% } else { %>
+    <ul class="list-group">
+        <% personalslides.forEach((slide, index) => { %>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                Lecture <%= index + 1 %>: <%= slide.replace('.pdf', '') %>
+                <a href="/Workstation/<%= userid %>/<%= subject %>/slides/<%= encodeURIComponent(slide) %>"
+                   target="_blank" class="btn btn-sm btn-brown">View</a>
+
+
+            </li>
+        <% }); %>
+    </ul>
+<% } %>
+
+<div class="container my-5">
+    <h3 class="text-center">Upload Personal Notes</h3>
+    <form action="/uploadPdf" method="POST" enctype="multipart/form-data" class="text-center">
+        <input type="file" name="pdfFile" accept="application/pdf" class="form-control my-2" required>
+        <button type="submit" class="btn btn-brown">Upload</button>
+    </form>
+</div>
 
 <%- include('footer.ejs') %>

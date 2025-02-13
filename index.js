@@ -18,6 +18,7 @@ import pg from "pg";
 import bcrypt, {hash} from "bcrypt";
 import fs from "fs";
 import  path from "path";
+import multer from "multer"
 
 //use for path finding
 import { fileURLToPath } from 'url';
@@ -31,10 +32,55 @@ const port = 3000;
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
+// Serve static files from Workstation directory
+app.use('/Workstation', express.static(path.join(__dirname, 'Workstation')));
 
 //encryption
 const saltRounds = 10;
-var user_id = 0;
+global.user_id = 0;
+global.currentSubject = null;
+
+// File upload
+
+
+// Set storage engine for Multer
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        if (!global.user_id || !global.currentSubject) {
+            return cb(new Error("User ID or Subject is missing"));
+        }
+
+        const dir = path.join(__dirname, `./Workstation/${global.user_id}/${global.currentSubject}/slides`);
+
+        // Create directory if it doesn't exist
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+        }
+
+        cb(null, dir);
+    },
+    filename: (req, file, cb) => {
+        cb(null, file.originalname);
+    }
+});
+
+// Initialize upload middleware
+const upload = multer({
+    storage: storage,
+    limits: { fileSize: 5 * 1024 * 1024 }, // Limit to 5MB
+    fileFilter: (req, file, cb) => {
+        const fileTypes = /pdf/;
+        const extname = fileTypes.test(path.extname(file.originalname).toLowerCase());
+        const mimetype = fileTypes.test(file.mimetype);
+
+        if (extname && mimetype) {
+            cb(null, true);
+        } else {
+            cb(new Error("Only PDF files are allowed!"));
+        }
+    }
+});
+
 
 //database
 const db = new pg.Client({
@@ -315,10 +361,16 @@ app.post("/addforum", async (req, res) => {
     }
 });
 
+//
+
+
 //The course
 app.get("/course/:subject", async (req, res) => {
     const subject = req.params.subject;
     const slidesPath = path.join(__dirname, "public", "Course", subject, "slides");
+    currentSubject = subject;
+
+
 
     let slides = [];
 
@@ -331,11 +383,31 @@ app.get("/course/:subject", async (req, res) => {
     } catch (error) {
         console.error("Error reading slides:", error);
     }
+    const slidesPathPersonal = path.join(__dirname, "Workstation", String(user_id), subject, "slides");
+
+    let personalslides = [];
+    try {
+        // Read all slide filenames in the subject's slides folder
+        personalslides = fs.readdirSync(slidesPathPersonal)
+            .filter(file => file.endsWith(".pdf")) // Adjust file type if needed
+            .sort((a, b) => a.localeCompare(b, undefined, { numeric: true })); // Sort numerically (Lecture 01, 02...)
+
+    } catch (error) {
+        console.error("Error reading slides:", error);
+    }
 
     // Render course.ejs with the subject and slides
-    res.render("course.ejs", { subject, slides });
+    res.render("course.ejs", { subject, slides,personalslides,userid:user_id });
 });
 
+app.post("/uploadPdf", upload.single('pdfFile'), (req, res) => {
+    // if (!req.file) {
+    //     return res.status(400).send('No file uploaded.');
+    // }
+
+    console.log(currentSubject);
+    res.redirect(`/main`);
+});
 
 
 app.listen(port, () => {
