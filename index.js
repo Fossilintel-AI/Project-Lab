@@ -16,7 +16,16 @@ import axios from "axios";
 import bodyParser from "body-parser";
 import pg from "pg";
 import bcrypt, {hash} from "bcrypt";
+import fs from "fs";
+import  path from "path";
 
+//use for path finding
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 const app = express();
 const port = 3000;
 
@@ -164,10 +173,6 @@ app.post('/login', async (req, res) => {
 
 app.get("/main", async (req, res) => {
 
-
-    //To do feature
-
-
     // Render the welcome page with the books
     res.render("welcome.ejs");
 });
@@ -294,8 +299,6 @@ app.get("/forums", async (req, res) => {
 
     res.render("forum.ejs", { forumData, subjects, selectedSubject: subject, subjectSelected });
 });
-
-
 app.post("/addforum", async (req, res) => {
     const { name, surname, topic, problem, selectedSubject } = req.body;
     const date = new Date().toISOString().slice(0, 10); // YYYY-MM-DD format
@@ -310,6 +313,27 @@ app.post("/addforum", async (req, res) => {
         console.error(err);
         res.status(500).send("Error adding forum post");
     }
+});
+
+//The course
+app.get("/course/:subject", async (req, res) => {
+    const subject = req.params.subject;
+    const slidesPath = path.join(__dirname, "public", "Course", subject, "slides");
+
+    let slides = [];
+
+    try {
+        // Read all slide filenames in the subject's slides folder
+        slides = fs.readdirSync(slidesPath)
+            .filter(file => file.endsWith(".pdf")) // Adjust file type if needed
+            .sort((a, b) => a.localeCompare(b, undefined, { numeric: true })); // Sort numerically (Lecture 01, 02...)
+
+    } catch (error) {
+        console.error("Error reading slides:", error);
+    }
+
+    // Render course.ejs with the subject and slides
+    res.render("course.ejs", { subject, slides });
 });
 
 
