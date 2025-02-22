@@ -1,16 +1,4 @@
-// HINTS:
-// 1. Import express and axios
 
-// 2. Create an express app and set the port number.
-
-// 3. Use the public folder for static files.
-
-// 4. When the user goes to the home page it should render the index.ejs file.
-
-// 5. Use axios to get a random secret and pass it to index.ejs to display the
-// secret and the username of the secret.
-
-// 6. Listen on your predefined port and start the server.
 import express from "express";
 import axios from "axios";
 import bodyParser from "body-parser";
@@ -40,7 +28,6 @@ const saltRounds = 10;
 global.user_id = 0;
 global.currentSubject = null;
 
-// File upload
 
 
 // Set storage engine for Multer
@@ -63,7 +50,6 @@ const storage = multer.diskStorage({
         cb(null, file.originalname);
     }
 });
-
 // Initialize upload middleware
 const upload = multer({
     storage: storage,
@@ -98,10 +84,26 @@ db.connect((err) => {
     }
 });
 
+//for To-do List
 let items = [
-    // { id: 1, title: "Buy milk" },
-    // { id: 2, title: "Finish homework" },
 ];
+
+//Time table useful variables and function
+let timetable = [
+];
+const subjectColors = {};
+const predefinedColors = [
+    "#ffcc00", "#ff5733", "#28a745", "#17a2b8", "#6610f2",
+    "#e83e8c", "#6f42c1", "#fd7e14", "#20c997", "#dc3545"
+];
+function getSubjectColor(subject) {
+    if (!subjectColors[subject]) {
+        const hash = [...subject].reduce((acc, char) => acc + char.charCodeAt(0), 0);
+        subjectColors[subject] = predefinedColors[hash % predefinedColors.length];
+    }
+    return subjectColors[subject];
+}
+
 
 //Main ,Login and Sign-up Route
 app.get("/", async (req, res) => {
@@ -245,7 +247,9 @@ app.post('/add-book', async (req, res) => {
     res.render("welcome.ejs",{books:books});
 });
 app.get("/delete", (req, res) => {
+    //I need to change this to delete not get
     const bookId = parseInt(req.query.id, 10);
+
     db.query("Delete FROM readBooks WHERE id = $1",[bookId],async (err, result) => {
         if (err) {
             console.error("Error updating item:", err.stack);
@@ -310,7 +314,9 @@ app.post("/editItem", (req, res) => {
     });
 });
 app.post("/deleteItem", (req, res) => {
+    //needs to change to delete not post
     console.log(req.body);
+
     db.query("Delete FROM items WHERE id = $1",[req.body.deleteItemId],(err, result) => {
         if (err) {
             console.error("Error updating item:", err.stack);
@@ -361,7 +367,6 @@ app.post("/addforum", async (req, res) => {
     }
 });
 
-//
 
 
 //The course
@@ -399,7 +404,6 @@ app.get("/course/:subject", async (req, res) => {
     // Render course.ejs with the subject and slides
     res.render("course.ejs", { subject, slides,personalslides,userid:user_id });
 });
-
 app.post("/uploadPdf", upload.single('pdfFile'), (req, res) => {
     // if (!req.file) {
     //     return res.status(400).send('No file uploaded.');
@@ -407,6 +411,106 @@ app.post("/uploadPdf", upload.single('pdfFile'), (req, res) => {
 
     console.log(currentSubject);
     res.redirect(`/main`);
+});
+
+//The Time table feature
+app.get('/timetable', async (req, res) => {
+    try {
+        //const user_id = req.session.user_id || 1; // Replace with actual session user ID
+        const result = await db.query(
+            `SELECT * FROM timetable WHERE userid = $1`,
+            [user_id]
+        );
+        console.log(user_id);
+        const timetable = result.rows; // Extract results
+
+        console.log(timetable); // Debugging: print fetched timetable
+
+        res.render('timetable.ejs', { timetable });
+    } catch (err) {
+        console.error('Error fetching timetable:', err);
+        res.status(500).send('Error fetching timetable');
+    }
+
+
+});
+app.post('/addSubject', async(req, res) => {
+    const { day, startTime, endTime, subject, classType } = req.body;
+
+    // Get color for subject
+    const color = getSubjectColor(subject);
+
+    // Generate new ID
+    //const newId = timetable.length ? Math.max(...timetable.map(entry => entry.id)) + 1 : 1;
+
+    // Validate that startTime is before endTime
+    if (startTime >= endTime) {
+        return res.render('timetable.ejs', { timetable: [], errorMessage: "Start time must be before end time." });
+    }
+
+    // Check for overlapping times
+    const conflict = timetable.some(entry =>
+        entry.day === day &&
+        !(
+            (endTime <= entry.startTime) || (startTime >= entry.endTime) // No overlap condition
+        )
+    );
+
+    if (conflict) {
+        return res.render('timetable.ejs', { timetable, errorMessage: "Time slot overlaps with another subject." });
+    }
+
+    // Add the new subject with the assigned color
+    try {
+        await db.query(`INSERT INTO timetable (day, starttime, endtime, subject, classtype, color, userid)
+        VALUES ($1, $2, $3, $4, $5, $6, $7) `, [day, startTime, endTime, subject, classType, color, user_id]);
+    //timetable.push({ id: newId, day, startTime, endTime, subject, classType, color });
+
+    } catch (err) {
+        console.error('Error adding timetable entry:', err);
+        res.status(500).send('Error adding timetable entry');
+    }
+
+    res.redirect('/timetable');
+});
+app.post("/deleteSubject", async (req, res) => {
+    const { subject, day, startTime,subjectID } = req.body;
+    //const user_id = req.session.user_id || 1; // Replace with actual session user ID
+
+    try {
+
+        await db.query(`DELETE FROM timetable  WHERE userid = $1 AND subject = $2 AND day = $3 AND id = $4`, [user_id, subject, day,subjectID]);
+
+        res.redirect("/timetable");
+    } catch (err) {
+        console.error("Error deleting timetable entry:", err);
+        res.status(500).send("Error deleting timetable entry");
+    }
+});
+
+//PDF viewer
+app.get('/pdfview/:document', async (req, res) => {
+    console.log(req.params); // Logs: { document: 'BUSINESS LAW 1 - Introduction to law.pdf' }
+
+    const document = req.params.document;
+    const slidesPath = path.join(__dirname, "public", "Course", currentSubject, "slides");
+
+    // Construct the relative URL for the PDF
+    const pdfUrl = path.join('/Course', currentSubject, 'slides', document); // relative path
+
+    // Get all the PDF files in the directory
+    const filess = fs.readdirSync(slidesPath).filter(file => file.endsWith('.pdf'));
+
+    // Filter the files to find the specific document by matching the name
+    const files = filess.find(file => file.replace('.pdf', '') === document.replace('.pdf', ''));
+
+    if (!files) {
+        return res.status(404).send('PDF file not found');
+    }
+
+    console.log(pdfUrl); // Logs the relative URL
+
+    res.render('pdfviewer.ejs', { pdfUrl }); // Pass pdfUrl to the template
 });
 
 

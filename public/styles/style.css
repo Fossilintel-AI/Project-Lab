@@ -231,3 +231,170 @@
   color: #D2B48C; /* Light brown */
   opacity: 1;
 }
+
+/* ----------------------------------Timetable feature-------------------------------------- */
+.Timetable {
+  font-family: 'Arial', sans-serif;
+  background-color: sandybrown;
+  padding: 20px;
+  text-align: center;
+}
+
+.Timetable h1 {
+  color: #333;
+}
+
+.Timetable form {
+  width: 350px;
+  margin: 0 auto 20px;
+  padding: 20px;
+  background: #8B4513;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.Timetable label {
+  display: block;
+  margin-top: 10px;
+}
+
+.Timetable button {
+  margin-top: 15px;
+  padding: 10px;
+  /*//background-color: #8B4513;*/
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.Timetable button:hover {
+  /*background-color: #0056b3;*/
+}
+
+.Timetable table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 30px;
+}
+
+.Timetable th, .Timetable td {
+  padding: 5px;
+  border: 1px solid #ddd;
+  text-align: center;
+  vertical-align: middle;
+  height: 20px;
+}
+
+.Timetable th {
+  background-color: #8B4513;
+  color: white;
+}
+
+.Timetable .entry {
+  color: white;
+  font-weight: bold;
+  text-align: center;
+  font-size: 12px;
+  line-height: 20px;
+  border-radius: 0;
+}
+
+
+/* Style for the delete form */
+.entry {
+  position: relative;
+  padding: 10px;
+}
+
+/* Hide the form container by default */
+.delete-form {
+  display: none;
+}
+
+/* Show only the delete button when hovering */
+.entry:hover .delete-form {
+  display: block;
+  position: absolute;
+  top: 50%; /* Center vertically */
+  left: 50%; /* Center horizontally */
+  transform: translate(-50%, -50%); /* Adjust for exact center */
+  background: none; /* No background */
+  border: none; /* No border */
+  z-index: 1; /* Ensure it appears above everything */
+}
+
+/* Style the delete button */
+.delete-btn {
+  background: none;
+  border: none;
+  font-size: 16px; /* Slightly bigger to make it more visible */
+  color: #8B4513;
+  cursor: pointer;
+  padding: 2px;
+  width: 20px;
+  height: 20px;
+  line-height: 18px; /* Adjusted to fit */
+  text-align: center;
+}
+
+/* Change color on hover */
+.delete-btn:hover {
+  color: #8B4513;
+}
+
+
+
+
+/* ----------------------------------PDF viewer feature-------------------------------------- */
+
+/* PDF Container Styles */
+.pdf-container {
+  font-family: Arial, sans-serif;
+  background-color: #f3f3f3; /* Background color from the color theme */
+  color: #4e4e4e; /* Text color */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  height: 100vh;
+  margin: 0;
+  text-align: center;
+}
+
+.pdf-container h1 {
+  color: #a5b68d; /* Title color from the theme */
+}
+
+.pdf-container #pdf-render canvas {
+  width: 100%;
+  margin-top: 20px;
+  border-radius: 8px;
+}
+
+.pdf-container #controls {
+  margin-top: 20px;
+}
+
+.pdf-container .btn {
+  padding: 10px 20px;
+  margin: 5px;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+.pdf-container .btn-brown {
+  background-color: #a5b68d; /* Brown color from your theme */
+  color: white;
+}
+
+.pdf-container .btn-brown:hover {
+  background-color: #8c9a6d;
+}
+
+.pdf-container #page-num,
+.pdf-container #page-count {
+  font-weight: bold;
+}

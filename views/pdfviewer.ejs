@@ -1,0 +1,79 @@
+<%- include('header.ejs') %>
+<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.6.172/build/pdf.min.js"></script>
+
+<div class="pdf-container">
+    <h1 class =" text-brown" >PDF Viewer</h1>
+    <div id="pdf-render"></div>
+    <div id="controls">
+        <button class="btn-brown" id="prev">Previous</button>
+        <button class="btn-brown" id="next">Next</button>
+        <span>Page: <span id="page-num">1</span> / <span id="page-count">1</span></span>
+    </div>
+</div>
+
+<script>
+    const pdfUrl = "<%= pdfUrl %>"; // This should now be a relative path
+    console.log("PDF URL:", pdfUrl);
+
+    const pdfjsLib = window['pdfjs-dist/build/pdf'];
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.6.172/build/pdf.worker.min.js';
+
+    let pdfDoc = null;
+    let pageNum = 1;
+    const container = document.getElementById('pdf-render');
+    const pageNumElement = document.getElementById('page-num');
+    const pageCountElement = document.getElementById('page-count');
+    const notes = document.getElementById('notes');
+
+    pdfjsLib.getDocument(pdfUrl).promise.then(doc => {
+        console.log("PDF document loaded", doc);
+        pdfDoc = doc;
+        pageCountElement.textContent = doc.numPages;
+        renderPage(pageNum);
+    }).catch(err => {
+        console.error('Error loading PDF: ', err);
+        document.body.innerHTML = '<h2>Error loading PDF</h2>';
+    });
+
+    function renderPage(num) {
+        console.log("Rendering page:", num);
+        pdfDoc.getPage(num).then(page => {
+            const viewport = page.getViewport({ scale: 1 });
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            page.render({ canvasContext: context, viewport }).promise.then(() => {
+                container.innerHTML = '';
+                container.appendChild(canvas);
+                pageNumElement.textContent = num;
+            }).catch(err => {
+                console.error('Error rendering page: ', err);
+            });
+        }).catch(err => {
+            console.error('Error getting page: ', err);
+        });
+    }
+
+    document.getElementById('prev').addEventListener('click', () => {
+        if (pageNum <= 1) return;
+        pageNum--;
+        renderPage(pageNum);
+    });
+
+    document.getElementById('next').addEventListener('click', () => {
+        if (pageNum >= pdfDoc.numPages) return;
+        pageNum++;
+        renderPage(pageNum);
+    });
+
+    notes.addEventListener('input', () => {
+        localStorage.setItem(`notes-page-${pageNum}`, notes.value);
+    });
+
+    notes.addEventListener('focus', () => {
+        notes.value = localStorage.getItem(`notes-page-${pageNum}`) || '';
+    });
+</script>
+
+<%- include('footer.ejs') %>
