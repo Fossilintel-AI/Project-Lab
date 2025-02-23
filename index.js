@@ -12,6 +12,10 @@ import multer from "multer"
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
+//convert pdf to text and cohere
+import { CohereClientV2 } from 'cohere-ai'; // Import Cohere's SDK
+import pdfParse from 'pdf-parse';
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -105,10 +109,76 @@ function getSubjectColor(subject) {
 }
 
 
+//LLM Cohere and Questions Generation
+// Initialize Cohere client with your API key
+const cohere = new CohereClientV2({
+    token: 'SWaeBAPGPwj2ClLJ3ToDPqipg6sVGNvfCIrLDo9p', // Your Cohere API key
+});
+
+// Function to extract text from PDF
+async function extractTextFromPDF(filePath) {
+    try {
+        if (!fs.existsSync(filePath)) {
+            throw new Error(`File not found: ${filePath}`);
+        }
+        const dataBuffer = fs.readFileSync(filePath);
+        const pdfData = await pdfParse(dataBuffer);
+        return pdfData.text;
+    } catch (error) {
+        console.error('Error parsing PDF:', error);
+        throw error;
+    }
+}
+
+// Function to generate questions using Cohere
+async function generateQuestions(text) {
+    try {
+        // const prompt = `Based on the following text, generate a set of questions and Answers Text in the form as key: value pair object {dont include question and answer tags ,let the answer start with ***}:\n\nText: ${text}`;
+        const prompt = `Based on the following text, generate a set of questions and answers in the form of key-value pairs as an array of objects. Each object should contain a "question" and an "answer" field, return the array no words above it and please dont add "" on the array start and end, no newline. The output should look like this:
+
+[
+  { "question": "What is an apple?", "answer": "A fruit" },
+  { "question": "What is 2 + 2?", "answer": "4" },
+  { "question": "Who discovered gravity?", "answer": "Isaac Newton" }
+]
+
+Text:${text}
+`;
+
+        const response = await cohere.chat({
+            model: 'command-r-plus',
+            messages: [
+                { role: 'user', content: prompt }
+            ]
+        });
+
+        if (response.message && Array.isArray(response.message.content) && response.message.content[0].text) {
+            const generatedText = response.message.content[0].text.trim();
+            return generatedText;
+        } else {
+            throw new Error('Unexpected response structure');
+        }
+    } catch (error) {
+        console.error('Error generating questions:', error);
+        throw error;
+    }
+}
+
+
 //Main ,Login and Sign-up Route
 app.get("/", async (req, res) => {
 
     res.render("index.ejs", );
+    //res.render("test.ejs");
+});
+app.get("/about", async (req, res) => {
+
+    res.render("about.ejs", );
+    //res.render("test.ejs");
+});
+app.get("/contact", async (req, res) => {
+
+    res.render("contact.ejs", );
     //res.render("test.ejs");
 });
 app.get("/login", async (req, res) => {
@@ -511,6 +581,57 @@ app.get('/pdfview/:document', async (req, res) => {
     console.log(pdfUrl); // Logs the relative URL
 
     res.render('pdfviewer.ejs', { pdfUrl }); // Pass pdfUrl to the template
+});
+
+//flash-cards for Questions
+app.get('/generateQuestions/:document', async (req, res) => {
+    console.log(req.params); // Logs: { document: 'BUSINESS LAW 1 - Introduction to law.pdf' }
+
+
+    // Construct the relative URL for the PDF
+    const document = req.params.document;
+    const filePath = path.join(__dirname, "public", "Course", currentSubject, "slides",document); // relative path
+    console.log(filePath);
+
+    //const filePath = path.join(process.cwd(), 'uploads', req.params.filename);
+    try {
+        if (!fs.existsSync(filePath)) {
+            return res.status(404).send('File not found.');
+        }
+        console.log("We are in the right track")
+        const text = await extractTextFromPDF(filePath);
+        const questions = await generateQuestions(text);
+        const jsonObject = JSON.parse(questions);
+        //res.json({ questions });
+
+        const filePath2 = 'public/jsons/questions_and_answers.json';
+
+        // Write the data to the JSON file
+        fs.writeFile(filePath2, JSON.stringify(jsonObject, null, 4), (err) => {
+            if (err) {
+                console.log("Error writing to file:", err);
+            } else {
+                console.log(`Data has been saved to ${filePath}`);
+                res.redirect("/flashcards");
+            }
+        });
+
+
+    } catch (error) {
+        res.status(500).send('Error generating questions: ' + error.message);
+    }
+});
+app.get("/getFlashcards", (req, res) => {
+    const filePath = "public/jsons/questions_and_answers.json";
+    if (fs.existsSync(filePath)) {
+        const data = fs.readFileSync(filePath, "utf8");
+        res.json(JSON.parse(data));
+    } else {
+        res.status(404).json({ message: "No flashcards available" });
+    }
+});
+app.get("/flashcards", (req, res) => {
+    res.render("flashcards.ejs",{currentSubject});
 });
 
 

@@ -398,3 +398,88 @@
 .pdf-container #page-count {
   font-weight: bold;
 }
+
+
+
+/* ----------------------------------FlashCard feature-------------------------------------- */
+.flashCard {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  width: 100vw;
+  background-color: #fcfaee; /* Soft background color */
+}
+
+.flashCard .container {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 400px;
+}
+
+
+.flashCard h2 {
+  color: #2d3436;
+  font-weight: bold;
+  font-size: 28px;
+  margin-bottom: 20px;
+}
+
+.flashCard .flashcard {
+  width: 380px;
+  height: 220px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: bold;
+  cursor: pointer;
+  background: #ecdfcc; /* Flashcard color */
+  color: #2d3436;
+  box-shadow: 4px 6px 15px rgba(0, 0, 0, 0.15);
+  transition: transform 0.3s ease, background 0.3s ease;
+}
+
+.flashCard .flashcard:hover {
+  transform: scale(1.05);
+  background: #a5b68d; /* Slightly darker on hover */
+  color: white;
+}
+
+.flashCard .flashcard.flipped {
+  background: #a83559; /* Different color for answer side */
+  color: white;
+}
+
+.flashCard button {
+  margin: 10px;
+  padding: 12px 20px;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.flashCard #prev {
+  background-color: sandybrown;
+  color: white;
+}
+
+.flashCard #prev:hover {
+  background-color: saddlebrown;
+}
+
+.flashCard #next {
+  background-color: saddlebrown;
+  color: white;
+}
+
+.flashCard #next:hover {
+  background-color: sandybrown;
+}

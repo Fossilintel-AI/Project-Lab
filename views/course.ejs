@@ -10,6 +10,7 @@
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     Lecture <%= index + 1 %>: <%= slide.replace('.pdf', '') %>
                     <div class="d-flex">
+                        <a href="/generateQuestions/<%= encodeURIComponent(slide) %>" class="btn btn-sm btn-primary">Generate Flashcards</a>
                         <a href="/Course/<%= subject %>/slides/<%= encodeURIComponent(slide) %>" target="_blank" class="btn btn-sm btn-brown mr-2">Download</a>
                         <a href="/pdfview/<%= encodeURIComponent(slide) %>" class="btn btn-sm btn-primary">View in PDF Viewer</a>
                     </div>
