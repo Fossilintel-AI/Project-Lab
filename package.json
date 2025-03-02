@@ -16,8 +16,12 @@
     "cohere-ai": "^7.15.4",
     "ejs": "^3.1.9",
     "express": "^4.18.2",
+    "express-session": "^1.18.1",
     "fs": "^0.0.1-security",
     "multer": "^1.4.5-lts.1",
+    "nodemailer": "^6.10.0",
+    "passport": "^0.7.0",
+    "passport-local": "^1.0.0",
     "path": "^0.12.7",
     "pdf-parse": "^1.1.1",
     "pg": "^8.13.1"

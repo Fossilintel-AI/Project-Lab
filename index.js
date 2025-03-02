@@ -16,6 +16,15 @@ import { dirname, join } from 'path';
 import { CohereClientV2 } from 'cohere-ai'; // Import Cohere's SDK
 import pdfParse from 'pdf-parse';
 
+//sessions and passport for cookies
+import session from "express-session";
+import passport from "passport";
+import {Strategy} from "passport-local";
+
+//email sender
+import nodemailer from "nodemailer";
+
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -31,6 +40,18 @@ app.use('/Workstation', express.static(path.join(__dirname, 'Workstation')));
 const saltRounds = 10;
 global.user_id = 0;
 global.currentSubject = null;
+
+//sessions and cookies.
+app.use(session({
+    secret:"WebApplication",
+    resave:false,
+    saveUninitialized:true,
+    cookie: { secure: false }
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
+
 
 
 
@@ -164,6 +185,58 @@ Text:${text}
     }
 }
 
+//Email sender settings
+const transporter = nodemailer.createTransport({
+    service: "gmail", // Change this if using another email provider
+    auth: {
+        user: "fossil.application@gmail.com", // Replace with your email
+        pass: "rgegmcxlctqrzjar"  // Use an App Password for Gmail
+    }
+});
+
+function sendWelcomeEmail(userEmail, userName) {
+    const mailOptions = {
+        from: "fossil.application@gmail.com",
+        to: userEmail,
+        subject: "Welcome to EverythingLearn - Your Personalized e-Learning Hub!",
+        html: `
+            <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+                <h2 style="color: #8c7258;">Welcome to EverythingLearn, ${userName}!</h2>
+                <p>Dear ${userName},</p>
+                <p>We’re thrilled to have you as part of our learning community. EverythingLearn is designed to enhance your educational journey with powerful features that help you stay organized and engaged.</p>
+                
+                <h3 style="color: #a58b69;">Here’s what you can do on EverythingLearn:</h3>
+                <ul>
+                    <li>📚 Explore and enroll in courses tailored to your interests.</li>
+                    <li>📝 Access lecture notes, textbooks, and self-study resources.</li>
+                    <li>✅ Keep track of your tasks with the built-in To-Do list.</li>
+                    <li>📅 Plan your schedule with our interactive Timetable feature.</li>
+                    <li>📖 Track the books you've read and gain insights from them.</li>
+                    <li>🎯 Test your knowledge with AI-generated quizzes.</li>
+                </ul>
+                
+                <p>We're committed to making your learning experience as smooth as possible.</p>
+                
+                <h3 style="color: #a58b69;">Need Help?</h3>
+                <p>If you ever have any questions or encounter any issues, our support team is here to assist you.</p>
+                <p>📧 <strong>Email:</strong> <a href="mailto:fossilintel@gmail.com">fossilintel@gmail.com</a></p>
+                
+                <p>Start your learning adventure today and make the most of your educational journey!</p>
+                
+                <p style="margin-top: 20px;">Best regards,</p>
+                <p><strong>The EverythingLearn Team</strong></p>
+            </div>
+        `
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            console.error("Error sending email:", error);
+        } else {
+            console.log("Welcome email sent:", info.response);
+        }
+    });
+}
 
 //Main ,Login and Sign-up Route
 app.get("/", async (req, res) => {
@@ -182,18 +255,11 @@ app.get("/contact", async (req, res) => {
     //res.render("test.ejs");
 });
 app.get("/login", async (req, res) => {
-
-
-
+    console.log("we are here1");
     res.render("login.ejs" );
 });
 app.get("/register", async (req, res) => {
-
-
-
     res.render("signup.ejs" );
-
-
     // res.render("index.ejs", { secret: "" ,user: ""});
 });
 
@@ -201,7 +267,7 @@ app.post("/signup", async (req, res) => {
     const { first_name, last_name, email, password } = req.body;
 
     // Check if any of the fields are empty
-    if (!first_name || !last_name || !email || !password ) {
+    if (!first_name || !last_name || !email || !password) {
         return res.render("signup.ejs", { error: "All fields are required!" });
     }
 
@@ -210,430 +276,746 @@ app.post("/signup", async (req, res) => {
         const checkResult = await db.query("SELECT * FROM users WHERE email = $1", [email]);
 
         if (checkResult.rows.length > 0) {
-            res.render("signup.ejs", { error: "Email already exists. Try logging in." });
-        } else {
-            // If email does not exist, hash the password
-            bcrypt.hash(password, saltRounds, async (err, hash) => {
-                if (err) {
-                    console.log("Error hashing the password", err);
-                } else {
-                    // Insert the new user into the database
-                    try {
-                        const result = await db.query(
-                            "INSERT INTO users (first_name, last_name, email, password) VALUES ($1, $2, $3, $4) RETURNING user_id",
-                            [first_name, last_name, email, hash]
-                        );
-
-                        user_id = result.rows[0].user_id;
-
-                        // // Fetch the books that the new user has read
-                        // const booksResult = await db.query("SELECT * FROM readBooks WHERE userid = $1", [user_id]);
-                        // const books = booksResult.rows;
-                        //
-                        // // Render the welcome page with the books
-                        // res.render("welcome.ejs", { books: books });
-                        res.redirect("/main");
-                    } catch (error) {
-                        console.log("Error inserting user:", error);
-                        res.render("signup.ejs", { error: "An error occurred. Please try again." });
-                    }
-                }
-            });
+            return res.render("signup.ejs", { error: "Email already exists. Try logging in." });
         }
+
+        // Hash the password
+        bcrypt.hash(password, saltRounds, async (err, hash) => {
+            if (err) {
+                console.log("Error hashing the password", err);
+                return res.render("signup.ejs", { error: "An error occurred. Please try again." });
+            }
+
+            try {
+                // Insert the new user into the database
+                const result = await db.query(
+                    "INSERT INTO users (first_name, last_name, email, password) VALUES ($1, $2, $3, $4) RETURNING *",
+                    [first_name, last_name, email, hash]
+                );
+
+                const user = result.rows[0];
+                const checkResultID = await db.query("SELECT user_id FROM users WHERE email = $1", [email]);
+                const userData =  checkResultID.rows[0];
+                user_id =userData.user_id;
+
+                // Send Welcome Email
+                sendWelcomeEmail(user.email, user.first_name);
+
+                // Automatically log the user in after signup
+                req.login(user, (err) => {
+                    if (err) {
+                        console.error("Login error after signup:", err);
+                        return res.render("signup.ejs", { error: "Login failed after signup. Please try logging in." });
+                    }
+
+                    return res.redirect("/main"); // Redirect user to main page after login
+                });
+
+            } catch (error) {
+                console.log("Error inserting user:", error);
+                return res.render("signup.ejs", { error: "An error occurred. Please try again." });
+            }
+        });
+
     } catch (err) {
         console.log("Error checking for existing email:", err);
-        res.render("signup.ejs", { error: "An error occurred. Please try again." });
+        return res.render("signup.ejs", { error: "An error occurred. Please try again." });
     }
 });
-app.post('/login', async (req, res) => {
-    const email = req.body.email;
-    const loginPassword = req.body.password;
 
+
+// app.post("/signup", async (req, res) => {
+//     const { first_name, last_name, email, password } = req.body;
+//
+//     // Check if any of the fields are empty
+//     if (!first_name || !last_name || !email || !password ) {
+//         return res.render("signup.ejs", { error: "All fields are required!" });
+//     }
+//
+//     try {
+//         // Check if the email already exists
+//         const checkResult = await db.query("SELECT * FROM users WHERE email = $1", [email]);
+//
+//         if (checkResult.rows.length > 0) {
+//             res.render("signup.ejs", { error: "Email already exists. Try logging in." });
+//         } else {
+//             // If email does not exist, hash the password
+//             bcrypt.hash(password, saltRounds, async (err, hash) => {
+//                 if (err) {
+//                     console.log("Error hashing the password", err);
+//                 } else {
+//                     // Insert the new user into the database
+//                     try {
+//                         const result = await db.query(
+//                             "INSERT INTO users (first_name, last_name, email, password) VALUES ($1, $2, $3, $4) RETURNING user_id",
+//                             [first_name, last_name, email, hash]
+//                         );
+//
+//                         user_id = result.rows[0].user_id;
+//
+//                         // // Fetch the books that the new user has read
+//                         // const booksResult = await db.query("SELECT * FROM readBooks WHERE userid = $1", [user_id]);
+//                         // const books = booksResult.rows;
+//                         //
+//                         // // Render the welcome page with the books
+//                         // res.render("welcome.ejs", { books: books });
+//                         res.redirect("/main");
+//                     } catch (error) {
+//                         console.log("Error inserting user:", error);
+//                         res.render("signup.ejs", { error: "An error occurred. Please try again." });
+//                     }
+//                 }
+//             });
+//         }
+//     } catch (err) {
+//         console.log("Error checking for existing email:", err);
+//         res.render("signup.ejs", { error: "An error occurred. Please try again." });
+//     }
+// });
+
+
+app.get("/main", async (req, res) => {
+    if(req.isAuthenticated())
+    {
+        res.render("welcome.ejs");
+    }
+    else{
+        res.redirect("/login");
+    }
+    // Render the welcome page with the books
+
+});
+// app.post(
+//     "/login",
+//     passport.authenticate("local", {
+//
+//         successRedirect: "/main",
+//         failureRedirect: "/main",
+//     })
+//
+// );
+
+
+passport.use(new Strategy({
+    usernameField: 'email',  // The name of the input field in the form for the email
+    passwordField: 'password'  // The name of the input field in the form for the password
+}, async function verify(email, password, cb) {
+    console.log("Strategy called with:", email, password);
     try {
         const result = await db.query("SELECT * FROM users WHERE email = $1", [email]);
-
         if (result.rows.length > 0) {
             const user = result.rows[0];
             const storedHashPassword = user.password;
 
-            // Compare the entered password with the stored hashed password
-            bcrypt.compare(loginPassword, storedHashPassword, async (err, isMatch) => {
+            bcrypt.compare(password, storedHashPassword, (err, isMatch) => {
                 if (err) {
-                    console.log("Error comparing password: ", err);
-                    res.send("Error comparing password");
+                    return cb(err);
+                }
+                if (isMatch) {
+                    user_id = user.user_id;
+                    return cb(null, user);
                 } else {
-                    if (isMatch) {
-                        // Fetch the books that the user has read
-                        user_id = user.user_id;
-                        // console.log(user_id);
-                        // const booksResult = await db.query("SELECT * FROM readBooks WHERE userid = $1", [user_id]);
-                        // const books = booksResult.rows;
-                        //
-                        // // Render the welcome page with the books
-                        // res.render("welcome.ejs", { books: books });
-                        res.redirect("/main");
-                    } else {
-                        // Render the login page with an error message
-                        res.render("login.ejs", { error: "Incorrect Password" });
-                    }
+                    return cb(null, false, { message: "Incorrect password" });
                 }
             });
         } else {
-            // Render the login page with an error message for user not found
-            res.render("login.ejs", { error: "User not found" });
+            return cb(null, false, { message: "User not found" });
         }
     } catch (err) {
-        console.log("Database query error: ", err);
-        res.status(500).send("Error accessing the database");
+        console.log("Database query error:", err);
+        return cb(err);
     }
+}));
+
+
+app.post("/login", (req, res, next) => {
+
+    console.log("Received credentials:", req.body);
+    passport.authenticate("local", (err, user, info) => {
+        if (err) {
+            console.error("Authentication error:", err);
+            return res.redirect("/login");
+        }
+        if (!user) {
+            console.log("Authentication failed:", info.message);  // Get the error message from info
+            return res.render("login.ejs", { error: info.message });  // Render login with the error message
+        }
+        req.login(user, (err) => {
+            if (err) {
+                console.error("Error logging in:", err);
+                return res.redirect("/login");
+            }
+            console.log("User successfully logged in");
+            return res.redirect("/main");
+        });
+    })(req, res, next);
 });
 
 
-app.get("/main", async (req, res) => {
+// app.post('/login', async (req, res) => {
+//     const email = req.body.email;
+//     const loginPassword = req.body.password;
+//
+//     try {
+//         const result = await db.query("SELECT * FROM users WHERE email = $1", [email]);
+//
+//         if (result.rows.length > 0) {
+//             const user = result.rows[0];
+//             const storedHashPassword = user.password;
+//
+//             // Compare the entered password with the stored hashed password
+//             bcrypt.compare(loginPassword, storedHashPassword, async (err, isMatch) => {
+//                 if (err) {
+//                     console.log("Error comparing password: ", err);
+//                     res.send("Error comparing password");
+//                 } else {
+//                     if (isMatch) {
+//                         // Fetch the books that the user has read
+//                         user_id = user.user_id;
+//                         // console.log(user_id);
+//                         // const booksResult = await db.query("SELECT * FROM readBooks WHERE userid = $1", [user_id]);
+//                         // const books = booksResult.rows;
+//                         //
+//                         // // Render the welcome page with the books
+//                         // res.render("welcome.ejs", { books: books });
+//                         res.redirect("/main");
+//                     } else {
+//                         // Render the login page with an error message
+//                         res.render("login.ejs", { error: "Incorrect Password" });
+//                     }
+//                 }
+//             });
+//         } else {
+//             // Render the login page with an error message for user not found
+//             res.render("login.ejs", { error: "User not found" });
+//         }
+//     } catch (err) {
+//         console.log("Database query error: ", err);
+//         res.status(500).send("Error accessing the database");
+//     }
+// });
 
-    // Render the welcome page with the books
-    res.render("welcome.ejs");
-});
+
 
 //The Book Feature
 app.get("/books", async (req, res) => {
 
     //res.render("index.ejs", );
     //book feature
-    const booksResult = await db.query("SELECT * FROM readBooks WHERE userid = $1", [user_id]);
-    const books = booksResult.rows;
 
-    res.render("booksRead.ejs", {books: books});
+    if(req.isAuthenticated())
+    {
+        const booksResult = await db.query("SELECT * FROM readBooks WHERE userid = $1", [user_id]);
+        const books = booksResult.rows;
+
+        res.render("booksRead.ejs", {books: books});
+    }
+    else{
+        res.redirect("/login");
+    }
+
 });
 app.get('/newbook', (req, res) => {
-    res.render('newbook.ejs',{listTitle:"Add a New Book"}); // Renders the newbook.ejs file
+    if(req.isAuthenticated())
+    {
+        res.render('newbook.ejs',{listTitle:"Add a New Book"});
+    }
+    else{
+        res.redirect("/login");
+    }
+
+   //Renders the newbook.ejs file
 });
 app.post('/add-book', async (req, res) => {
-    const {title, date, rating, notes} = req.body;
-    const item = req.body.newItem;
-    db.query("INSERT INTO readBooks (title,date,rating,notes,userid) VALUES($1,$2,$3,$4,$5)", [title, date, rating, notes, user_id]);
-    const booksResult = await db.query("SELECT * FROM readBooks WHERE userid = $1", [user_id]);
-    const books = booksResult.rows;
-    res.render("welcome.ejs",{books:books});
+
+    if(req.isAuthenticated())
+    {
+        const {title, date, rating, notes} = req.body;
+        const item = req.body.newItem;
+        db.query("INSERT INTO readBooks (title,date,rating,notes,userid) VALUES($1,$2,$3,$4,$5)", [title, date, rating, notes, user_id]);
+        const booksResult = await db.query("SELECT * FROM readBooks WHERE userid = $1", [user_id]);
+        const books = booksResult.rows;
+        res.render("welcome.ejs",{books:books});
+    }
+    else{
+        res.redirect("/login");
+    }
+
+
 });
 app.get("/delete", (req, res) => {
     //I need to change this to delete not get
-    const bookId = parseInt(req.query.id, 10);
 
-    db.query("Delete FROM readBooks WHERE id = $1",[bookId],async (err, result) => {
-        if (err) {
-            console.error("Error updating item:", err.stack);
-        } else {
-            console.log("Item updated successfully!");
-            const booksResult = await db.query("SELECT * FROM readBooks WHERE userid = $1", [user_id]);
-            const books = booksResult.rows;
-            res.render("welcome.ejs", {books: books});
-        }
-    });
+    if(req.isAuthenticated())
+    {
+        const bookId = parseInt(req.query.id, 10);
+
+        db.query("Delete FROM readBooks WHERE id = $1",[bookId],async (err, result) => {
+            if (err) {
+                console.error("Error updating item:", err.stack);
+            } else {
+                console.log("Item updated successfully!");
+                const booksResult = await db.query("SELECT * FROM readBooks WHERE userid = $1", [user_id]);
+                const books = booksResult.rows;
+                res.render("welcome.ejs", {books: books});
+            }
+        });
+    }
+    else{
+        res.redirect("/login");
+    }
+
 });
 app.get("/edit", async (req, res) => {
-    const bookId = parseInt(req.query.id, 10); // Ensure bookId is an integer
-    const result = await db.query("SELECT * FROM readBooks WHERE id = $1", [bookId]); // Use parameterized queries to prevent SQL injection
 
-    console.log(result.rows[0]); // This will log the fetched book
+    if(req.isAuthenticated())
+    {
+        const bookId = parseInt(req.query.id, 10); // Ensure bookId is an integer
+        const result = await db.query("SELECT * FROM readBooks WHERE id = $1", [bookId]); // Use parameterized queries to prevent SQL injection
 
-    if (result.rows.length > 0) {
-        res.render("editBook.ejs", { book: result.rows[0] }); // Pass the first row to the template
-    } else {
-        res.status(404).send('Book not found'); // Handle case if no book is found
+        console.log(result.rows[0]); // This will log the fetched book
+
+        if (result.rows.length > 0) {
+            res.render("editBook.ejs", { book: result.rows[0] }); // Pass the first row to the template
+        } else {
+            res.status(404).send('Book not found'); // Handle case if no book is found
+        }
     }
+    else{
+        res.redirect("/login");
+    }
+
 });
 app.post('/edit-book', async (req, res) => {
-    const {title, date, rating, notes} = req.body;
-    const id = parseInt(req.query.id, 10);
-    const item = req.body.newItem;
-    db.query("UPDATE readBooks SET title = $1 , date = $2 , rating= $3 , notes = $4 WHERE id = $5", [title, date, rating, notes, id]);
-    const booksResult = await db.query("SELECT * FROM readBooks WHERE userid = $1", [user_id]);
-    const books = booksResult.rows;
-    res.render("welcome.ejs", {books: books});
+
+    if(req.isAuthenticated())
+    {
+        const {title, date, rating, notes} = req.body;
+        const id = parseInt(req.query.id, 10);
+        const item = req.body.newItem;
+        db.query("UPDATE readBooks SET title = $1 , date = $2 , rating= $3 , notes = $4 WHERE id = $5", [title, date, rating, notes, id]);
+        const booksResult = await db.query("SELECT * FROM readBooks WHERE userid = $1", [user_id]);
+        const books = booksResult.rows;
+        res.render("welcome.ejs", {books: books});
+    }
+    else{
+        res.redirect("/login");
+    }
+
 });
 
 
 //To-do Feature
 app.get("/todo-list", async (req, res) => {
 
-    //res.render("index.ejs", );
-    //Todo feature
-    const result = await db.query("SELECT * FROM items WHERE userid = $1", [user_id]);
-    items = result.rows;
+    if(req.isAuthenticated())
+    {
+        //res.render("index.ejs", );
+        //Todo feature
+        const result = await db.query("SELECT * FROM items WHERE userid = $1", [user_id]);
+        items = result.rows;
 
-    res.render("todolist.ejs", {
-        listTitle: "Today",
-        listItems: items,
-    });
+        res.render("todolist.ejs", {
+            listTitle: "Today",
+            listItems: items,
+        });
+    }
+    else{
+        res.redirect("/login");
+    }
+
 });
 app.post("/addItem", (req, res) => {
-    const item = req.body.newItem;
-    db.query("INSERT INTO items (title,userid) VALUES($1,$2)",[item,user_id]);
-    res.redirect("/main");
+    if(req.isAuthenticated())
+    {
+        const item = req.body.newItem;
+        db.query("INSERT INTO items (title,userid) VALUES($1,$2)",[item,user_id]);
+        res.redirect("/todo-list");
+    }
+    else{
+        res.redirect("/login");
+    }
+
+
 });
 app.post("/editItem", (req, res) => {
-    console.log(req.body);
-    db.query("UPDATE items SET title = $1 WHERE id = $2",[req.body.updatedItemTitle,req.body.updatedItemId],(err, result) => {
-        if (err) {
-            console.error("Error updating item:", err.stack);
-        } else {
-            console.log("Item updated successfully!");
-            res.redirect("/main");
-        }
-    });
+    if(req.isAuthenticated())
+    {
+        console.log(req.body);
+        db.query("UPDATE items SET title = $1 WHERE id = $2",[req.body.updatedItemTitle,req.body.updatedItemId],(err, result) => {
+            if (err) {
+                console.error("Error updating item:", err.stack);
+            } else {
+                console.log("Item updated successfully!");
+                res.redirect("/todo-list");
+            }
+        });
+    }
+    else{
+        res.redirect("/login");
+    }
+
+
 });
 app.post("/deleteItem", (req, res) => {
-    //needs to change to delete not post
-    console.log(req.body);
+    if(req.isAuthenticated())
+    {
+        //needs to change to delete not post
+        console.log(req.body);
 
-    db.query("Delete FROM items WHERE id = $1",[req.body.deleteItemId],(err, result) => {
-        if (err) {
-            console.error("Error updating item:", err.stack);
-        } else {
-            console.log("Item updated successfully!");
-            res.redirect("/main");
-        }
-    });
+        db.query("Delete FROM items WHERE id = $1",[req.body.deleteItemId],(err, result) => {
+            if (err) {
+                console.error("Error updating item:", err.stack);
+            } else {
+                console.log("Item updated successfully!");
+                res.redirect("/todo-list");
+            }
+        });
+    }
+    else{
+        res.redirect("/login");
+    }
+
+
 });
 
 //The forum feature
 app.get("/forums", async (req, res) => {
-    const { subject } = req.query; // Get the selected subject from query params
-    const subjects = [
-        "Programming 1",
-        "Programming 3",
-        "Calculus",
-        "Business Law",
-        "Data Driven System",
-        "Object Oriented Design"
-    ];
+    if(req.isAuthenticated())
+    {
+        const { subject } = req.query; // Get the selected subject from query params
+        const subjects = [
+            "Programming 1",
+            "Programming 3",
+            "Calculus",
+            "Business Law",
+            "Data Driven System",
+            "Object Oriented Design"
+        ];
 
-    let forumData = [];
-    let subjectSelected = false;
+        let forumData = [];
+        let subjectSelected = false;
 
-    if (subject) {
-        subjectSelected = true;
-        // Fetch forum posts filtered by selected subject
-        const forumResult = await db.query("SELECT * FROM forum_posts WHERE subject = $1", [subject]);
-        forumData = forumResult.rows;
+        if (subject) {
+            subjectSelected = true;
+            // Fetch forum posts filtered by selected subject
+            const forumResult = await db.query("SELECT * FROM forum_posts WHERE subject = $1", [subject]);
+            forumData = forumResult.rows;
+        }
+
+        res.render("forum.ejs", { forumData, subjects, selectedSubject: subject, subjectSelected });
+    }
+    else{
+        res.redirect("/login");
     }
 
-    res.render("forum.ejs", { forumData, subjects, selectedSubject: subject, subjectSelected });
+
 });
 app.post("/addforum", async (req, res) => {
-    const { name, surname, topic, problem, selectedSubject } = req.body;
-    const date = new Date().toISOString().slice(0, 10); // YYYY-MM-DD format
+    if(req.isAuthenticated())
+    {
+        const { name, surname, topic, problem, selectedSubject } = req.body;
+        const date = new Date().toISOString().slice(0, 10); // YYYY-MM-DD format
 
-    try {
-        await db.query(
-            "INSERT INTO forum_posts (name, surname, subject, topic, problem, date) VALUES ($1, $2, $3, $4, $5, $6)",
-            [name, surname, selectedSubject, topic, problem, date]
-        );
-        res.redirect(`/forums?subject=${selectedSubject}`); // Redirect back to the selected subject
-    } catch (err) {
-        console.error(err);
-        res.status(500).send("Error adding forum post");
+        try {
+            await db.query(
+                "INSERT INTO forum_posts (name, surname, subject, topic, problem, date) VALUES ($1, $2, $3, $4, $5, $6)",
+                [name, surname, selectedSubject, topic, problem, date]
+            );
+            res.redirect(`/forums?subject=${selectedSubject}`); // Redirect back to the selected subject
+        } catch (err) {
+            console.error(err);
+            res.status(500).send("Error adding forum post");
+        }
     }
+    else{
+        res.redirect("/login");
+    }
+
+
 });
 
 
 
 //The course
 app.get("/course/:subject", async (req, res) => {
-    const subject = req.params.subject;
-    const slidesPath = path.join(__dirname, "public", "Course", subject, "slides");
-    currentSubject = subject;
+    if(req.isAuthenticated())
+    {
+        const subject = req.params.subject;
+        const slidesPath = path.join(__dirname, "public", "Course", subject, "slides");
+        currentSubject = subject;
 
 
 
-    let slides = [];
+        let slides = [];
 
-    try {
-        // Read all slide filenames in the subject's slides folder
-        slides = fs.readdirSync(slidesPath)
-            .filter(file => file.endsWith(".pdf")) // Adjust file type if needed
-            .sort((a, b) => a.localeCompare(b, undefined, { numeric: true })); // Sort numerically (Lecture 01, 02...)
+        try {
+            // Read all slide filenames in the subject's slides folder
+            slides = fs.readdirSync(slidesPath)
+                .filter(file => file.endsWith(".pdf")) // Adjust file type if needed
+                .sort((a, b) => a.localeCompare(b, undefined, { numeric: true })); // Sort numerically (Lecture 01, 02...)
 
-    } catch (error) {
-        console.error("Error reading slides:", error);
+        } catch (error) {
+            console.error("Error reading slides:", error);
+        }
+        const slidesPathPersonal = path.join(__dirname, "Workstation", String(user_id), subject, "slides");
+
+        let personalslides = [];
+        try {
+            // Read all slide filenames in the subject's slides folder
+            personalslides = fs.readdirSync(slidesPathPersonal)
+                .filter(file => file.endsWith(".pdf")) // Adjust file type if needed
+                .sort((a, b) => a.localeCompare(b, undefined, { numeric: true })); // Sort numerically (Lecture 01, 02...)
+
+        } catch (error) {
+            console.error("Error reading slides:", error);
+        }
+
+        // Render course.ejs with the subject and slides
+        res.render("course.ejs", { subject, slides,personalslides,userid:user_id });
     }
-    const slidesPathPersonal = path.join(__dirname, "Workstation", String(user_id), subject, "slides");
-
-    let personalslides = [];
-    try {
-        // Read all slide filenames in the subject's slides folder
-        personalslides = fs.readdirSync(slidesPathPersonal)
-            .filter(file => file.endsWith(".pdf")) // Adjust file type if needed
-            .sort((a, b) => a.localeCompare(b, undefined, { numeric: true })); // Sort numerically (Lecture 01, 02...)
-
-    } catch (error) {
-        console.error("Error reading slides:", error);
+    else{
+        res.redirect("/login");
     }
 
-    // Render course.ejs with the subject and slides
-    res.render("course.ejs", { subject, slides,personalslides,userid:user_id });
+
 });
 app.post("/uploadPdf", upload.single('pdfFile'), (req, res) => {
     // if (!req.file) {
     //     return res.status(400).send('No file uploaded.');
     // }
+    if(req.isAuthenticated())
+    {
 
-    console.log(currentSubject);
-    res.redirect(`/main`);
+        //Need to fix the redirection
+        console.log(currentSubject);
+        res.redirect(`/main`);
+    }
+    else{
+        res.redirect("/login");
+    }
+
+
 });
 
 //The Time table feature
 app.get('/timetable', async (req, res) => {
-    try {
-        //const user_id = req.session.user_id || 1; // Replace with actual session user ID
-        const result = await db.query(
-            `SELECT * FROM timetable WHERE userid = $1`,
-            [user_id]
-        );
-        console.log(user_id);
-        const timetable = result.rows; // Extract results
+    if(req.isAuthenticated())
+    {
+        try {
+            //const user_id = req.session.user_id || 1; // Replace with actual session user ID
+            const result = await db.query(
+                `SELECT * FROM timetable WHERE userid = $1`,
+                [user_id]
+            );
+            console.log(user_id);
+            const timetable = result.rows; // Extract results
 
-        console.log(timetable); // Debugging: print fetched timetable
+            console.log(timetable); // Debugging: print fetched timetable
 
-        res.render('timetable.ejs', { timetable });
-    } catch (err) {
-        console.error('Error fetching timetable:', err);
-        res.status(500).send('Error fetching timetable');
+            res.render('timetable.ejs', { timetable });
+        } catch (err) {
+            console.error('Error fetching timetable:', err);
+            res.status(500).send('Error fetching timetable');
+        }
+
     }
+    else{
+        res.redirect("/login");
+    }
+
 
 
 });
 app.post('/addSubject', async(req, res) => {
-    const { day, startTime, endTime, subject, classType } = req.body;
 
-    // Get color for subject
-    const color = getSubjectColor(subject);
+    if(req.isAuthenticated())
+    {
+        const { day, startTime, endTime, subject, classType } = req.body;
 
-    // Generate new ID
-    //const newId = timetable.length ? Math.max(...timetable.map(entry => entry.id)) + 1 : 1;
+        // Get color for subject
+        const color = getSubjectColor(subject);
 
-    // Validate that startTime is before endTime
-    if (startTime >= endTime) {
-        return res.render('timetable.ejs', { timetable: [], errorMessage: "Start time must be before end time." });
-    }
+        // Generate new ID
+        //const newId = timetable.length ? Math.max(...timetable.map(entry => entry.id)) + 1 : 1;
 
-    // Check for overlapping times
-    const conflict = timetable.some(entry =>
-        entry.day === day &&
-        !(
-            (endTime <= entry.startTime) || (startTime >= entry.endTime) // No overlap condition
-        )
-    );
+        // Validate that startTime is before endTime
+        if (startTime >= endTime) {
+            return res.render('timetable.ejs', { timetable: [], errorMessage: "Start time must be before end time." });
+        }
 
-    if (conflict) {
-        return res.render('timetable.ejs', { timetable, errorMessage: "Time slot overlaps with another subject." });
-    }
+        // Check for overlapping times
+        const conflict = timetable.some(entry =>
+            entry.day === day &&
+            !(
+                (endTime <= entry.startTime) || (startTime >= entry.endTime) // No overlap condition
+            )
+        );
 
-    // Add the new subject with the assigned color
-    try {
-        await db.query(`INSERT INTO timetable (day, starttime, endtime, subject, classtype, color, userid)
+        if (conflict) {
+            return res.render('timetable.ejs', { timetable, errorMessage: "Time slot overlaps with another subject." });
+        }
+
+        // Add the new subject with the assigned color
+        try {
+            await db.query(`INSERT INTO timetable (day, starttime, endtime, subject, classtype, color, userid)
         VALUES ($1, $2, $3, $4, $5, $6, $7) `, [day, startTime, endTime, subject, classType, color, user_id]);
-    //timetable.push({ id: newId, day, startTime, endTime, subject, classType, color });
+            //timetable.push({ id: newId, day, startTime, endTime, subject, classType, color });
 
-    } catch (err) {
-        console.error('Error adding timetable entry:', err);
-        res.status(500).send('Error adding timetable entry');
+        } catch (err) {
+            console.error('Error adding timetable entry:', err);
+            res.status(500).send('Error adding timetable entry');
+        }
+
+        res.redirect('/timetable');
+    }
+    else{
+        res.redirect("/login");
     }
 
-    res.redirect('/timetable');
 });
 app.post("/deleteSubject", async (req, res) => {
-    const { subject, day, startTime,subjectID } = req.body;
-    //const user_id = req.session.user_id || 1; // Replace with actual session user ID
+    if(req.isAuthenticated())
+    {
+        const { subject, day, startTime,subjectID } = req.body;
+        //const user_id = req.session.user_id || 1; // Replace with actual session user ID
 
-    try {
+        try {
 
-        await db.query(`DELETE FROM timetable  WHERE userid = $1 AND subject = $2 AND day = $3 AND id = $4`, [user_id, subject, day,subjectID]);
+            await db.query(`DELETE FROM timetable  WHERE userid = $1 AND subject = $2 AND day = $3 AND id = $4`, [user_id, subject, day,subjectID]);
 
-        res.redirect("/timetable");
-    } catch (err) {
-        console.error("Error deleting timetable entry:", err);
-        res.status(500).send("Error deleting timetable entry");
+            res.redirect("/timetable");
+        } catch (err) {
+            console.error("Error deleting timetable entry:", err);
+            res.status(500).send("Error deleting timetable entry");
+        }
     }
+    else{
+        res.redirect("/login");
+    }
+
+
 });
 
 //PDF viewer
 app.get('/pdfview/:document', async (req, res) => {
-    console.log(req.params); // Logs: { document: 'BUSINESS LAW 1 - Introduction to law.pdf' }
+    if(req.isAuthenticated())
+    {
+        console.log(req.params); // Logs: { document: 'BUSINESS LAW 1 - Introduction to law.pdf' }
 
-    const document = req.params.document;
-    const slidesPath = path.join(__dirname, "public", "Course", currentSubject, "slides");
+        const document = req.params.document;
+        const slidesPath = path.join(__dirname, "public", "Course", currentSubject, "slides");
 
-    // Construct the relative URL for the PDF
-    const pdfUrl = path.join('/Course', currentSubject, 'slides', document); // relative path
+        // Construct the relative URL for the PDF
+        const pdfUrl = path.join('/Course', currentSubject, 'slides', document); // relative path
 
-    // Get all the PDF files in the directory
-    const filess = fs.readdirSync(slidesPath).filter(file => file.endsWith('.pdf'));
+        // Get all the PDF files in the directory
+        const filess = fs.readdirSync(slidesPath).filter(file => file.endsWith('.pdf'));
 
-    // Filter the files to find the specific document by matching the name
-    const files = filess.find(file => file.replace('.pdf', '') === document.replace('.pdf', ''));
+        // Filter the files to find the specific document by matching the name
+        const files = filess.find(file => file.replace('.pdf', '') === document.replace('.pdf', ''));
 
-    if (!files) {
-        return res.status(404).send('PDF file not found');
+        if (!files) {
+            return res.status(404).send('PDF file not found');
+        }
+
+        console.log(pdfUrl); // Logs the relative URL
+
+        res.render('pdfviewer.ejs', { pdfUrl }); // Pass pdfUrl to the template
+    }
+    else{
+        res.redirect("/login");
     }
 
-    console.log(pdfUrl); // Logs the relative URL
 
-    res.render('pdfviewer.ejs', { pdfUrl }); // Pass pdfUrl to the template
 });
 
 //flash-cards for Questions
 app.get('/generateQuestions/:document', async (req, res) => {
-    console.log(req.params); // Logs: { document: 'BUSINESS LAW 1 - Introduction to law.pdf' }
+
+    if(req.isAuthenticated())
+    {
+        console.log(req.params); // Logs: { document: 'BUSINESS LAW 1 - Introduction to law.pdf' }
 
 
-    // Construct the relative URL for the PDF
-    const document = req.params.document;
-    const filePath = path.join(__dirname, "public", "Course", currentSubject, "slides",document); // relative path
-    console.log(filePath);
+        // Construct the relative URL for the PDF
+        const document = req.params.document;
+        const filePath = path.join(__dirname, "public", "Course", currentSubject, "slides",document); // relative path
+        console.log(filePath);
 
-    //const filePath = path.join(process.cwd(), 'uploads', req.params.filename);
-    try {
-        if (!fs.existsSync(filePath)) {
-            return res.status(404).send('File not found.');
-        }
-        console.log("We are in the right track")
-        const text = await extractTextFromPDF(filePath);
-        const questions = await generateQuestions(text);
-        const jsonObject = JSON.parse(questions);
-        //res.json({ questions });
-
-        const filePath2 = 'public/jsons/questions_and_answers.json';
-
-        // Write the data to the JSON file
-        fs.writeFile(filePath2, JSON.stringify(jsonObject, null, 4), (err) => {
-            if (err) {
-                console.log("Error writing to file:", err);
-            } else {
-                console.log(`Data has been saved to ${filePath}`);
-                res.redirect("/flashcards");
+        //const filePath = path.join(process.cwd(), 'uploads', req.params.filename);
+        try {
+            if (!fs.existsSync(filePath)) {
+                return res.status(404).send('File not found.');
             }
-        });
+            console.log("We are in the right track")
+            const text = await extractTextFromPDF(filePath);
+            const questions = await generateQuestions(text);
+            const jsonObject = JSON.parse(questions);
+            //res.json({ questions });
+
+            const filePath2 = 'public/jsons/questions_and_answers.json';
+
+            // Write the data to the JSON file
+            fs.writeFile(filePath2, JSON.stringify(jsonObject, null, 4), (err) => {
+                if (err) {
+                    console.log("Error writing to file:", err);
+                } else {
+                    console.log(`Data has been saved to ${filePath}`);
+                    res.redirect("/flashcards");
+                }
+            });
 
 
-    } catch (error) {
-        res.status(500).send('Error generating questions: ' + error.message);
+        } catch (error) {
+            res.status(500).send('Error generating questions: ' + error.message);
+        }
     }
+    else{
+        res.redirect("/login");
+    }
+
 });
 app.get("/getFlashcards", (req, res) => {
-    const filePath = "public/jsons/questions_and_answers.json";
-    if (fs.existsSync(filePath)) {
-        const data = fs.readFileSync(filePath, "utf8");
-        res.json(JSON.parse(data));
-    } else {
-        res.status(404).json({ message: "No flashcards available" });
+    if(req.isAuthenticated())
+    {
+        const filePath = "public/jsons/questions_and_answers.json";
+        if (fs.existsSync(filePath)) {
+            const data = fs.readFileSync(filePath, "utf8");
+            res.json(JSON.parse(data));
+        } else {
+            res.status(404).json({ message: "No flashcards available" });
+        }
     }
+    else{
+        res.redirect("/login");
+    }
+
+
 });
 app.get("/flashcards", (req, res) => {
-    res.render("flashcards.ejs",{currentSubject});
+    if(req.isAuthenticated())
+    {
+        res.render("flashcards.ejs",{currentSubject});
+    }
+    else{
+        res.redirect("/login");
+    }
+
+
 });
 
+
+//sessions and passport
+passport.serializeUser((user, cb) => {
+    console.log("Serializing user: ", user);
+    cb(null, user);
+});
+
+passport.deserializeUser((user, cb) => {
+    console.log("Serializing user: ", user);
+    cb(null, user);
+});
 
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
