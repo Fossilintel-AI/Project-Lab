@@ -1008,12 +1008,11 @@ app.get("/flashcards", (req, res) => {
 
 //sessions and passport
 passport.serializeUser((user, cb) => {
-    console.log("Serializing user: ", user);
     cb(null, user);
 });
 
 passport.deserializeUser((user, cb) => {
-    console.log("Serializing user: ", user);
+
     cb(null, user);
 });
 
