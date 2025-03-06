@@ -1,46 +1,42 @@
 [
     {
-        "question": "What is a wire transfer?",
-        "answer": "A relatively inexpensive way of payment that is risky for the seller as it requires trust and won't solve the buyer's liquidity problems."
+        "question": "What is an obligation in a legal context?",
+        "answer": "A legal duty, by which a person is bound to do or refrain from doing a certain thing."
     },
     {
-        "question": "What is a collection?",
-        "answer": "A safer method of payment where the seller collects money from the buyer's bank account. The seller must present documents to the bank proving dispatch or delivery of goods."
+        "question": "What are some sources of obligations?",
+        "answer": "Contract, tort (causing damage), unilateral declaration, law, court decision, etc."
     },
     {
-        "question": "What is a check?",
-        "answer": "A negotiable instrument and a written order directing a bank to pay the specified amount of money as instructed. It is a credit instrument and less frequently used in international trade nowadays."
+        "question": "What are the basic principles of European Contract Law?",
+        "answer": "Parties are free to enter and determine the contents of a contract, subject to good faith, fair dealing, and mandatory rules."
     },
     {
-        "question": "What is a bill of exchange?",
-        "answer": "A written order by the drawer (buyer) to the drawee (bank) to pay money to the payee (seller) by a certain date. It is a negotiable instrument representing a money debt without condition."
+        "question": "What are the conditions for the formation of a valid contract?",
+        "answer": "The parties intend to be legally bound and reach a sufficient agreement without any further requirements."
     },
     {
-        "question": "What is a promissory note?",
-        "answer": "Similar to a bill of exchange, but the issuer promises to pay the specified amount by a certain date instead of the bank."
+        "question": "How can an offer be accepted?",
+        "answer": "Through any form of statement or conduct indicating assent to the offer. Silence or inactivity does not constitute acceptance."
     },
     {
-        "question": "What is a letter of credit?",
-        "answer": "A solution to build trust between a seller and buyer and address the buyer's need for credit. It involves several legal relationships, including the sale contract, banking services contracts, and irrevocable promises by the issuing and confirming banks."
+        "question": "When is a contract concluded, according to the time of acceptance?",
+        "answer": "When the acceptance reaches the offeror, or in case of acceptance by conduct, when notice of the conduct reaches the offeror or as per established practices."
     },
     {
-        "question": "What is a warehouse warrant?",
-        "answer": "Similar to a bill of lading, it represents the right of disposal over goods stored in a warehouse. It is also a negotiable or transferable instrument with two parts: a warrant for the goods and a pawn ticket."
+        "question": "Under what circumstances can a party avoid a contract due to a mistake?",
+        "answer": "When there is a fundamental mistake of fact or law, caused by the other party's information or known/ought to have been known by them, and it goes against good faith and fair dealing to let the mistake stand."
     },
     {
-        "question": "What is a bank guarantee?",
-        "answer": "Primarily not a payment method but a guarantee by a bank to pay on behalf of the buyer if they fail to pay by the agreed date. It is used for large projects and involves an agency contract between the buyer and the bank."
+        "question": "What is fraud in the context of contract law?",
+        "answer": "When a party is led to conclude a contract due to the other party's fraudulent representation or non-disclosure of information, with the intention to deceive."
     },
     {
-        "question": "What is international factoring?",
-        "answer": "A special financing technique where the seller assigns its receivables to a factoring company, which makes advance payments before the date of maturity. It also includes services like bookkeeping and collection."
+        "question": "How can a contract be invalid?",
+        "answer": "If it is illegal, immoral, or if there is a lack of capacity."
     },
     {
-        "question": "What is forfeiting?",
-        "answer": "Another financing technique similar to factoring, where the receivable is incorporated into a bill of exchange or promissory note, and the assignment takes place by discounting."
-    },
-    {
-        "question": "What is leasing?",
-        "answer": "A type of financial arrangement where one party (the lessor) purchases an asset and allows another party (the lessee) to use it in return for periodic payments. There are two types: operating leasing and financial leasing, with the latter being more common and regulated by the UNIDROIT Convention."
+        "question": "How should a contract be interpreted?",
+        "answer": "According to the common intention of the parties, or failing that, by the meaning that reasonable persons in the same circumstances would give to it."
     }
 ]
