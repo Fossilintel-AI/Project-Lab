@@ -484,3 +484,98 @@
   background-color: sandybrown;
 }
 
+/*--------------------------Error handing---------------*/
+/* Styling for the error message container */
+.errorhandler {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+  padding: 15px;
+  border-radius: 10px;
+  margin-top: 20px;
+  max-width: 400px;
+  margin: 0 auto;
+  opacity: 0;
+  animation: fadeIn 2s ease-out forwards, autoDismiss 5s forwards;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Icon styling */
+.errorhandler .error-icon {
+  font-size: 24px;
+  margin-right: 10px;
+}
+
+/* Error text styling */
+.errorhandler .error-text {
+  flex: 1;
+  font-size: 16px;
+}
+
+/* Close button styling */
+.errorhandler .close-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #721c24;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.errorhandler .close-btn:hover {
+  color: #f44336;
+}
+
+/* Fade-in animation */
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Auto-dismiss animation */
+@keyframes autoDismiss {
+  0% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+}
+
+/* Optional shake animation */
+@keyframes shake {
+  0% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-10px);
+  }
+  50% {
+    transform: translateX(10px);
+  }
+  75% {
+    transform: translateX(-10px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.errorhandler.shake {
+  animation: shake 0.5s ease;
+}
+
+/*_____________________Footer_________________*/

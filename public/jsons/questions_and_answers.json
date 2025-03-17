@@ -1,42 +1,82 @@
 [
     {
-        "question": "What is an obligation in a legal context?",
-        "answer": "A legal duty, by which a person is bound to do or refrain from doing a certain thing."
+        "question": "What is the email address of the professor?",
+        "answer": "jogasz@gmail.com"
     },
     {
-        "question": "What are some sources of obligations?",
-        "answer": "Contract, tort (causing damage), unilateral declaration, law, court decision, etc."
+        "question": "What is the subject of the course?",
+        "answer": "Business Law"
     },
     {
-        "question": "What are the basic principles of European Contract Law?",
-        "answer": "Parties are free to enter and determine the contents of a contract, subject to good faith, fair dealing, and mandatory rules."
+        "question": "Who is the professor?",
+        "answer": "Dr. Zoltan Vig"
     },
     {
-        "question": "What are the conditions for the formation of a valid contract?",
-        "answer": "The parties intend to be legally bound and reach a sufficient agreement without any further requirements."
+        "question": "What is the first topic covered in the syllabus?",
+        "answer": "Introduction to Law"
     },
     {
-        "question": "How can an offer be accepted?",
-        "answer": "Through any form of statement or conduct indicating assent to the offer. Silence or inactivity does not constitute acceptance."
+        "question": "When is the first test scheduled?",
+        "answer": "March 31st"
     },
     {
-        "question": "When is a contract concluded, according to the time of acceptance?",
-        "answer": "When the acceptance reaches the offeror, or in case of acceptance by conduct, when notice of the conduct reaches the offeror or as per established practices."
+        "question": "How many online Moodle tests are there, and what format do they take?",
+        "answer": "There are two tests, each consisting of 25 multiple-choice questions, with a time limit of 25 minutes."
     },
     {
-        "question": "Under what circumstances can a party avoid a contract due to a mistake?",
-        "answer": "When there is a fundamental mistake of fact or law, caused by the other party's information or known/ought to have been known by them, and it goes against good faith and fair dealing to let the mistake stand."
+        "question": "Can you retake the tests?",
+        "answer": "Yes, you can retake (and correct) both tests, but the last result counts."
     },
     {
-        "question": "What is fraud in the context of contract law?",
-        "answer": "When a party is led to conclude a contract due to the other party's fraudulent representation or non-disclosure of information, with the intention to deceive."
+        "question": "What is the benefit of class participation and activity?",
+        "answer": "You can get additional scores (1 point for each attendance). You will have to sign an attendance list."
     },
     {
-        "question": "How can a contract be invalid?",
-        "answer": "If it is illegal, immoral, or if there is a lack of capacity."
+        "question": "What are the two types of norms mentioned in the text?",
+        "answer": "Social norm and legal norm"
     },
     {
-        "question": "How should a contract be interpreted?",
-        "answer": "According to the common intention of the parties, or failing that, by the meaning that reasonable persons in the same circumstances would give to it."
+        "question": "How are social norms defined in the text?",
+        "answer": "Behavioral standards that prescribe what is correct and need to be followed in society, representing public interest but not sanctioned by the state."
+    },
+    {
+        "question": "How are legal norms different from social norms?",
+        "answer": "Legal norms are social norms that are enforced or sanctioned by the state, such as \"If you earn money, you should pay tax. If you do not pay, you will be fined by the state.\""
+    },
+    {
+        "question": "What are the subjects of the law?",
+        "answer": "State, legal persons (e.g., companies), and natural persons (human beings)"
+    },
+    {
+        "question": "What are legal acts, and how are they related to the legal system?",
+        "answer": "Legal acts are sources of legal norms, and they are created by a body empowered to legislate. The whole set of legal acts forms the legal system of a sovereign state."
+    },
+    {
+        "question": "What is the difference between public law and private law?",
+        "answer": "Public law governs issues related to the functioning of the state, with natural and legal persons subordinated to the state. Private law deals with relationships between natural and legal persons, where the state may be of equal rank in front of the law and courts."
+    },
+    {
+        "question": "What is an example of a public law branch?",
+        "answer": "Constitutional law, administrative law, tax law, and criminal law"
+    },
+    {
+        "question": "What is an example of private law?",
+        "answer": "Civil law, company law, and international trade law"
+    },
+    {
+        "question": "What is the difference between substantive law and procedural law?",
+        "answer": "Substantive law establishes the rights and obligations of individuals and what they may or may not do. Procedural law lays down the ways to enforce substantive law and decide the fate of a case."
+    },
+    {
+        "question": "What are the four scopes of effectivity or applicability of a norm?",
+        "answer": "1. Material scope: the subject matter covered by the norm; 2. Personal scope: who is covered by the norm; 3. Temporal scope: the period when the norm is applicable; 4. Territorial scope: the geographical area where the norm applies."
+    },
+    {
+        "question": "What are the sources of business law?",
+        "answer": "Constitution, international treaties, national laws, conflict of laws rules, decrees, contracts, international commercial customs, written usages, unique business practices, case law of international commercial arbitration, and lex mercatoria."
+    },
+    {
+        "question": "What are the two important sources of EU law mentioned in the text?",
+        "answer": "Regulations and directives. Regulations are binding legislative acts applied across the EU, while directives set out goals that EU countries must achieve through their own laws."
     }
 ]

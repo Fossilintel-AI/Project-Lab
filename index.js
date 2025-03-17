@@ -24,6 +24,10 @@ import {Strategy} from "passport-local";
 //email sender
 import nodemailer from "nodemailer";
 
+//allow all domains
+import cors from "cors";
+
+
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -36,9 +40,11 @@ app.use(express.static("public"));
 // Serve static files from Workstation directory
 app.use('/Workstation', express.static(path.join(__dirname, 'Workstation')));
 
+app.use(cors());
+
 //encryption
 const saltRounds = 10;
-global.user_id = 0;
+global.user_id = -1;
 global.currentSubject = null;
 
 //sessions and cookies.
@@ -241,17 +247,22 @@ function sendWelcomeEmail(userEmail, userName) {
 //Main ,Login and Sign-up Route
 app.get("/", async (req, res) => {
 
-    res.render("index.ejs", );
+    res.render("index.ejs", { user: user_id !== -1 ? "user Present" : null });
+
+    //res.render("index.ejs", );
     //res.render("test.ejs");
 });
 app.get("/about", async (req, res) => {
 
-    res.render("about.ejs", );
+    res.render("about.ejs", { user: user_id !== -1 ? "user Present" : null });
+    // res.render("about.ejs", );
     //res.render("test.ejs");
 });
 app.get("/contact", async (req, res) => {
 
-    res.render("contact.ejs", );
+    res.render("contact.ejs", { user: user_id !== -1 ? "user Present" : null });
+
+    //res.render("contact.ejs", );
     //res.render("test.ejs");
 });
 app.get("/login", async (req, res) => {
@@ -263,18 +274,18 @@ app.get("/register", async (req, res) => {
     // res.render("index.ejs", { secret: "" ,user: ""});
 });
 
-app.post("/signup", async (req, res) => {
-    const { first_name, last_name, email, password } = req.body;
 
-    // Check if any of the fields are empty
-    if (!first_name || !last_name || !email || !password) {
+app.post("/signup", async (req, res) => {
+    const { first_name, last_name, email, password, bio, home_address, subscription_type } = req.body;
+
+    // Check if any of the required fields are empty
+    if (!first_name || !last_name || !email || !password || !bio || !home_address || !subscription_type) {
         return res.render("signup.ejs", { error: "All fields are required!" });
     }
 
     try {
         // Check if the email already exists
         const checkResult = await db.query("SELECT * FROM users WHERE email = $1", [email]);
-
         if (checkResult.rows.length > 0) {
             return res.render("signup.ejs", { error: "Email already exists. Try logging in." });
         }
@@ -287,16 +298,16 @@ app.post("/signup", async (req, res) => {
             }
 
             try {
-                // Insert the new user into the database
+                // Insert the new user into the database, including bio, home address, and subscription type
                 const result = await db.query(
-                    "INSERT INTO users (first_name, last_name, email, password) VALUES ($1, $2, $3, $4) RETURNING *",
-                    [first_name, last_name, email, hash]
+                    "INSERT INTO users (first_name, last_name, email, password,subscription_type, bio, address ) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *",
+                    [first_name, last_name, email, hash,subscription_type, bio, home_address]
                 );
 
                 const user = result.rows[0];
                 const checkResultID = await db.query("SELECT user_id FROM users WHERE email = $1", [email]);
-                const userData =  checkResultID.rows[0];
-                user_id =userData.user_id;
+                const userData = checkResultID.rows[0];
+                user_id = userData.user_id;
 
                 // Send Welcome Email
                 sendWelcomeEmail(user.email, user.first_name);
@@ -307,7 +318,6 @@ app.post("/signup", async (req, res) => {
                         console.error("Login error after signup:", err);
                         return res.render("signup.ejs", { error: "Login failed after signup. Please try logging in." });
                     }
-
                     return res.redirect("/main"); // Redirect user to main page after login
                 });
 
@@ -316,12 +326,71 @@ app.post("/signup", async (req, res) => {
                 return res.render("signup.ejs", { error: "An error occurred. Please try again." });
             }
         });
-
     } catch (err) {
         console.log("Error checking for existing email:", err);
         return res.render("signup.ejs", { error: "An error occurred. Please try again." });
     }
 });
+
+// app.post("/signup", async (req, res) => {
+//     const { first_name, last_name, email, password } = req.body;
+//
+//     // Check if any of the fields are empty
+//     if (!first_name || !last_name || !email || !password) {
+//         return res.render("signup.ejs", { error: "All fields are required!" });
+//     }
+//
+//     try {
+//         // Check if the email already exists
+//         const checkResult = await db.query("SELECT * FROM users WHERE email = $1", [email]);
+//
+//         if (checkResult.rows.length > 0) {
+//             return res.render("signup.ejs", { error: "Email already exists. Try logging in." });
+//         }
+//
+//         // Hash the password
+//         bcrypt.hash(password, saltRounds, async (err, hash) => {
+//             if (err) {
+//                 console.log("Error hashing the password", err);
+//                 return res.render("signup.ejs", { error: "An error occurred. Please try again." });
+//             }
+//
+//             try {
+//                 // Insert the new user into the database
+//                 const result = await db.query(
+//                     "INSERT INTO users (first_name, last_name, email, password) VALUES ($1, $2, $3, $4) RETURNING *",
+//                     [first_name, last_name, email, hash]
+//                 );
+//
+//                 const user = result.rows[0];
+//                 const checkResultID = await db.query("SELECT user_id FROM users WHERE email = $1", [email]);
+//                 const userData =  checkResultID.rows[0];
+//                 user_id =userData.user_id;
+//
+//                 // Send Welcome Email
+//                 sendWelcomeEmail(user.email, user.first_name);
+//
+//                 // Automatically log the user in after signup
+//                 req.login(user, (err) => {
+//                     if (err) {
+//                         console.error("Login error after signup:", err);
+//                         return res.render("signup.ejs", { error: "Login failed after signup. Please try logging in." });
+//                     }
+//
+//                     return res.redirect("/main"); // Redirect user to main page after login
+//                 });
+//
+//             } catch (error) {
+//                 console.log("Error inserting user:", error);
+//                 return res.render("signup.ejs", { error: "An error occurred. Please try again." });
+//             }
+//         });
+//
+//     } catch (err) {
+//         console.log("Error checking for existing email:", err);
+//         return res.render("signup.ejs", { error: "An error occurred. Please try again." });
+//     }
+// });
 
 
 // app.post("/signup", async (req, res) => {
@@ -377,7 +446,9 @@ app.post("/signup", async (req, res) => {
 app.get("/main", async (req, res) => {
     if(req.isAuthenticated())
     {
-        res.render("welcome.ejs");
+        res.render("welcome.ejs", { user: user_id !== -1 ? "user Present" : null });
+
+        //res.render("welcome.ejs");
     }
     else{
         res.redirect("/login");
@@ -495,6 +566,69 @@ app.post("/login", (req, res, next) => {
 //     }
 // });
 
+//Logging out
+app.get("/logout", (req, res, next) => {
+    req.logout((err) => {
+        if (err) {
+            return next(err);
+        }
+        req.session.destroy(() => {
+            user_id = -1;
+            res.redirect("/"); // Redirect to login page after logout
+        });
+    });
+});
+
+//user Profile
+app.get("/profile", (req, res) => {
+    if (!req.isAuthenticated()) {
+        return res.redirect("/login"); // Redirect to login if not authenticated
+    }
+
+    // Assuming `req.user` contains user data after authentication
+    const currentUser = {
+        first_name: req.user.first_name,
+        last_name: req.user.last_name,
+        email: req.user.email,
+        subscription_type: req.user.subscription_type,
+        bio: req.user.bio,
+        created_at: req.user.created_at,
+        address: req.user.address
+    };
+
+    res.render("profile.ejs", { currentUser,user: user_id !== -1 ? "user Present" : null });
+});
+
+app.get("/edit-profile", (req, res) => {
+    if (!req.isAuthenticated()) {
+        return res.redirect("/login");
+    }
+    const currentUser = req.user;
+    res.render("edit-profile.ejs", { currentUser,user: user_id !== -1 ? "user Present" : null});
+});
+
+app.post("/edit-profile", (req, res) => {
+    const { first_name, last_name, bio, address } = req.body;
+    // Assume you have an `updateUserProfile` function to update the database
+
+
+    db.query("UPDATE users SET first_name = $1, last_name = $2, bio = $3, address = $4 WHERE user_id = $5", [first_name, last_name, email, bio, address, user_id])
+        .then(() => {
+            req.user.first_name = first_name;
+            req.user.last_name = last_name;
+            //req.user.email = email;
+            req.user.bio = bio;
+            req.user.address = address;
+            // Redirect to the profile page after a successful update
+            res.redirect("/profile");
+        })
+        .catch((err) => {
+            // Handle any errors
+            console.error("Error updating profile:", err);
+            res.status(500).send("Error updating profile");
+        });
+});
+
 
 
 //The Book Feature
@@ -507,8 +641,9 @@ app.get("/books", async (req, res) => {
     {
         const booksResult = await db.query("SELECT * FROM readBooks WHERE userid = $1", [user_id]);
         const books = booksResult.rows;
+        res.render("booksRead.ejs", { user: user_id !== -1 ? "user Present" : null,books: books });
 
-        res.render("booksRead.ejs", {books: books});
+        //res.render("booksRead.ejs", {books: books});
     }
     else{
         res.redirect("/login");
@@ -518,7 +653,9 @@ app.get("/books", async (req, res) => {
 app.get('/newbook', (req, res) => {
     if(req.isAuthenticated())
     {
-        res.render('newbook.ejs',{listTitle:"Add a New Book"});
+        res.render("newbook.ejs", { user: user_id !== -1 ? "user Present" : null,listTitle:"Add a New Book" });
+
+        //res.render('newbook.ejs',{listTitle:"Add a New Book"});
     }
     else{
         res.redirect("/login");
@@ -535,7 +672,9 @@ app.post('/add-book', async (req, res) => {
         db.query("INSERT INTO readBooks (title,date,rating,notes,userid) VALUES($1,$2,$3,$4,$5)", [title, date, rating, notes, user_id]);
         const booksResult = await db.query("SELECT * FROM readBooks WHERE userid = $1", [user_id]);
         const books = booksResult.rows;
-        res.render("welcome.ejs",{books:books});
+        res.render("welcome.ejs", { user: user_id !== -1 ? "user Present" : null, books:books });
+
+        //res.render("welcome.ejs",{books:books});
     }
     else{
         res.redirect("/login");
@@ -557,7 +696,9 @@ app.get("/delete", (req, res) => {
                 console.log("Item updated successfully!");
                 const booksResult = await db.query("SELECT * FROM readBooks WHERE userid = $1", [user_id]);
                 const books = booksResult.rows;
-                res.render("welcome.ejs", {books: books});
+                res.render("welcome.ejs", { user: user_id !== -1 ? "user Present" : null,books: books });
+
+                //res.render("welcome.ejs", {books: books});
             }
         });
     }
@@ -576,7 +717,9 @@ app.get("/edit", async (req, res) => {
         console.log(result.rows[0]); // This will log the fetched book
 
         if (result.rows.length > 0) {
-            res.render("editBook.ejs", { book: result.rows[0] }); // Pass the first row to the template
+            res.render("editBook.ejs", { user: user_id !== -1 ? "user Present" : null,book: result.rows[0] });
+
+            //res.render("editBook.ejs", { book: result.rows[0] }); // Pass the first row to the template
         } else {
             res.status(404).send('Book not found'); // Handle case if no book is found
         }
@@ -596,7 +739,9 @@ app.post('/edit-book', async (req, res) => {
         db.query("UPDATE readBooks SET title = $1 , date = $2 , rating= $3 , notes = $4 WHERE id = $5", [title, date, rating, notes, id]);
         const booksResult = await db.query("SELECT * FROM readBooks WHERE userid = $1", [user_id]);
         const books = booksResult.rows;
-        res.render("welcome.ejs", {books: books});
+        res.render("welcome.ejs", { user: user_id !== -1 ? "user Present" : null,books: books });
+
+        //res.render("welcome.ejs", {books: books});
     }
     else{
         res.redirect("/login");
@@ -618,6 +763,7 @@ app.get("/todo-list", async (req, res) => {
         res.render("todolist.ejs", {
             listTitle: "Today",
             listItems: items,
+            user: user_id !== -1 ? "user Present" : null,
         });
     }
     else{
@@ -703,7 +849,7 @@ app.get("/forums", async (req, res) => {
             forumData = forumResult.rows;
         }
 
-        res.render("forum.ejs", { forumData, subjects, selectedSubject: subject, subjectSelected });
+        res.render("forum.ejs", { forumData, subjects, selectedSubject: subject, subjectSelected,user: user_id !== -1 ? "user Present" : null });
     }
     else{
         res.redirect("/login");
@@ -772,7 +918,7 @@ app.get("/course/:subject", async (req, res) => {
         }
 
         // Render course.ejs with the subject and slides
-        res.render("course.ejs", { subject, slides,personalslides,userid:user_id });
+        res.render("course.ejs", { subject, slides,personalslides,userid:user_id, user: user_id !== -1 ? "user Present" : null });
     }
     else{
         res.redirect("/login");
@@ -813,7 +959,7 @@ app.get('/timetable', async (req, res) => {
 
             console.log(timetable); // Debugging: print fetched timetable
 
-            res.render('timetable.ejs', { timetable });
+            res.render('timetable.ejs', { timetable,user: user_id !== -1 ? "user Present" : null });
         } catch (err) {
             console.error('Error fetching timetable:', err);
             res.status(500).send('Error fetching timetable');
@@ -841,7 +987,7 @@ app.post('/addSubject', async(req, res) => {
 
         // Validate that startTime is before endTime
         if (startTime >= endTime) {
-            return res.render('timetable.ejs', { timetable: [], errorMessage: "Start time must be before end time." });
+            return res.render('timetable.ejs', { timetable: [], errorMessage: "Start time must be before end time.",user: user_id !== -1 ? "user Present" : null });
         }
 
         // Check for overlapping times
@@ -853,7 +999,7 @@ app.post('/addSubject', async(req, res) => {
         );
 
         if (conflict) {
-            return res.render('timetable.ejs', { timetable, errorMessage: "Time slot overlaps with another subject." });
+            return res.render('timetable.ejs', { timetable, errorMessage: "Time slot overlaps with another subject.",user: user_id !== -1 ? "user Present" : null });
         }
 
         // Add the new subject with the assigned color
@@ -921,7 +1067,7 @@ app.get('/pdfview/:document', async (req, res) => {
 
         console.log(pdfUrl); // Logs the relative URL
 
-        res.render('pdfviewer.ejs', { pdfUrl }); // Pass pdfUrl to the template
+        res.render('pdfviewer.ejs', { pdfUrl,user: user_id !== -1 ? "user Present" : null }); // Pass pdfUrl to the template
     }
     else{
         res.redirect("/login");
@@ -932,71 +1078,92 @@ app.get('/pdfview/:document', async (req, res) => {
 
 //flash-cards for Questions
 app.get('/generateQuestions/:document', async (req, res) => {
-
-    if(req.isAuthenticated())
-    {
+    if (req.isAuthenticated()) {
         console.log(req.params); // Logs: { document: 'BUSINESS LAW 1 - Introduction to law.pdf' }
 
-
-        // Construct the relative URL for the PDF
         const document = req.params.document;
-        const filePath = path.join(__dirname, "public", "Course", currentSubject, "slides",document); // relative path
+        const filePath = path.join(__dirname, "public", "Course", currentSubject, "slides", document); // relative path
+
         console.log(filePath);
 
-        //const filePath = path.join(process.cwd(), 'uploads', req.params.filename);
         try {
             if (!fs.existsSync(filePath)) {
                 return res.status(404).send('File not found.');
             }
-            console.log("We are in the right track")
+
+            console.log("We are in the right track");
+
             const text = await extractTextFromPDF(filePath);
             const questions = await generateQuestions(text);
             const jsonObject = JSON.parse(questions);
-            //res.json({ questions });
 
             const filePath2 = 'public/jsons/questions_and_answers.json';
 
-            // Write the data to the JSON file
+            // Write the data to the JSON file asynchronously
             fs.writeFile(filePath2, JSON.stringify(jsonObject, null, 4), (err) => {
                 if (err) {
                     console.log("Error writing to file:", err);
-                } else {
-                    console.log(`Data has been saved to ${filePath}`);
-                    res.redirect("/flashcards");
+                    return res.status(500).send('Error saving questions.');
                 }
+
+                console.log(`Data has been saved to ${filePath2}`);
+
+                // Make sure to send the response here
+                return res.redirect("/flashcards"); // or another route as needed
             });
-
-
         } catch (error) {
-            res.status(500).send('Error generating questions: ' + error.message);
+            console.error("Error generating questions:", error);
+            return res.status(500).send('Error generating questions: ' + error.message);
         }
-    }
-    else{
+    } else {
         res.redirect("/login");
     }
-
 });
-app.get("/getFlashcards", (req, res) => {
-    if(req.isAuthenticated())
-    {
+
+app.get("/getFlashcards", async (req, res) => {
+    if (req.isAuthenticated()) {
         const filePath = "public/jsons/questions_and_answers.json";
-        if (fs.existsSync(filePath)) {
-            const data = fs.readFileSync(filePath, "utf8");
+        try {
+            // Use fs.promises.access() to check file existence
+            await fs.promises.access(filePath, fs.constants.F_OK);
+
+            const data = await fs.promises.readFile(filePath, "utf8");
             res.json(JSON.parse(data));
-        } else {
-            res.status(404).json({ message: "No flashcards available" });
+        } catch (err) {
+            if (err.code === 'ENOENT') {
+                // File doesn't exist
+                res.status(404).json({ message: "No flashcards available" });
+            } else {
+                console.error("Error reading file:", err);
+                res.status(500).json({ message: "Internal server error" });
+            }
         }
-    }
-    else{
+    } else {
         res.redirect("/login");
     }
-
-
 });
+
+// app.get("/getFlashcards", (req, res) => {
+//     if(req.isAuthenticated())
+//     {
+//         const filePath = "public/jsons/questions_and_answers.json";
+//         if (fs.existsSync(filePath)) {
+//             const data = fs.readFileSync(filePath, "utf8");
+//             res.json(JSON.parse(data));
+//         } else {
+//             res.status(404).json({ message: "No flashcards available" });
+//         }
+//     }
+//     else{
+//         res.redirect("/login");
+//     }
+//
+//
+// });
 app.get("/flashcards", (req, res) => {
     if(req.isAuthenticated())
     {
-        res.render("flashcards.ejs",{currentSubject});
+        res.render("flashcards.ejs",{currentSubject, user: user_id !== -1 ? "user Present" : null});
     }
     else{
         res.redirect("/login");

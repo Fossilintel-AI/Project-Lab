@@ -1,0 +1,32 @@
+<%- include('header.ejs') %>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header text-white" style="background-color: #8B4513;">
+                    <h3 class="text-center">My Profile</h3>
+                </div>
+                <div class="card-body">
+                    <!-- Profile Picture -->
+
+                    <!-- User Info -->
+                    <p><strong>Name:</strong> <%= currentUser.first_name %> <%= currentUser.last_name %></p>
+                    <p><strong>Email:</strong> <%= currentUser.email %></p>
+                    <p><strong>Subscription Type:</strong> <%= currentUser.subscription_type %></p>
+                    <p><strong>Bio:</strong> <%= currentUser.bio || 'No bio available' %></p>
+                    <p><strong>Address:</strong> <%= currentUser.address || 'No address available' %></p>
+                    <p><strong>Account Created:</strong> <%= new Date(currentUser.created_at).toLocaleDateString() %></p>
+                </div>
+                <div class="card-footer text-center">
+                    <!-- Edit Profile Button -->
+                    <a href="/edit-profile" class="btn btn-warning">Edit Profile</a>
+                    <!-- Logout Button -->
+                    <a href="/logout" class="btn btn-danger">Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('footer.ejs') %>

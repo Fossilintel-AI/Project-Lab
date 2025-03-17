@@ -1,37 +1,89 @@
 <%- include('header.ejs') %>
-
-
 <!-- Sign Up Start -->
 <div class="container-xxl py-5">
     <div class="container">
-        <form action="/signup" method="POST">
-            <div class="form-group">
-                <label for="first_name">First Name</label>
-                <input type="text" class="form-control" id="first_name" name="first_name" required>
+        <!-- Signup Form -->
+        <div id="signupContainer" class="card shadow-lg p-4 rounded-lg signupStyle-form">
+            <form action="/signup" method="POST" id="signupForm" onsubmit="return validateForm()">
+                <h2 class="text-center mb-4 signupStyle-title">Create an Account</h2>
+                <!-- First Name -->
+                <div class="form-group mb-3">
+                    <label for="first_name" class="signupStyle-label">First Name</label>
+                    <input type="text" class="form-control signupStyle-input" id="first_name" name="first_name" required>
+                </div>
+                <!-- Last Name -->
+                <div class="form-group mb-3">
+                    <label for="last_name" class="signupStyle-label">Last Name</label>
+                    <input type="text" class="form-control signupStyle-input" id="last_name" name="last_name" required>
+                </div>
+                <!-- Email Address -->
+                <div class="form-group mb-3">
+                    <label for="email" class="signupStyle-label">Email Address</label>
+                    <input type="email" class="form-control signupStyle-input" id="email" name="email" required>
+                </div>
+                <!-- Password -->
+                <div class="form-group mb-3">
+                    <label for="password" class="signupStyle-label">Password</label>
+                    <input type="password" class="form-control signupStyle-input" id="password" name="password" required>
+                </div>
+                <!-- Confirm Password -->
+                <div class="form-group mb-3">
+                    <label for="confirm_password" class="signupStyle-label">Confirm Password</label>
+                    <input type="password" class="form-control signupStyle-input" id="confirm_password" name="confirm_password" required>
+                </div>
+                <!-- Bio field -->
+                <div class="form-group mb-3">
+                    <label for="bio" class="signupStyle-label">Bio</label>
+                    <textarea class="form-control signupStyle-input" id="bio" name="bio" rows="3" placeholder="Tell us a bit about yourself"></textarea>
+                </div>
+                <!-- Home Address field -->
+                <div class="form-group mb-3">
+                    <label for="home_address" class="signupStyle-label">Home Address</label>
+                    <input type="text" class="form-control signupStyle-input" id="home_address" name="home_address" required placeholder="123 Street, City, Country">
+                </div>
+                <!-- Subscription Plan Selection -->
+                <div class="form-group mb-3">
+                    <label for="subscription_type" class="signupStyle-label">Choose a Plan</label>
+                    <select class="form-control signupStyle-input" id="subscription_type" name="subscription_type" required onchange="togglePaymentFields()">
+                        <option value="Free">Free</option>
+                        <option value="Pro">Pro</option>
+                        <option value="Enterprise">Enterprise</option>
+                    </select>
+                </div>
+                <!-- Payment Fields (Hidden by Default) -->
+                <div id="paymentFields" style="display: none;">
+                    <div class="form-group mb-3">
+                        <label for="card_number" class="signupStyle-label">Card Number</label>
+                        <input type="text" class="form-control signupStyle-input" id="card_number" name="card_number" placeholder="1234 5678 9012 3456">
+                    </div>
+                    <div class="form-group mb-3">
+                        <label for="cvv" class="signupStyle-label">CVV</label>
+                        <input type="text" class="form-control signupStyle-input" id="cvv" name="cvv" placeholder="123">
+                    </div>
+                    <div class="form-group mb-3">
+                        <label for="expiry_date" class="signupStyle-label">Expiry Date</label>
+                        <input type="month" class="form-control signupStyle-input" id="expiry_date" name="expiry_date">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-brown w-100 py-2 mt-3 signupStyle-button" id="submitBtn">Sign Up</button>
+            </form>
+        </div>
+        <!-- Success Message (Hidden Initially) -->
+        <div id="successMessage" class="text-center mt-4" style="display: none;">
+            <div class="success-icon mb-3">✅</div>
+            <h3 class="text-success">Account Created Successfully!</h3>
+            <p>Your account has been created successfully. You're now signed in as a Free user!</p>
+            <a href="/login" class="btn btn-brown py-2">Go to Login</a>
+        </div>
+        <!-- Loading Animation (Hidden Initially) -->
+        <div id="loading" class="text-center mt-4" style="display: none;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Processing...</span>
             </div>
-            <div class="form-group">
-                <label for="last_name">Last Name</label>
-                <input type="text" class="form-control" id="last_name" name="last_name" required>
-            </div>
-            <div class="form-group">
-                <label for="email">Email Address</label>
-                <input type="email" class="form-control" id="email" name="email" required>
-            </div>
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" class="form-control" id="password" name="password" required>
-            </div>
-            <div class="form-group">
-                <label for="confirm_password">Confirm Password</label>
-                <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
-            </div>
-            <button type="submit" class="btn btn-brown ">Sign Up</button>
-        </form>
-
+            <p>Processing Payment...</p>
+        </div>
     </div>
-
 </div>
-
 <!-- Error handling -->
 <% if (locals.error) { %>
     <div class="alert alert-danger mt-3">
@@ -39,5 +91,115 @@
     </div>
 <% } %>
 
-<!-- Sign Up End -->
+<style>
+    .signupStyle {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f4f4f9;
+    }
+    .signupStyle-title {
+        color: #8B4513;
+    }
+    .signupStyle-form {
+        background-color: #fff;
+        max-width: 500px;
+        margin: 0 auto;
+        border-radius: 15px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+    .signupStyle-label {
+        color: #8B4513;
+    }
+    .signupStyle-input {
+        border-radius: 10px;
+        border: 1px solid #ddd;
+        padding: 10px;
+        transition: border 0.3s ease;
+    }
+    .signupStyle-input:focus {
+        border-color: #8B4513;
+        box-shadow: 0 0 5px rgba(139, 69, 19, 0.6);
+    }
+    .signupStyle-button {
+        background-color: #8B4513;
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        transition: background-color 0.3s ease;
+    }
+    .signupStyle-button:hover {
+        background-color: #7A3F10;
+    }
+    .card {
+        background-color: #fff;
+        border-radius: 15px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+    .alert {
+        font-weight: bold;
+        background-color: #f8d7da;
+        color: #721c24;
+        border-radius: 10px;
+    }
+    .success-icon {
+        font-size: 50px;
+    }
+    .spinner-border {
+        width: 3rem;
+        height: 3rem;
+        border-width: 0.25em;
+    }
+</style>
+
+<script>
+    function togglePaymentFields() {
+        let plan = document.getElementById("subscription_type").value;
+        let paymentFields = document.getElementById("paymentFields");
+        if (plan === "Pro" || plan === "Enterprise") {
+            paymentFields.style.display = "block";
+        } else {
+            paymentFields.style.display = "none";
+        }
+    }
+
+    function validateForm() {
+        let plan = document.getElementById("subscription_type").value;
+        if (plan === "Free") {
+            showSuccessMessage(); // Automatically show success for Free plan
+            return false; // Prevent form submission
+        }
+
+        let cardNumber = document.getElementById("card_number").value.trim();
+        let cvv = document.getElementById("cvv").value.trim();
+        let expiryDate = document.getElementById("expiry_date").value.trim();
+        let cardNumberRegex = /^\d{16}$/;
+        let cvvRegex = /^\d{3}$/;
+
+        if (!cardNumberRegex.test(cardNumber)) {
+            alert("Invalid Card Number. Must be 16 digits.");
+            return false;
+        }
+        if (!cvvRegex.test(cvv)) {
+            alert("Invalid CVV. Must be 3 digits.");
+            return false;
+        }
+        if (!expiryDate) {
+            alert("Please enter the expiry date.");
+            return false;
+        }
+
+        // Show loading animation
+        document.getElementById("signupContainer").style.display = "none";
+        document.getElementById("loading").style.display = "block";
+        setTimeout(() => {
+            document.getElementById("loading").style.display = "none";
+            document.getElementById("successMessage").style.display = "block";
+        }, 2000); // Simulate 2 seconds of processing
+        return false; // Prevent immediate form submission
+    }
+
+    function showSuccessMessage() {
+        document.getElementById("signupContainer").style.display = "none";
+        document.getElementById("successMessage").style.display = "block";
+    }
+</script>
 <%- include('footer.ejs') %>
