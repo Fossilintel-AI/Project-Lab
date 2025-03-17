@@ -231,3 +231,351 @@
   color: #D2B48C; /* Light brown */
   opacity: 1;
 }
+
+/* ----------------------------------Timetable feature-------------------------------------- */
+.Timetable {
+  font-family: 'Arial', sans-serif;
+  background-color: sandybrown;
+  padding: 20px;
+  text-align: center;
+}
+
+.Timetable h1 {
+  color: #333;
+}
+
+.Timetable form {
+  width: 350px;
+  margin: 0 auto 20px;
+  padding: 20px;
+  background: #8B4513;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.Timetable label {
+  display: block;
+  margin-top: 10px;
+}
+
+.Timetable button {
+  margin-top: 15px;
+  padding: 10px;
+  /*//background-color: #8B4513;*/
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.Timetable button:hover {
+  /*background-color: #0056b3;*/
+}
+
+.Timetable table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 30px;
+}
+
+.Timetable th, .Timetable td {
+  padding: 5px;
+  border: 1px solid #ddd;
+  text-align: center;
+  vertical-align: middle;
+  height: 20px;
+}
+
+.Timetable th {
+  background-color: #8B4513;
+  color: white;
+}
+
+.Timetable .entry {
+  color: white;
+  font-weight: bold;
+  text-align: center;
+  font-size: 12px;
+  line-height: 20px;
+  border-radius: 0;
+}
+
+
+/* Style for the delete form */
+.entry {
+  position: relative;
+  padding: 10px;
+}
+
+/* Hide the form container by default */
+.delete-form {
+  display: none;
+}
+
+/* Show only the delete button when hovering */
+.entry:hover .delete-form {
+  display: block;
+  position: absolute;
+  top: 50%; /* Center vertically */
+  left: 50%; /* Center horizontally */
+  transform: translate(-50%, -50%); /* Adjust for exact center */
+  background: none; /* No background */
+  border: none; /* No border */
+  z-index: 1; /* Ensure it appears above everything */
+}
+
+/* Style the delete button */
+.delete-btn {
+  background: none;
+  border: none;
+  font-size: 16px; /* Slightly bigger to make it more visible */
+  color: #8B4513;
+  cursor: pointer;
+  padding: 2px;
+  width: 20px;
+  height: 20px;
+  line-height: 18px; /* Adjusted to fit */
+  text-align: center;
+}
+
+/* Change color on hover */
+.delete-btn:hover {
+  color: #8B4513;
+}
+
+
+
+
+/* ----------------------------------PDF viewer feature-------------------------------------- */
+
+/* PDF Container Styles */
+.pdf-container {
+  font-family: Arial, sans-serif;
+  background-color: #f3f3f3; /* Background color from the color theme */
+  color: #4e4e4e; /* Text color */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  height: 100vh;
+  margin: 0;
+  text-align: center;
+}
+
+.pdf-container h1 {
+  color: #a5b68d; /* Title color from the theme */
+}
+
+.pdf-container #pdf-render canvas {
+  width: 100%;
+  margin-top: 20px;
+  border-radius: 8px;
+}
+
+.pdf-container #controls {
+  margin-top: 20px;
+}
+
+.pdf-container .btn {
+  padding: 10px 20px;
+  margin: 5px;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+.pdf-container .btn-brown {
+  background-color: #a5b68d; /* Brown color from your theme */
+  color: white;
+}
+
+.pdf-container .btn-brown:hover {
+  background-color: #8c9a6d;
+}
+
+.pdf-container #page-num,
+.pdf-container #page-count {
+  font-weight: bold;
+}
+
+
+
+/* ----------------------------------FlashCard feature-------------------------------------- */
+.flashCard {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  width: 100vw;
+  background-color: #fcfaee; /* Soft background color */
+}
+
+.flashCard .container {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 400px;
+}
+
+
+.flashCard h2 {
+  color: #2d3436;
+  font-weight: bold;
+  font-size: 28px;
+  margin-bottom: 20px;
+}
+
+.flashCard .flashcard {
+  width: 380px;
+  height: 220px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: bold;
+  cursor: pointer;
+  background: #ecdfcc; /* Flashcard color */
+  color: #2d3436;
+  box-shadow: 4px 6px 15px rgba(0, 0, 0, 0.15);
+  transition: transform 0.3s ease, background 0.3s ease;
+}
+
+.flashCard .flashcard:hover {
+  transform: scale(1.05);
+  background: #a5b68d; /* Slightly darker on hover */
+  color: white;
+}
+
+.flashCard .flashcard.flipped {
+  background: #a83559; /* Different color for answer side */
+  color: white;
+}
+
+.flashCard button {
+  margin: 10px;
+  padding: 12px 20px;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.flashCard #prev {
+  background-color: sandybrown;
+  color: white;
+}
+
+.flashCard #prev:hover {
+  background-color: saddlebrown;
+}
+
+.flashCard #next {
+  background-color: saddlebrown;
+  color: white;
+}
+
+.flashCard #next:hover {
+  background-color: sandybrown;
+}
+
+/*--------------------------Error handing---------------*/
+/* Styling for the error message container */
+.errorhandler {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+  padding: 15px;
+  border-radius: 10px;
+  margin-top: 20px;
+  max-width: 400px;
+  margin: 0 auto;
+  opacity: 0;
+  animation: fadeIn 2s ease-out forwards, autoDismiss 5s forwards;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Icon styling */
+.errorhandler .error-icon {
+  font-size: 24px;
+  margin-right: 10px;
+}
+
+/* Error text styling */
+.errorhandler .error-text {
+  flex: 1;
+  font-size: 16px;
+}
+
+/* Close button styling */
+.errorhandler .close-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #721c24;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.errorhandler .close-btn:hover {
+  color: #f44336;
+}
+
+/* Fade-in animation */
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Auto-dismiss animation */
+@keyframes autoDismiss {
+  0% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+}
+
+/* Optional shake animation */
+@keyframes shake {
+  0% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-10px);
+  }
+  50% {
+    transform: translateX(10px);
+  }
+  75% {
+    transform: translateX(-10px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.errorhandler.shake {
+  animation: shake 0.5s ease;
+}
+
+/*_____________________Footer_________________*/

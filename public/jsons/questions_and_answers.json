@@ -1,0 +1,46 @@
+[
+    {
+        "question": "What is the email address of the professor?",
+        "answer": "jogasz@gmail.com"
+    },
+    {
+        "question": "What is the subject of the course?",
+        "answer": "Business Law"
+    },
+    {
+        "question": "Who is the professor?",
+        "answer": "Dr. Zoltan Vig"
+    },
+    {
+        "question": "What is the first topic covered in the syllabus?",
+        "answer": "Introduction to Law"
+    },
+    {
+        "question": "When is the first test scheduled?",
+        "answer": "March 31st"
+    },
+    {
+        "question": "How many online Moodle tests are there, and what format do they take?",
+        "answer": "There are two tests, each consisting of 25 multiple-choice questions, with a time limit of 25 minutes."
+    },
+    {
+        "question": "What is the difference between social norms and legal norms?",
+        "answer": "Social norms are behavioral standards that are expected to be followed by society, but they are not enforced by the state. Legal norms, on the other hand, are social norms that are sanctioned and enforced by the state, such as laws and regulations."
+    },
+    {
+        "question": "What are the subjects of the law?",
+        "answer": "The subjects of the law include the state, legal persons (e.g., companies), and natural persons (human beings)."
+    },
+    {
+        "question": "What is the difference between public and private law?",
+        "answer": "Public law governs issues related to the functioning of the state, with natural and legal persons subordinated to the state. Private law, on the other hand, deals with relationships between natural and legal persons, where the state may be of equal rank in front of the law and courts."
+    },
+    {
+        "question": "What is the difference between substantive and procedural law?",
+        "answer": "Substantive law establishes the rights and obligations of individuals and defines what they may or may not do. Procedural law, meanwhile, lays down the ways to enforce substantive law and decides the fate of a case."
+    },
+    {
+        "question": "What are the four aspects of effectivity or scope of a norm?",
+        "answer": "1. Material scope: The area or topic the norm covers (e.g., public transportation, education, trade). 2. Personal scope: Who is covered by the norm, whether everyone or specific individuals like officials or traders. 3. Temporal scope: The period during which the norm is applicable, usually from its publication until superseded. 4. Territorial scope: The geographical area where the norm should be applied, which can vary depending on the type of state (federal vs. unitary) and local decrees."
+    }
+]

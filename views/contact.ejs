@@ -1,0 +1,69 @@
+<%- include('header.ejs') %>
+
+<!-- Contact Start -->
+<div class="container-xxl py-5">
+    <div class="container">
+        <div class="row g-5 align-items-center">
+            <!-- Contact Information -->
+            <div class="col-lg-5 wow fadeInUp" data-wow-delay="0.1s">
+                <h6 class="section-title bg-white text-start text-brown pe-3">Contact Us</h6>
+                <h1 class="mb-4">Get In Touch</h1>
+                <p class="mb-4">
+                    Have questions, suggestions, or need assistance? Feel free to reach out to us.
+                    We are always happy to help and ensure you have the best learning experience.
+                </p>
+                <div class="mb-3">
+                    <p class="mb-2"><i class="fa fa-map-marker-alt me-3"></i>Kunigunda útja Street, Budapest, Hungary</p>
+                    <p class="mb-2"><i class="fa fa-phone-alt me-3"></i>+36 70 606 9421</p>
+                    <p class="mb-2"><i class="fa fa-envelope me-3"></i>fossilintel@gmail.com</p>
+                </div>
+                <div class="d-flex pt-2">
+                    <a class="btn btn-outline-dark btn-social" href="#"><i class="fab fa-twitter"></i></a>
+                    <a class="btn btn-outline-dark btn-social" href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a class="btn btn-outline-dark btn-social" href="#"><i class="fab fa-youtube"></i></a>
+                    <a class="btn btn-outline-dark btn-social" href="#"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+            </div>
+
+            <!-- Contact Form -->
+            <div class="col-lg-7 wow fadeInUp" data-wow-delay="0.3s">
+                <div class="contact-form bg-light p-4 rounded shadow">
+                    <h3 class="text-center mb-4">Send Us a Message</h3>
+                    <form action="/send-message" method="POST">
+                        <div class="mb-3">
+                            <input type="text" class="form-control" name="name" placeholder="Your Name" required>
+                        </div>
+                        <div class="mb-3">
+                            <input type="email" class="form-control" name="email" placeholder="Your Email" required>
+                        </div>
+                        <div class="mb-3">
+                            <input type="text" class="form-control" name="subject" placeholder="Subject" required>
+                        </div>
+                        <div class="mb-3">
+                            <textarea class="form-control" name="message" rows="5" placeholder="Your Message" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-brown w-100">Send Message</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Contact End -->
+
+<%- include('footer.ejs') %>
+
+<style>
+    .contact-form {
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    .btn-brown {
+        background-color: #a58b69;
+        color: white;
+    }
+    .btn-brown:hover {
+        background-color: #8c7258;
+    }
+</style>

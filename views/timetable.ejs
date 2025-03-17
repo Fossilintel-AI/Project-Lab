@@ -1,0 +1,128 @@
+<%- include('header.ejs') %>
+<div class="Timetable">
+    <h1>Timetable</h1>
+    <% if (locals.errorMessage) { %>
+        <div class="alert alert-danger text-center">
+            <%= errorMessage %>
+        </div>
+    <% } %>
+    <!-- Add Entry Form -->
+    <form action="/addSubject" method="POST">
+        <label for="day">Day:</label>
+        <select name="day" required>
+            <% ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].forEach(day => { %>
+                <option value="<%= day %>"><%= day %></option>
+            <% }) %>
+        </select>
+
+        <label for="startTime">Start Time:</label>
+        <select name="startTime" required>
+            <%
+            const startTimeSlots = [];
+            for (let h = 8; h < 18; h++) {
+                for (let m = 0; m < 60; m += 15) {
+                    startTimeSlots.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+                }
+            }
+            startTimeSlots.forEach(time => { %>
+                <option value="<%= time %>"><%= time %></option>
+            <% }) %>
+        </select>
+
+        <label for="endTime">End Time:</label>
+        <select name="endTime" required>
+            <%
+            const endTimeSlots = [];
+            for (let h = 8; h < 18; h++) {
+                for (let m = 0; m < 60; m += 15) {
+                    endTimeSlots.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+                }
+            }
+            endTimeSlots.forEach(time => { %>
+                <option value="<%= time %>"><%= time %></option>
+            <% }) %>
+        </select>
+
+        <label for="subject">Subject:</label>
+        <input type="text" name="subject" required>
+
+        <label for="classType">Class Type:</label>
+        <select name="classType" required>
+            <option value="Lecture">Lecture</option>
+            <option value="Practice">Practice</option>
+            <option value="Lab">Lab</option>
+        </select>
+
+        <button class="btn-brown" type="submit">Add Entry</button>
+    </form>
+
+    <!-- Timetable Display -->
+    <table>
+        <thead>
+        <tr>
+            <th>Time</th>
+            <% ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].forEach(day => { %>
+                <th><%= day %></th>
+            <% }) %>
+        </tr>
+        </thead>
+        <tbody>
+        <%
+        const timeslots = [];
+        for (let h = 8; h < 18; h++) {
+            for (let m = 0; m < 60; m += 15) {
+                timeslots.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+            }
+        }
+
+        const timetableGrid = {};
+        ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].forEach(day => {
+            timetableGrid[day] = timeslots.map(() => null);
+        });
+
+        timetable.forEach(entry => {
+            const startIdx = timeslots.indexOf(entry.starttime);
+            const endIdx = timeslots.indexOf(entry.endtime);
+            if (startIdx !== -1 && endIdx !== -1) {
+                for (let i = startIdx; i < endIdx; i++) {
+                    timetableGrid[entry.day][i] = {
+                        subject: entry.subject,
+                        classType: entry.classtype,
+                        firstBlock: i === startIdx,
+                        subjectColor: entry.color,
+                        subjectID: entry.id
+
+                    };
+                }
+            }
+        });
+        %>
+
+        <% timeslots.forEach((time, rowIndex) => { %>
+            <tr>
+                <td><%= time %></td>
+                <% ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].forEach(day => { %>
+                    <% if (timetableGrid[day][rowIndex]) { %>
+                        <% const entry = timetableGrid[day][rowIndex]; %>
+                        <td class="entry" style="background-color: <%= entry.subjectColor %>; position: relative;">
+                            <p><%= entry.subject %> - <%= entry.classType %></p>
+
+                            <form action="/deleteSubject" method="POST" class="delete-form">
+                                <input type="hidden" name="subject" value="<%= entry.subject %>">
+                                <input type="hidden" name="day" value="<%= day %>">
+                                <input type="hidden" name="startTime" value="<%= time %>">
+                                <input type="hidden" name="subjectID" value="<%= entry.subjectID %>">
+                                <button type="submit" class="delete-btn blue">✖️</button>
+                            </form>
+                        </td>
+
+                <% } else { %>
+                        <td></td>
+                    <% } %>
+                <% }) %>
+            </tr>
+        <% }) %>
+        </tbody>
+    </table>
+</div>
+<%- include('footer.ejs') %>
