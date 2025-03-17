@@ -1,7 +1,6 @@
 <%- include('header.ejs') %>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
-
 <div class="container">
     <h2 class="text-center my-4">Lecture Slides for <%= subject %></h2>
 
@@ -13,18 +12,36 @@
                 <li class="list-group-item d-flex justify-content-between align-items-center slide-item">
                     Lecture <%= index + 1 %>: <%= slide.replace('.pdf', '') %>
                     <div class="d-flex">
-                        <!-- Button to generate flashcards with animation and icon -->
-                        <a href="/generateQuestions/<%= encodeURIComponent(slide) %>" class="btn btn-sm btn-primary generate-btn">
-                            <i class="bi bi-lightning-charge"></i> <!-- Icon for generate -->
-                        </a>
-                        <!-- Download button with an icon -->
+                        <% if (subscription_type === 'Free' || subscription_type === 'Pro') { %>
+                            <!-- Show Upgrade Popup for Free Plan Users -->
+                            <a href="javascript:void(0);" class="btn btn-sm btn-primary" onclick="showUpgradePopup()">
+                                <i class="bi bi-lightning-charge"></i>
+                            </a>
+                        <% } else { %>
+                            <!-- Button to generate flashcards for Enterprise plans -->
+                            <a href="/generateQuestions/<%= encodeURIComponent(slide) %>" class="btn btn-sm btn-primary">
+                                <i class="bi bi-lightning-charge"></i>
+                            </a>
+                        <% } %>
+                        <!-- Download button available to all subscription plans -->
                         <a href="/Course/<%= subject %>/slides/<%= encodeURIComponent(slide) %>" target="_blank" class="btn btn-sm btn-brown mr-2 download-btn">
-                            <i class="bi bi-download"></i> <!-- Icon for download -->
+                            <i class="bi bi-download"></i>
                         </a>
-                        <!-- View in PDF Viewer button with an icon -->
+                        <!-- View in PDF Viewer button available to all subscription plans -->
                         <a href="/pdfview/<%= encodeURIComponent(slide) %>" class="btn btn-sm btn-primary view-btn">
-                            <i class="bi bi-eye"></i> <!-- Icon for view -->
+                            <i class="bi bi-eye"></i>
                         </a>
+                        <% if (subscription_type === 'Free'  || subscription_type === 'Pro') { %>
+                            <!-- Show Upgrade Popup for Free Plan Users -->
+                            <a href="javascript:void(0);" class="btn btn-sm btn-brown  summarize-btn" onclick="showUpgradePopup()">
+                                <i class="bi bi-file-text"></i>
+                            </a>
+                        <% } else { %>
+                            <!-- Summarize Notes button for Enterprise plans -->
+                            <a href="/summarize/<%= encodeURIComponent(slide) %>" class="btn btn-sm btn-brown summarize-btn">
+                                <i class="bi bi-file-text"></i>
+                            </a>
+                        <% } %>
                     </div>
                 </li>
             <% }); %>
@@ -41,7 +58,7 @@
             <li class="list-group-item d-flex justify-content-between align-items-center">
                 Lecture <%= index + 1 %>: <%= slide.replace('.pdf', '') %>
                 <a href="/Workstation/<%= userid %>/<%= subject %>/slides/<%= encodeURIComponent(slide) %>" target="_blank" class="btn btn-sm btn-brown view-btn">
-                    <i class="bi bi-eye"></i> <!-- Icon for view -->
+                    <i class="bi bi-eye"></i> View
                 </a>
             </li>
         <% }); %>
@@ -53,47 +70,63 @@
     <form action="/uploadPdf" method="POST" enctype="multipart/form-data" class="text-center">
         <input type="file" name="pdfFile" accept="application/pdf" class="form-control my-2" required>
         <button type="submit" class="btn btn-brown upload-btn">
-            <i class="bi bi-upload"></i> <!-- Icon for upload -->
+            <i class="bi bi-upload"></i> Upload
         </button>
     </form>
 </div>
 
+<!-- Hidden popup for upgrade message -->
+<div id="upgradePopup" class="popup">
+    <div class="popup-content">
+        <span class="popup-close" onclick="closePopup()">&times;</span>
+        <h4>Upgrade for More Features</h4>
+        <p>This feature is only available in higher subscription plans.</p>
+    </div>
+</div>
+
+<!-- Script for handling the popup display -->
+<script>
+    function showUpgradePopup() {
+        document.getElementById("upgradePopup").style.display = "block";
+    }
+
+    function closePopup() {
+        document.getElementById("upgradePopup").style.display = "none";
+    }
+</script>
 
 <style>
-
     /* Smooth transition for buttons */
-    .generate-btn, .download-btn, .view-btn {
+    .generate-btn, .download-btn, .view-btn, .summarize-btn {
         transition: all 0.3s ease;
         border-radius: 5px;
     }
-
     /* Hover effects for buttons */
     .generate-btn:hover {
         background-color: #007bff;
         transform: scale(1.05);
     }
-
     .download-btn:hover {
         background-color: #8B4513;
         transform: scale(1.05);
     }
-
     .view-btn:hover {
         background-color: #007bff;
         transform: scale(1.05);
     }
-
+    .summarize-btn:hover{
+        background-color: #8B4513;
+        transform: scale(1.05);
+    }
     /* Adding animation for the "Generate Flashcards" button */
     .generate-btn {
         position: relative;
         display: inline-block;
         cursor: pointer;
     }
-
     .generate-btn:active {
         animation: flashcardsClick 0.5s ease-in-out forwards;
     }
-
     /* Animation when user clicks the "Generate Flashcards" button */
     @keyframes flashcardsClick {
         0% {
@@ -110,67 +143,42 @@
         }
     }
 
-    /* List Group Styling */
-    .list-group-item {
-        border: none;
-        background-color: #f8f9fa;
-        padding: 10px;
-        margin-bottom: 10px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        border-radius: 8px;
+    /* Popup styling */
+    .popup {
+        display: none;
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.4);
     }
 
-    .list-group-item:hover {
-        background-color: #f1f3f5;
-    }
-
-    /* Button Styling */
-    .btn-brown {
-        background-color: #8B4513;
-        color: white;
-    }
-
-    .btn-brown:hover {
-        background-color: #6f3d0b;
-    }
-
-    .upload-btn {
-        background-color: #8B4513;
-        color: white;
-        font-size: 1.2rem;
-        padding: 10px 30px;
-        border-radius: 5px;
-        transition: background-color 0.3s ease;
-    }
-
-    .upload-btn:hover {
-        background-color: #6f3d0b;
-    }
-
-    /* Centering content for upload form */
-    .form-control {
+    .popup-content {
+        background-color: #fefefe;
+        margin: 15% auto;
+        padding: 20px;
+        border: 1px solid #888;
         width: 80%;
-        margin: 10px auto;
-    }
-
-    .text-center {
+        max-width: 400px;
         text-align: center;
     }
 
-    /* Customizing the card's hover effect */
-    .slide-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+    .popup-close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
     }
 
-    .slide-item:hover {
-        background-color: #f1f1f1;
-        transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    .popup-close:hover,
+    .popup-close:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
     }
-
-
 </style>
 
 <%- include('footer.ejs') %>

@@ -1,8 +1,6 @@
 <%- include('header.ejs') %>
-
 <div class="container my-5">
     <h3 class="mb-4 text-center">Forum Posts</h3>
-
     <div class="row">
         <div class="col-12 text-center mb-4">
             <% subjects.forEach(subject => { %>
@@ -24,6 +22,7 @@
                     <th>Topic</th>
                     <th>Problem</th>
                     <th>Date</th>
+                    <th>Admin Comment</th> <!-- New column for admin comments -->
                 </tr>
                 </thead>
                 <tbody id="forumTableBody">
@@ -34,6 +33,17 @@
                         <td><%= post.topic %></td>
                         <td><%= post.problem %></td>
                         <td><%= post.date %></td>
+                        <td>
+                            <% if (locals.isAdmin) { %> <!-- Check if the current user is an admin -->
+                            <form action="/addAdminCommentForum" method="post">
+                                <textarea name="comment" class="form-control" placeholder="Admin Comment"></textarea>
+                                <input type="hidden" name="postId" value="<%= post.id %>">
+                                <button type="submit" class="btn btn-brown mt-2">Submit Comment</button>
+                            </form>
+                            <% } else { %>
+                                <p><%= post.admin_comment ? post.admin_comment : 'No comment yet' %></p> <!-- Display admin comment if available -->
+                            <% } %>
+                        </td>
                     </tr>
                 <% }) %>
                 </tbody>
@@ -50,22 +60,18 @@
             <label for="name">Name:</label>
             <input type="text" name="name" required class="form-control">
         </div>
-
         <div class="form-group">
             <label for="surname">Surname:</label>
             <input type="text" name="surname" required class="form-control">
         </div>
-
         <div class="form-group">
             <label for="topic">Topic:</label>
             <input type="text" name="topic" required class="form-control">
         </div>
-
         <div class="form-group">
             <label for="problem">Problem:</label>
             <textarea name="problem" required class="form-control"></textarea>
         </div>
-
         <div class="form-group">
             <label for="subject">Select a Subject:</label>
             <select name="selectedSubject" id="subjectSelect" class="form-control" required>
@@ -75,9 +81,7 @@
                 <% }) %>
             </select>
         </div>
-
         <button type="submit" class="btn btn-brown mt-3">Submit</button>
     </form>
 </div>
-
 <%- include('footer.ejs') %>

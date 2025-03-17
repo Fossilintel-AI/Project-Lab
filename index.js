@@ -142,6 +142,9 @@ const cohere = new CohereClientV2({
     token: 'SWaeBAPGPwj2ClLJ3ToDPqipg6sVGNvfCIrLDo9p', // Your Cohere API key
 });
 
+
+
+
 // Function to extract text from PDF
 async function extractTextFromPDF(filePath) {
     try {
@@ -157,7 +160,38 @@ async function extractTextFromPDF(filePath) {
     }
 }
 
-// Function to generate questions using Cohere
+// Function to generate the summarize  using Cohere
+async function generateSummarize(text) {
+    try {
+        // const prompt = `Based on the following text, generate a set of questions and Answers Text in the form as key: value pair object {dont include question and answer tags ,let the answer start with ***}:\n\nText: ${text}`;
+        const prompt = `Based on the following text, Generate a descriptive summary of the whole context covered 
+
+
+
+Text:${text}
+`;
+
+        const response = await cohere.chat({
+            model: 'command-r-plus',
+            messages: [
+                { role: 'user', content: prompt }
+            ]
+        });
+
+        if (response.message && Array.isArray(response.message.content) && response.message.content[0].text) {
+            const generatedText = response.message.content[0].text.trim();
+            return generatedText;
+        } else {
+            throw new Error('Unexpected response structure');
+        }
+    } catch (error) {
+        console.error('Error generating questions:', error);
+        throw error;
+    }
+}
+
+
+//Function to generate questions using Cohere
 async function generateQuestions(text) {
     try {
         // const prompt = `Based on the following text, generate a set of questions and Answers Text in the form as key: value pair object {dont include question and answer tags ,let the answer start with ***}:\n\nText: ${text}`;
@@ -190,6 +224,7 @@ Text:${text}
         throw error;
     }
 }
+
 
 //Email sender settings
 const transporter = nodemailer.createTransport({
@@ -446,7 +481,10 @@ app.post("/signup", async (req, res) => {
 app.get("/main", async (req, res) => {
     if(req.isAuthenticated())
     {
-        res.render("welcome.ejs", { user: user_id !== -1 ? "user Present" : null });
+
+        const currentUser = req.user;
+        const subscription_type = currentUser.subscription_type;
+        res.render("welcome.ejs", { user: user_id !== -1 ? "user Present" : null,subscription_type  });
 
         //res.render("welcome.ejs");
     }
@@ -849,7 +887,7 @@ app.get("/forums", async (req, res) => {
             forumData = forumResult.rows;
         }
 
-        res.render("forum.ejs", { forumData, subjects, selectedSubject: subject, subjectSelected,user: user_id !== -1 ? "user Present" : null });
+        res.render("forum.ejs", { forumData, subjects, selectedSubject: subject, subjectSelected,user: user_id !== -1 ? "user Present" : null,isAdmin: "" });
     }
     else{
         res.redirect("/login");
@@ -880,13 +918,34 @@ app.post("/addforum", async (req, res) => {
 
 
 });
+app.post('/addAdminCommentForum', async (req, res) => {
+    if(req.isAuthenticated()) {
+        const {comment, postId} = req.body;
+        // Assuming you have a function to update the admin comment in the database
 
+        try {
+            await db.query(
+                "UPDATE forum_posts SET admin_comment = $1 WHERE id = $2 ",
+                [comment, postId]
+            );
+            res.redirect('/forums?subject=' + req.query.subject); // Redirect back to the forum page
+        } catch (err) {
+            console.error(err);
+            res.status(500).send("Error adding forum post");
+        }
+    }
+    else{
+        res.redirect("/login");
+    }
+});
 
 
 //The course
 app.get("/course/:subject", async (req, res) => {
     if(req.isAuthenticated())
     {
+        const currentUser = req.user;
+        const subscription_type = currentUser.subscription_type;
         const subject = req.params.subject;
         const slidesPath = path.join(__dirname, "public", "Course", subject, "slides");
         currentSubject = subject;
@@ -917,8 +976,10 @@ app.get("/course/:subject", async (req, res) => {
             console.error("Error reading slides:", error);
         }
 
+
+
         // Render course.ejs with the subject and slides
-        res.render("course.ejs", { subject, slides,personalslides,userid:user_id, user: user_id !== -1 ? "user Present" : null });
+        res.render("course.ejs", { subject, slides,personalslides,userid:user_id, user: user_id !== -1 ? "user Present" : null,subscription_type });
     }
     else{
         res.redirect("/login");
@@ -1172,6 +1233,50 @@ app.get("/flashcards", (req, res) => {
 
 });
 
+//feature for summurization
+// Route to summarize text
+
+
+app.get("/summarize/:document", async (req, res) => {
+    if (req.isAuthenticated()) {
+        const document = req.params.document;
+        const filePath = path.join(__dirname, "public", "Course", currentSubject, "slides", document); // relative path
+
+        // Debugging log for file path
+        console.log("Requested file path:", filePath);
+
+        try {
+            // Check if the file exists
+            if (!fs.existsSync(filePath)) {
+                return res.status(404).send('File not found.');
+            }
+
+            // Extracting text from the PDF
+            console.log("File found, extracting text...");
+            const text = await extractTextFromPDF(filePath);
+
+            // Summarizing the text
+
+            // const summary = await summarizeText(text);
+            // console.log("Summary generated:", summary);
+            const summary = await generateSummarize(text);
+            console.log("Summary generated:", summary);
+
+            // Rendering the summary
+             // Adjusting based on the summary format
+            res.render("summarize.ejs", {
+                summary,
+                user: user_id !== -1 ? "user Present" : null
+            });
+
+        } catch (error) {
+            console.error("Error generating summary:", error);
+            return res.status(500).send('Error generating Summary: ' + error.message);
+        }
+    } else {
+        res.redirect("/login");
+    }
+});
 
 //sessions and passport
 passport.serializeUser((user, cb) => {

@@ -1,0 +1,60 @@
+<%- include('header.ejs') %>
+<style>
+    .summarizeClass {
+        max-width: 600px;
+        margin: 50px auto;
+        text-align: center;
+    }
+    .summarizeClass .title {
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 20px;
+    }
+    .summarizeClass .summary-box {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+    }
+    .summarizeClass .btn-brown {
+        background-color: #8B4513;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        cursor: pointer;
+        font-size: 16px;
+        border-radius: 5px;
+    }
+    .summarizeClass .btn-brown:hover {
+        background-color: #A0522D;
+    }
+    .summarizeClass .summary-result {
+        margin-top: 20px;
+        padding: 15px;
+        background: #f8f8f8;
+        border: 2px solid #8B4513;
+        border-radius: 5px;
+        text-align: left;
+    }
+    .summarizeClass #summaryText {
+        font-size: 16px;
+        color: #333;
+        white-space: pre-line; /* Ensures proper paragraphing */
+    }
+</style>
+<body>
+
+<div class="summarizeClass">
+    <h2 class="title">Summarized Text</h2>
+
+    <div class="summary-result">
+<!--        <h3>Summary:</h3>-->
+        <p id="summaryText"><%= summary ? summary : "Your summarized text will appear here..." %></p>
+    </div>
+
+    <!-- Back Button -->
+<!--    <a href="/" class="btn btn-brown">Back to Home</a>-->
+</div>
+
+
+<%- include('footer.ejs') %>

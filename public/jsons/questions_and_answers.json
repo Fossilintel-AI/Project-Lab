@@ -24,59 +24,23 @@
         "answer": "There are two tests, each consisting of 25 multiple-choice questions, with a time limit of 25 minutes."
     },
     {
-        "question": "Can you retake the tests?",
-        "answer": "Yes, you can retake (and correct) both tests, but the last result counts."
-    },
-    {
-        "question": "What is the benefit of class participation and activity?",
-        "answer": "You can get additional scores (1 point for each attendance). You will have to sign an attendance list."
-    },
-    {
-        "question": "What are the two types of norms mentioned in the text?",
-        "answer": "Social norm and legal norm"
-    },
-    {
-        "question": "How are social norms defined in the text?",
-        "answer": "Behavioral standards that prescribe what is correct and need to be followed in society, representing public interest but not sanctioned by the state."
-    },
-    {
-        "question": "How are legal norms different from social norms?",
-        "answer": "Legal norms are social norms that are enforced or sanctioned by the state, such as \"If you earn money, you should pay tax. If you do not pay, you will be fined by the state.\""
+        "question": "What is the difference between social norms and legal norms?",
+        "answer": "Social norms are behavioral standards that are expected to be followed by society, but they are not enforced by the state. Legal norms, on the other hand, are social norms that are sanctioned and enforced by the state, such as laws and regulations."
     },
     {
         "question": "What are the subjects of the law?",
-        "answer": "State, legal persons (e.g., companies), and natural persons (human beings)"
+        "answer": "The subjects of the law include the state, legal persons (e.g., companies), and natural persons (human beings)."
     },
     {
-        "question": "What are legal acts, and how are they related to the legal system?",
-        "answer": "Legal acts are sources of legal norms, and they are created by a body empowered to legislate. The whole set of legal acts forms the legal system of a sovereign state."
+        "question": "What is the difference between public and private law?",
+        "answer": "Public law governs issues related to the functioning of the state, with natural and legal persons subordinated to the state. Private law, on the other hand, deals with relationships between natural and legal persons, where the state may be of equal rank in front of the law and courts."
     },
     {
-        "question": "What is the difference between public law and private law?",
-        "answer": "Public law governs issues related to the functioning of the state, with natural and legal persons subordinated to the state. Private law deals with relationships between natural and legal persons, where the state may be of equal rank in front of the law and courts."
+        "question": "What is the difference between substantive and procedural law?",
+        "answer": "Substantive law establishes the rights and obligations of individuals and defines what they may or may not do. Procedural law, meanwhile, lays down the ways to enforce substantive law and decides the fate of a case."
     },
     {
-        "question": "What is an example of a public law branch?",
-        "answer": "Constitutional law, administrative law, tax law, and criminal law"
-    },
-    {
-        "question": "What is an example of private law?",
-        "answer": "Civil law, company law, and international trade law"
-    },
-    {
-        "question": "What is the difference between substantive law and procedural law?",
-        "answer": "Substantive law establishes the rights and obligations of individuals and what they may or may not do. Procedural law lays down the ways to enforce substantive law and decide the fate of a case."
-    },
-    {
-        "question": "What are the four scopes of effectivity or applicability of a norm?",
-        "answer": "1. Material scope: the subject matter covered by the norm; 2. Personal scope: who is covered by the norm; 3. Temporal scope: the period when the norm is applicable; 4. Territorial scope: the geographical area where the norm applies."
-    },
-    {
-        "question": "What are the sources of business law?",
-        "answer": "Constitution, international treaties, national laws, conflict of laws rules, decrees, contracts, international commercial customs, written usages, unique business practices, case law of international commercial arbitration, and lex mercatoria."
-    },
-    {
-        "question": "What are the two important sources of EU law mentioned in the text?",
-        "answer": "Regulations and directives. Regulations are binding legislative acts applied across the EU, while directives set out goals that EU countries must achieve through their own laws."
+        "question": "What are the four aspects of effectivity or scope of a norm?",
+        "answer": "1. Material scope: The area or topic the norm covers (e.g., public transportation, education, trade). 2. Personal scope: Who is covered by the norm, whether everyone or specific individuals like officials or traders. 3. Temporal scope: The period during which the norm is applicable, usually from its publication until superseded. 4. Territorial scope: The geographical area where the norm should be applied, which can vary depending on the type of state (federal vs. unitary) and local decrees."
     }
 ]

@@ -1,23 +1,57 @@
 <%- include('header.ejs') %>
 
-<!--This is the first line buttons -->
+<!-- This is the first line buttons -->
 <section class="row-buttons">
     <div class="button-container">
-        <button class="dashboard-button" onclick="window.location.href='/todo-list'">
-            <i class="bi bi-list-check"></i> To-Do List
-        </button>
-        <button class="dashboard-button" onclick="window.location.href='/books'">
-            <i class="bi bi-journal-bookmark"></i> Books I've Read
-        </button>
-        <button class="dashboard-button" onclick="window.location.href='/dictionary'">
-            <i class="bi bi-file-earmark-text"></i> Dictionary
-        </button>
-        <button class="dashboard-button" onclick="window.location.href='/forums'">
-            <i class="bi bi-chat-dots"></i> Forums
-        </button>
-        <button class="dashboard-button" onclick="window.location.href='/timetable'">
-            <i class="bi bi-chat-dots"></i> Timetable
-        </button>
+        <% if (subscription_type === 'Pro' || subscription_type === 'Enterprise') { %>
+            <button class="dashboard-button" onclick="window.location.href='/todo-list'">
+                <i class="bi bi-list-check"></i> To-Do List
+            </button>
+        <% } else { %>
+            <button class="dashboard-button" onclick="showUpgradePopup()">
+                <i class="bi bi-list-check"  ></i> To-Do List
+            </button>
+        <% } %>
+
+        <% if ( subscription_type === 'Enterprise') { %>
+            <button class="dashboard-button" onclick="window.location.href='/books'">
+                <i class="bi bi-journal-bookmark"></i> Books I've Read
+            </button>
+        <% } else { %>
+            <button class="dashboard-button" onclick="showUpgradePopup()" >
+                <i class="bi bi-journal-bookmark"></i> Books I've Read
+            </button>
+        <% } %>
+
+        <% if (subscription_type === 'Free' || subscription_type === 'Pro' || subscription_type === 'Enterprise') { %>
+            <button class="dashboard-button" onclick="window.location.href='/dictionary'">
+                <i class="bi bi-file-earmark-text"></i> Dictionary
+            </button>
+        <% } else { %>
+            <button class="dashboard-button" disabled>
+                <i class="bi bi-file-earmark-text"></i> Dictionary
+            </button>
+        <% } %>
+
+        <% if (subscription_type === 'Free' || subscription_type === 'Pro' || subscription_type === 'Enterprise') { %>
+            <button class="dashboard-button" onclick="window.location.href='/forums'">
+                <i class="bi bi-chat-dots"></i> Forums
+            </button>
+        <% } else { %>
+            <button class="dashboard-button" disabled>
+                <i class="bi bi-chat-dots"></i> Forums
+            </button>
+        <% } %>
+
+        <% if (subscription_type === 'Pro' || subscription_type === 'Enterprise') { %>
+            <button class="dashboard-button" onclick="window.location.href='/timetable'">
+                <i class="bi bi-chat-dots"></i> Timetable
+            </button>
+        <% } else { %>
+            <button class="dashboard-button" onclick="showUpgradePopup()">
+                <i class="bi bi-chat-dots"></i> Timetable
+            </button>
+        <% } %>
     </div>
 </section>
 
@@ -26,8 +60,9 @@
     <div class="container">
         <h2 class="text-center mb-4">Available Courses</h2>
         <div class="row g-4">
-            <!-- Course List -->
-            <% const courses = [
+            <%
+            // Define all available courses
+            const courses = [
                 { name: "Automated Software Engineering", img: "automated.jpg", desc: "Learn how to design and automate software development processes efficiently." },
                 { name: "Business Law", img: "business.jpg", desc: "Understand the legal principles that govern businesses and commercial transactions." },
                 { name: "Calculus", img: "calculus.jpg", desc: "Master the fundamentals of differentiation, integration, and mathematical analysis." },
@@ -38,11 +73,26 @@
                 { name: "Management and Business Economics", img: "economics.jpg", desc: "Develop business acumen with economic principles and management strategies." },
                 { name: "Programming 1", img: "programming1.jpg", desc: "Start your programming journey with fundamental coding concepts and logic." },
                 { name: "Programming 2", img: "programming3.jpg", desc: "Advance your programming skills with object-oriented programming and algorithms." },
-                { name: "Data Science Basics", img: "datascience.jpg",desc: "Dive into the world of data science with practical examples."},
-                { name: "Web Development 101", img: "web.jpg",desc: "Learn to build responsive websites from scratch using HTML, CSS, and JavaScript.", }
-            ]; %>
+                { name: "Data Science Basics", img: "datascience.jpg", desc: "Dive into the world of data science with practical examples." },
+                { name: "Web Development 101", img: "web.jpg", desc: "Learn to build responsive websites from scratch using HTML, CSS, and JavaScript." }
+            ];
 
-            <% courses.forEach(course => { %>
+            // Define course access based on subscription type
+            let maxCourses;
+            if (subscription_type === 'Free') {
+                maxCourses = 3;  // Free users can access only 2 courses
+            } else if (subscription_type === 'Pro') {
+                maxCourses = 6;  // Pro users can access up to 5 courses
+            } else if (subscription_type === 'Enterprise') {
+                maxCourses = courses.length;  // Enterprise users can access all courses
+            }
+
+            // Slice the courses array based on the subscription type
+            const accessibleCourses = courses.slice(0, maxCourses);
+            %>
+
+            <!-- Render available courses based on subscription -->
+            <% accessibleCourses.forEach(course => { %>
                 <div class="col-lg-4 col-sm-6">
                     <div class="card">
                         <img src="../images/course/<%= course.img %>" class="card-img-top" alt="<%= course.name %>" style="height: 200px; object-fit: cover;">
@@ -50,18 +100,82 @@
                             <h5 class="card-title"><%= course.name %></h5>
                             <p class="card-text"><%= course.desc %></p>
                             <a href="/course/<%= course.name %>" class="btn btn-brown">Start Learning</a>
-
                         </div>
                     </div>
                 </div>
             <% }) %>
+
+
         </div>
     </div>
 </div>
 <!-- Course Recommendations End -->
 
-
-
-
+<!-- Hidden popup for upgrade message -->
+<div id="upgradePopup" class="popup">
+    <div class="popup-content">
+        <span class="popup-close" onclick="closePopup()">&times;</span>
+        <h4>Upgrade for More Features</h4>
+        <p>This feature is only available in higher subscription plans.</p>
+    </div>
+</div>
 
 <%- include('footer.ejs') %>
+
+<!-- JavaScript for Popup -->
+<script>
+    // Function to show the popup
+    function showUpgradePopup() {
+        document.getElementById("upgradePopup").style.display = "block";
+    }
+
+    // Function to close the popup
+    function closePopup() {
+        document.getElementById("upgradePopup").style.display = "none";
+    }
+</script>
+
+<!-- CSS for Popup -->
+<style>
+    /* Popup styles */
+    .popup {
+        display: none; /* Hidden by default */
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+        z-index: 1000;
+        animation: fadeIn 0.5s ease-in-out;
+    }
+
+    /* Popup content box */
+    .popup-content {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: white;
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+        width: 300px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Close button */
+    .popup-close {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        font-size: 24px;
+        cursor: pointer;
+    }
+
+    /* Fade-in animation */
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+</style>
