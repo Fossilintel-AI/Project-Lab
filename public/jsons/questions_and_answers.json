@@ -21,26 +21,54 @@
     },
     {
         "question": "How many online Moodle tests are there, and what format do they take?",
-        "answer": "There are two tests, each consisting of 25 multiple-choice questions, with a time limit of 25 minutes."
+        "answer": "There are two tests, consisting of 25 multiple-choice questions, with 25 minutes allotted for each test."
     },
     {
-        "question": "What is the difference between social norms and legal norms?",
-        "answer": "Social norms are behavioral standards that are expected to be followed by society, but they are not enforced by the state. Legal norms, on the other hand, are social norms that are sanctioned and enforced by the state, such as laws and regulations."
+        "question": "Can you retake the tests?",
+        "answer": "Yes, you can retake (and correct) both tests, but the last result counts. The retake week is specified as the week to do so."
+    },
+    {
+        "question": "What is the benefit of attending classes?",
+        "answer": "You can gain additional scores (1 point for each attendance). You will have to sign an attendance list."
+    },
+    {
+        "question": "What are the two types of norms?",
+        "answer": "Social norm and legal norm."
+    },
+    {
+        "question": "What is a norm?",
+        "answer": "A behavioral standard that should be followed."
+    },
+    {
+        "question": "What is the difference between a social norm and a legal norm?",
+        "answer": "A social norm is a behavioral standard that is considered correct and needs to be followed in society, but it is not sanctioned by the state. A legal norm, on the other hand, is enforced (sanctioned) by the state."
     },
     {
         "question": "What are the subjects of the law?",
-        "answer": "The subjects of the law include the state, legal persons (e.g., companies), and natural persons (human beings)."
+        "answer": "State, legal persons (e.g., companies), and natural persons (human beings)"
     },
     {
-        "question": "What is the difference between public and private law?",
-        "answer": "Public law governs issues related to the functioning of the state, with natural and legal persons subordinated to the state. Private law, on the other hand, deals with relationships between natural and legal persons, where the state may be of equal rank in front of the law and courts."
+        "question": "What are legal acts, and what system do they form?",
+        "answer": "Legal norms are contained in legal acts, also known as legislation or laws. The collection of all legal acts in force within a sovereign state constitutes its legal system."
     },
     {
-        "question": "What is the difference between substantive and procedural law?",
-        "answer": "Substantive law establishes the rights and obligations of individuals and defines what they may or may not do. Procedural law, meanwhile, lays down the ways to enforce substantive law and decides the fate of a case."
+        "question": "What is the difference between public law and private law?",
+        "answer": "Public law governs issues related to the functioning of the state, with natural and legal persons always subordinated to the state, as it represents the public interest. Private law, meanwhile, deals with relationships between natural and legal persons, and sometimes includes the state as an equal party in front of the law and courts, protecting private interests."
     },
     {
-        "question": "What are the four aspects of effectivity or scope of a norm?",
-        "answer": "1. Material scope: The area or topic the norm covers (e.g., public transportation, education, trade). 2. Personal scope: Who is covered by the norm, whether everyone or specific individuals like officials or traders. 3. Temporal scope: The period during which the norm is applicable, usually from its publication until superseded. 4. Territorial scope: The geographical area where the norm should be applied, which can vary depending on the type of state (federal vs. unitary) and local decrees."
+        "question": "What is an example of a public law branch?",
+        "answer": "Constitutional law, administrative law, tax law, and criminal law."
+    },
+    {
+        "question": "What is an example of a private law branch?",
+        "answer": "Civil law, company law, and international trade law."
+    },
+    {
+        "question": "What is the difference between substantive law and procedural law?",
+        "answer": "Substantive law establishes the rights and obligations of individuals, defining what they may or may not do. Procedural law, on the other hand, lays down the ways to enforce substantive law and grants powers to decide the fate of a case."
+    },
+    {
+        "question": "What are the four scopes of effectivity or applicability of a norm?",
+        "answer": "1. Material scope: The subject matter or area covered by the norm (e.g., public transportation, education, trade). 2. Personal scope: Who is covered by the norm, which is usually everyone but may have specific targets (e.g., officials, traders). 3. Temporal scope: The period during which the norm is applicable, typically starting from its publication unless otherwise indicated. 4. Territorial scope: The geographical area or territory to which the norm applies, which can vary depending on the type of state (federal or unitary) or local decrees."
     }
 ]

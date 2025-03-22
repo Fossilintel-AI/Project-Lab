@@ -282,7 +282,18 @@ function sendWelcomeEmail(userEmail, userName) {
 //Main ,Login and Sign-up Route
 app.get("/", async (req, res) => {
 
-    res.render("index.ejs", { user: user_id !== -1 ? "user Present" : null });
+    if(req.isAuthenticated()) {
+
+    const currentUser = req.user;
+    const subscription_type = currentUser.subscription_type;
+    res.render("index.ejs", { user: user_id !== -1 ? "user Present" : null,subscription_type });
+    }
+    else
+    {
+        res.render("index.ejs", { user: user_id !== -1 ? "user Present" : null });
+    }
+
+
 
     //res.render("index.ejs", );
     //res.render("test.ejs");
@@ -367,115 +378,7 @@ app.post("/signup", async (req, res) => {
     }
 });
 
-// app.post("/signup", async (req, res) => {
-//     const { first_name, last_name, email, password } = req.body;
-//
-//     // Check if any of the fields are empty
-//     if (!first_name || !last_name || !email || !password) {
-//         return res.render("signup.ejs", { error: "All fields are required!" });
-//     }
-//
-//     try {
-//         // Check if the email already exists
-//         const checkResult = await db.query("SELECT * FROM users WHERE email = $1", [email]);
-//
-//         if (checkResult.rows.length > 0) {
-//             return res.render("signup.ejs", { error: "Email already exists. Try logging in." });
-//         }
-//
-//         // Hash the password
-//         bcrypt.hash(password, saltRounds, async (err, hash) => {
-//             if (err) {
-//                 console.log("Error hashing the password", err);
-//                 return res.render("signup.ejs", { error: "An error occurred. Please try again." });
-//             }
-//
-//             try {
-//                 // Insert the new user into the database
-//                 const result = await db.query(
-//                     "INSERT INTO users (first_name, last_name, email, password) VALUES ($1, $2, $3, $4) RETURNING *",
-//                     [first_name, last_name, email, hash]
-//                 );
-//
-//                 const user = result.rows[0];
-//                 const checkResultID = await db.query("SELECT user_id FROM users WHERE email = $1", [email]);
-//                 const userData =  checkResultID.rows[0];
-//                 user_id =userData.user_id;
-//
-//                 // Send Welcome Email
-//                 sendWelcomeEmail(user.email, user.first_name);
-//
-//                 // Automatically log the user in after signup
-//                 req.login(user, (err) => {
-//                     if (err) {
-//                         console.error("Login error after signup:", err);
-//                         return res.render("signup.ejs", { error: "Login failed after signup. Please try logging in." });
-//                     }
-//
-//                     return res.redirect("/main"); // Redirect user to main page after login
-//                 });
-//
-//             } catch (error) {
-//                 console.log("Error inserting user:", error);
-//                 return res.render("signup.ejs", { error: "An error occurred. Please try again." });
-//             }
-//         });
-//
-//     } catch (err) {
-//         console.log("Error checking for existing email:", err);
-//         return res.render("signup.ejs", { error: "An error occurred. Please try again." });
-//     }
-// });
 
-
-// app.post("/signup", async (req, res) => {
-//     const { first_name, last_name, email, password } = req.body;
-//
-//     // Check if any of the fields are empty
-//     if (!first_name || !last_name || !email || !password ) {
-//         return res.render("signup.ejs", { error: "All fields are required!" });
-//     }
-//
-//     try {
-//         // Check if the email already exists
-//         const checkResult = await db.query("SELECT * FROM users WHERE email = $1", [email]);
-//
-//         if (checkResult.rows.length > 0) {
-//             res.render("signup.ejs", { error: "Email already exists. Try logging in." });
-//         } else {
-//             // If email does not exist, hash the password
-//             bcrypt.hash(password, saltRounds, async (err, hash) => {
-//                 if (err) {
-//                     console.log("Error hashing the password", err);
-//                 } else {
-//                     // Insert the new user into the database
-//                     try {
-//                         const result = await db.query(
-//                             "INSERT INTO users (first_name, last_name, email, password) VALUES ($1, $2, $3, $4) RETURNING user_id",
-//                             [first_name, last_name, email, hash]
-//                         );
-//
-//                         user_id = result.rows[0].user_id;
-//
-//                         // // Fetch the books that the new user has read
-//                         // const booksResult = await db.query("SELECT * FROM readBooks WHERE userid = $1", [user_id]);
-//                         // const books = booksResult.rows;
-//                         //
-//                         // // Render the welcome page with the books
-//                         // res.render("welcome.ejs", { books: books });
-//                         res.redirect("/main");
-//                     } catch (error) {
-//                         console.log("Error inserting user:", error);
-//                         res.render("signup.ejs", { error: "An error occurred. Please try again." });
-//                     }
-//                 }
-//             });
-//         }
-//     } catch (err) {
-//         console.log("Error checking for existing email:", err);
-//         res.render("signup.ejs", { error: "An error occurred. Please try again." });
-//     }
-// });
 
 
 app.get("/main", async (req, res) => {
@@ -494,15 +397,6 @@ app.get("/main", async (req, res) => {
     // Render the welcome page with the books
 
 });
-// app.post(
-//     "/login",
-//     passport.authenticate("local", {
-//
-//         successRedirect: "/main",
-//         failureRedirect: "/main",
-//     })
-//
-// );
 
 
 passport.use(new Strategy({
@@ -561,49 +455,6 @@ app.post("/login", (req, res, next) => {
 });
 
 
-// app.post('/login', async (req, res) => {
-//     const email = req.body.email;
-//     const loginPassword = req.body.password;
-//
-//     try {
-//         const result = await db.query("SELECT * FROM users WHERE email = $1", [email]);
-//
-//         if (result.rows.length > 0) {
-//             const user = result.rows[0];
-//             const storedHashPassword = user.password;
-//
-//             // Compare the entered password with the stored hashed password
-//             bcrypt.compare(loginPassword, storedHashPassword, async (err, isMatch) => {
-//                 if (err) {
-//                     console.log("Error comparing password: ", err);
-//                     res.send("Error comparing password");
-//                 } else {
-//                     if (isMatch) {
-//                         // Fetch the books that the user has read
-//                         user_id = user.user_id;
-//                         // console.log(user_id);
-//                         // const booksResult = await db.query("SELECT * FROM readBooks WHERE userid = $1", [user_id]);
-//                         // const books = booksResult.rows;
-//                         //
-//                         // // Render the welcome page with the books
-//                         // res.render("welcome.ejs", { books: books });
-//                         res.redirect("/main");
-//                     } else {
-//                         // Render the login page with an error message
-//                         res.render("login.ejs", { error: "Incorrect Password" });
-//                     }
-//                 }
-//             });
-//         } else {
-//             // Render the login page with an error message for user not found
-//             res.render("login.ejs", { error: "User not found" });
-//         }
-//     } catch (err) {
-//         console.log("Database query error: ", err);
-//         res.status(500).send("Error accessing the database");
-//     }
-// });
-
 //Logging out
 app.get("/logout", (req, res, next) => {
     req.logout((err) => {
@@ -636,7 +487,6 @@ app.get("/profile", (req, res) => {
 
     res.render("profile.ejs", { currentUser,user: user_id !== -1 ? "user Present" : null });
 });
-
 app.get("/edit-profile", (req, res) => {
     if (!req.isAuthenticated()) {
         return res.redirect("/login");
@@ -644,7 +494,6 @@ app.get("/edit-profile", (req, res) => {
     const currentUser = req.user;
     res.render("edit-profile.ejs", { currentUser,user: user_id !== -1 ? "user Present" : null});
 });
-
 app.post("/edit-profile", (req, res) => {
     const { first_name, last_name, bio, address } = req.body;
     // Assume you have an `updateUserProfile` function to update the database
@@ -1277,6 +1126,62 @@ app.get("/summarize/:document", async (req, res) => {
         res.redirect("/login");
     }
 });
+
+//upgrade feature
+app.get("/upgrade", async (req, res) => {
+    if (req.isAuthenticated()) {
+        try {
+            // Get the current user's subscription plan (you can fetch more details if needed)
+            const result = await db.query(
+                "SELECT subscription_type FROM users WHERE email = $1",
+                [req.user.email]
+            );
+
+            const subscriptionType = result.rows[0].subscription_type; // Get the current subscription plan
+
+            // Render the upgrade page, passing the current subscription plan to the template
+            res.render("upgrade.ejs", { subscriptionType,  user: user_id !== -1 ? "user Present" : null });
+        } catch (err) {
+            console.error(err);
+            res.status(500).send("Error loading upgrade page");
+        }
+    } else {
+        res.redirect("/login"); // Redirect to login if the user is not authenticated
+    }
+});
+
+
+app.post("/upgrade", async (req, res) => {
+    console.log(req.body);
+    if (req.isAuthenticated()) {
+        const { subscription_type } = req.body;  // Get the selected subscription plan
+        console.log(req.body);
+
+        try {
+            // Update the user's subscription plan in the database
+            await db.query(
+                "UPDATE users SET subscription_type = $1 WHERE email = $2",
+                [subscription_type, req.user.email]  // Assuming the user's email is stored in req.user.email
+            );
+
+            // Update the subscription_type directly in req.user
+            req.user.subscription_type = subscription_type;
+
+            // You can also send back a response with the updated subscription
+            //res.json({ success: true, subscription_type: req.user.subscription_type });
+
+            // Alternatively, redirect to a profile or other page with updated data
+            res.redirect("/profile");  // Uncomment this if you prefer to redirect
+
+        } catch (err) {
+            console.error(err);
+            res.status(500).send("Error updating subscription plan");
+        }
+    } else {
+        res.redirect("/login");  // Redirect to login if the user is not authenticated
+    }
+});
+
 
 //sessions and passport
 passport.serializeUser((user, cb) => {

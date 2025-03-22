@@ -11,20 +11,17 @@
     <link rel="stylesheet" href="/styles/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.theme.default.min.css">
-
     <!-- External JS Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/wow/1.1.2/wow.min.js"></script>
-
     <style>
         /* Navbar Styling */
         .navbar {
-            background-color: #1f1f1f; /* Dark background for sophistication */
+            background-color: #1f1f1f;
             color: #fff;
             padding: 20px 50px;
         }
-
         .navbar-brand h2 {
             font-family: 'Arial', sans-serif;
             font-size: 30px;
@@ -33,7 +30,6 @@
             font-weight: 600;
             text-transform: uppercase;
         }
-
         .navbar-nav .nav-link {
             color: #fff;
             font-size: 18px;
@@ -44,14 +40,11 @@
             letter-spacing: 1px;
             transition: color 0.3s ease, padding 0.3s ease;
         }
-
         .navbar-nav .nav-link:hover {
-            color: #FFD700; /* Gold color */
-            padding-bottom: 12px; /* Subtle hover effect with increased padding */
+            color: #FFD700;
+            padding-bottom: 12px;
             border-bottom: 2px solid #FFD700;
         }
-
-        /* Button Styling */
         .btn-brown {
             background-color: #8B4513;
             color: white;
@@ -61,11 +54,9 @@
             padding: 10px 20px;
             transition: background-color 0.3s ease;
         }
-
         .btn-brown:hover {
             background-color: #6f3d0b;
         }
-
         .btn-outline-brown {
             border: 2px solid #8B4513;
             color: #8B4513;
@@ -75,37 +66,27 @@
             padding: 10px 20px;
             transition: background-color 0.3s ease, color 0.3s ease;
         }
-
         .btn-outline-brown:hover {
             background-color: #8B4513;
             color: white;
         }
-
-        /* Add a subtle shadow and smooth transition for the navbar */
         .navbar-nav {
             transition: transform 0.3s ease-in-out;
         }
-
         .navbar-toggler {
             border-color: #8B4513;
         }
-
         .navbar-toggler-icon {
             background-color: #8B4513;
         }
-
-        /* Sticky Navbar */
         .navbar.sticky-top {
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
-
-        /* Mobile view navbar adjustments */
         @media (max-width: 768px) {
             .navbar-nav {
                 text-align: center;
                 margin-top: 15px;
             }
-
             .navbar-nav .nav-link {
                 padding: 12px 25px;
                 margin: 0;
@@ -142,6 +123,11 @@
                 <!-- User Logged In: Show Profile & Logout -->
                 <a href="/profile" class="btn btn-outline-brown py-2 px-4 mx-2 d-none d-lg-block">My Profile</a>
                 <a href="/logout" class="btn btn-brown py-2 px-4 mx-2 d-none d-lg-block">Logout</a>
+
+                <!-- Show Upgrade Button for Free or Pro Subscription -->
+                <% if (locals.subscription_type === 'Free' || locals.subscription_type === 'Pro') { %>
+                    <a href="/upgrade" class="btn btn-outline-brown py-2 px-4 mx-2 d-none d-lg-block">Upgrade</a>
+                <% } %>
             <% } %>
         </div>
     </div>
