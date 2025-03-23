@@ -1,50 +1,110 @@
 [
     {
-        "question": "What is a wire transfer?",
-        "answer": "A relatively inexpensive way of payment that is risky for the seller as it requires trust and won't solve the buyer's liquidity problems."
+        "question": "What is a property in programming?",
+        "answer": "A property is a member that provides a flexible mechanism to read, write, or compute the value of a private field."
     },
     {
-        "question": "What is a collection?",
-        "answer": "A safer method of payment where the seller collects money from the buyer's bank account. The seller must present documents to the bank proving dispatch or delivery of goods."
+        "question": "What are the key features of properties?",
+        "answer": "Properties enable a class to expose a public way of getting and setting values while hiding implementation or verification code."
     },
     {
-        "question": "What is a check?",
-        "answer": "A negotiable instrument and a written order directing a bank to pay the specified amount of money. It is a credit instrument and less frequently used in international trade nowadays."
+        "question": "What are the different types of property accessors?",
+        "answer": "There are get, set, and init property accessors. Get is used to return the property value, set is used to assign a new value, and init is used to assign a new value only during object construction."
     },
     {
-        "question": "What is a bill of exchange?",
-        "answer": "A written order by the drawer (buyer) to the drawee (bank) to pay money to the payee (seller) by a certain date. It is a negotiable instrument representing a money debt without condition."
+        "question": "What is the 'value' keyword used for?",
+        "answer": "The 'value' keyword is used to define the value being assigned by the set or init accessor."
     },
     {
-        "question": "What is a promissory note?",
-        "answer": "Similar to a bill of exchange, but the issuer promises to pay the specified amount by a certain date instead of the bank."
+        "question": "What are read-only, read-write, and write-only properties?",
+        "answer": "Read-only properties have only a get accessor, read-write properties have both get and set accessors, and write-only properties have only a set accessor. Write-only properties are rare and used for restricting access to sensitive data."
     },
     {
-        "question": "What is a letter of credit?",
-        "answer": "A solution to build trust between a seller and buyer and address the buyer's need for credit. It involves several legal relationships and is governed by principles like 'strict compliance,' ensuring banks scrutinize documents formally."
+        "question": "What are expression body definitions for properties?",
+        "answer": "Expression body definitions use the => symbol and provide a concise way to implement property accessors that consist of single-line statements."
     },
     {
-        "question": "What is a warehouse warrant?",
-        "answer": "Similar to a bill of lading, it represents the right of disposal over goods stored in a warehouse. It is a negotiable instrument with two parts: a warrant for goods and a pawn ticket for borrowing money against the goods."
+        "question": "What are auto-implemented properties?",
+        "answer": "Auto-implemented properties are used when property accessors simply assign or retrieve a value from a backing field without additional logic. The C# compiler provides the backing field for you."
     },
     {
-        "question": "What is a bank guarantee?",
-        "answer": "Primarily not a payment method but a guarantee by a bank to pay on behalf of a buyer if the buyer fails to pay by the agreed date. It is used for large projects and involves an agency contract between the buyer and the bank."
+        "question": "What is a delegate?",
+        "answer": "A delegate is a type that represents references to methods with a specific parameter list and return type. It allows methods to be passed as arguments and invoked."
     },
     {
-        "question": "What is international factoring?",
-        "answer": "A special financing technique where the seller assigns its receivables to a factoring company, which makes advance payments before the due date. It also includes services like bookkeeping and collection."
+        "question": "What are delegates used for?",
+        "answer": "Delegates are used to pass methods as arguments, for event handling, and for defining callback methods."
     },
     {
-        "question": "What is forfeiting?",
-        "answer": "A financing technique similar to factoring, but the receivable is incorporated into a bill of exchange or promissory note, and the assignment occurs through discounting."
+        "question": "How are delegates similar to and different from C++ function pointers?",
+        "answer": "Delegates are similar to C++ function pointers but are fully object-oriented. Unlike C++ pointers, delegates encapsulate both an object instance and a method."
     },
     {
-        "question": "What is leasing?",
-        "answer": "A type of financial arrangement where one party leases an asset to another. There are two types: operating leasing and financial leasing, with the latter being more common and governed by the UNIDROIT Convention."
+        "question": "How are events in .NET related to delegates?",
+        "answer": "Events in .NET are based on the delegate model, allowing an event sender to notify subscribers of an occurrence. Events follow the observer design pattern."
     },
     {
-        "question": "What is the difference between legal and economic ownership in leasing?",
-        "answer": "Legal ownership stays with the lessor, while the lessee assumes the risks, maintenance, and rewards related to the asset. The lessee is also obliged to properly use the asset and include it in their financial statements."
+        "question": "What is the role of an event sender and an event receiver?",
+        "answer": "The event sender raises the event, while the event receiver defines a response to the event by implementing an event handler method."
+    },
+    {
+        "question": "What is the common pattern for declaring and raising events?",
+        "answer": "Events are typically declared using the 'event' keyword, and a protected virtual method named 'OnEventName' is used to raise the event."
+    },
+    {
+        "question": "What are EventHandler delegates used for?",
+        "answer": "EventHandler and EventHandler<TEventArgs> delegates are provided by .NET to handle most event scenarios, with and without event data, respectively."
+    },
+    {
+        "question": "What is event data and how is it provided?",
+        "answer": "Event data is additional information associated with an event. It is provided through an event data class, which typically ends with 'EventArgs' in .NET."
+    },
+    {
+        "question": "How do you create a custom event data class?",
+        "answer": "To create a custom event data class, derive it from the EventArgs class and define the required properties or fields."
+    },
+    {
+        "question": "What is an event handler and how is it defined?",
+        "answer": "An event handler is a method that responds to an event. It must match the signature of the delegate for the event it handles and can be subscribed to the event to receive notifications."
+    },
+    {
+        "question": "What are the differences between events and delegates?",
+        "answer": "Events are defined using the 'event' keyword, can only be defined as class members, use += and -= operators, and can only be fired by the owner class."
+    },
+    {
+        "question": "What are attributes in programming?",
+        "answer": "Attributes provide a way to associate metadata or declarative information with code entities such as assemblies, types, methods, and properties."
+    },
+    {
+        "question": "How are attributes used and what are some examples?",
+        "answer": "Attributes are placed above the declaration of the entity they apply to. Examples include [Serializable], [Obsolete], and custom attributes derived from the System.Attribute class."
+    },
+    {
+        "question": "What are value types and reference types in .NET?",
+        "answer": "Value types contain the actual value, while reference types contain a pointer/reference to the value. Value types include basic types like int, char, and also structs. Reference types include classes, arrays, interfaces, and built-in types like object and string."
+    },
+    {
+        "question": "What is the 'object' type in .NET?",
+        "answer": "The 'object' type is an alias for System.Object, and all types in .NET inherit directly or indirectly from it. Variables of type object can hold values of any type."
+    },
+    {
+        "question": "How is the 'string' type in .NET treated?",
+        "answer": "The 'string' type represents a sequence of Unicode characters and is an alias for System.String. It is a reference type, but the == and != operators compare the values of the strings, not references."
+    },
+    {
+        "question": "Are strings in .NET mutable or immutable?",
+        "answer": "Strings in .NET are immutable, meaning their content cannot be changed after creation. Assigning a new value to a string variable creates a new string object."
+    },
+    {
+        "question": "What is the difference between value types and reference types in terms of memory allocation and behavior?",
+        "answer": "Value types are stored 'inline' in memory and allocated on the stack. Reference types have memory allocated on the heap and are managed by the garbage collector. Value types are copied when passed as parameters, while reference types pass a reference."
+    },
+    {
+        "question": "What are some keywords used to declare reference types?",
+        "answer": "Keywords used to declare reference types include 'class', 'interface', 'delegate', and 'record'."
+    },
+    {
+        "question": "What are some built-in reference types in C#?",
+        "answer": "Built-in reference types in C# include 'dynamic', 'object', and 'string'."
     }
 ]

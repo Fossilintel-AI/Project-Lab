@@ -68,7 +68,7 @@
                             </a>
                         <% } else { %>
                             <!-- Button to generate flashcards for Enterprise plans -->
-                            <a href="/generateQuestions/<%= encodeURIComponent(slide.file_path) %>" class="btn btn-sm btn-primary">
+                            <a href="/generateQuestions/<%= slide.file_path %>" class="btn btn-sm btn-primary">
                                 <i class="bi bi-lightning-charge"></i>
                             </a>
                         <% } %>
@@ -77,7 +77,7 @@
                             <i class="bi bi-download"></i>
                         </a>
                         <!-- View in PDF Viewer button available to all subscription plans -->
-                        <a href="/pdfview/<%= encodeURIComponent(slide.file_path) %>" class="btn btn-sm btn-primary view-btn">
+                        <a href="/pdfview/<%= slide.file_path %>" class="btn btn-sm btn-primary view-btn">
                             <i class="bi bi-eye"></i>
                         </a>
                         <% if (subscription_type === 'Free' || subscription_type === 'Pro') { %>
@@ -87,7 +87,7 @@
                             </a>
                         <% } else { %>
                             <!-- Summarize Notes button for Enterprise plans -->
-                            <a href="/summarize/<%= encodeURIComponent(slide.file_path) %>" class="btn btn-sm btn-brown summarize-btn">
+                            <a href="/summarize/<%= slide.file_path %>" class="btn btn-sm btn-brown summarize-btn">
                                 <i class="bi bi-file-text"></i>
                             </a>
                         <% } %>

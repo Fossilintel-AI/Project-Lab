@@ -1061,76 +1061,163 @@ app.post("/deleteSubject", async (req, res) => {
 });
 
 //PDF viewer
+// app.get('/pdfview/:document', async (req, res) => {
+//     if(req.isAuthenticated())
+//     {
+//         console.log(req.params); // Logs: { document: 'BUSINESS LAW 1 - Introduction to law.pdf' }
+//
+//         const document = req.params.document;
+//         const slidesPath = path.join(__dirname, "public", "Course", currentSubject, "slides");
+//
+//         // Construct the relative URL for the PDF
+//         const pdfUrl = path.join('/Course', currentSubject, 'slides', document); // relative path
+//
+//         // Get all the PDF files in the directory
+//         const filess = fs.readdirSync(slidesPath).filter(file => file.endsWith('.pdf'));
+//
+//         // Filter the files to find the specific document by matching the name
+//         const files = filess.find(file => file.replace('.pdf', '') === document.replace('.pdf', ''));
+//
+//         if (!files) {
+//             return res.status(404).send('PDF file not found');
+//         }
+//
+//         console.log(pdfUrl); // Logs the relative URL
+//
+//         res.render('pdfviewer.ejs', { pdfUrl,user: user_id !== -1 ? "user Present" : null }); // Pass pdfUrl to the template
+//     }
+//     else{
+//         res.redirect("/login");
+//     }
+//
+//
+// });
 app.get('/pdfview/:document', async (req, res) => {
-    if(req.isAuthenticated())
-    {
+    if (req.isAuthenticated()) {
         console.log(req.params); // Logs: { document: 'BUSINESS LAW 1 - Introduction to law.pdf' }
-
         const document = req.params.document;
-        const slidesPath = path.join(__dirname, "public", "Course", currentSubject, "slides");
 
-        // Construct the relative URL for the PDF
-        const pdfUrl = path.join('/Course', currentSubject, 'slides', document); // relative path
+        // Define paths for both program slides and personal slides
+        const filePath = path.join(__dirname, "public", "Course", global.currentSubject, "slides", document);
+        const dir = path.join(__dirname, `./Workstation/${global.user_id}/${global.currentSubject}/slides/${document}`);
 
-        // Get all the PDF files in the directory
-        const filess = fs.readdirSync(slidesPath).filter(file => file.endsWith('.pdf'));
+        console.log("Checking paths:");
+        console.log("Program Slide Path:", filePath);
+        console.log("Personal Slide Path:", dir);
 
-        // Filter the files to find the specific document by matching the name
-        const files = filess.find(file => file.replace('.pdf', '') === document.replace('.pdf', ''));
+        let finalPath = null;
+        let pdfUrl = null;
 
-        if (!files) {
-            return res.status(404).send('PDF file not found');
+        // Determine the correct file path
+        if (fs.existsSync(filePath)) {
+            finalPath = filePath;
+            pdfUrl = path.join("/Course", global.currentSubject, "slides", document); // URL for program slides
+        } else if (fs.existsSync(dir)) {
+            finalPath = dir;
+            pdfUrl = path.join("/Workstation", global.user_id.toString(), global.currentSubject, "slides", document); // URL for personal slides
+        } else {
+            return res.status(404).send("PDF file not found.");
         }
 
-        console.log(pdfUrl); // Logs the relative URL
-
-        res.render('pdfviewer.ejs', { pdfUrl,user: user_id !== -1 ? "user Present" : null }); // Pass pdfUrl to the template
-    }
-    else{
+        console.log("Serving PDF:", pdfUrl);
+        res.render("pdfviewer.ejs", {
+            pdfUrl,
+            user: global.user_id !== -1 ? "user Present" : null,
+        });
+    } else {
         res.redirect("/login");
     }
-
-
 });
 
+
 //flash-cards for Questions
+// app.get('/generateQuestions/:document', async (req, res) => {
+//     if (req.isAuthenticated()) {
+//         console.log(req.params); // Logs: { document: 'BUSINESS LAW 1 - Introduction to law.pdf' }
+//
+//         const document = req.params.document;
+//         const filePath = path.join(__dirname, "public", "Course", currentSubject, "slides", document); // relative path
+//         const dir = path.join(__dirname, `./Workstation/${global.user_id}/${global.currentSubject}/slides/${document}`);
+//         console.log(dir);
+//         console.log(filePath);
+//
+//         try {
+//             if (!fs.existsSync(filePath)) {
+//                 return res.status(404).send('File not found.');
+//             }
+//
+//             console.log("We are in the right track");
+//
+//             const text = await extractTextFromPDF(filePath);
+//             const questions = await generateQuestions(text);
+//             const jsonObject = JSON.parse(questions);
+//
+//             const filePath2 = 'public/jsons/questions_and_answers.json';
+//
+//             // Write the data to the JSON file asynchronously
+//             fs.writeFile(filePath2, JSON.stringify(jsonObject, null, 4), (err) => {
+//                 if (err) {
+//                     console.log("Error writing to file:", err);
+//                     return res.status(500).send('Error saving questions.');
+//                 }
+//
+//                 console.log(`Data has been saved to ${filePath2}`);
+//
+//                 // Make sure to send the response here
+//                 return res.redirect("/flashcards"); // or another route as needed
+//             });
+//         } catch (error) {
+//             console.error("Error generating questions:", error);
+//             return res.status(500).send('Error generating questions: ' + error.message);
+//         }
+//     } else {
+//         res.redirect("/login");
+//     }
+// });
+
 app.get('/generateQuestions/:document', async (req, res) => {
     if (req.isAuthenticated()) {
         console.log(req.params); // Logs: { document: 'BUSINESS LAW 1 - Introduction to law.pdf' }
-
         const document = req.params.document;
-        const filePath = path.join(__dirname, "public", "Course", currentSubject, "slides", document); // relative path
 
-        console.log(filePath);
+        // Define paths
+        const filePath = path.join(__dirname, "public", "Course", global.currentSubject, "slides", document);
+        const dir = path.join(__dirname, `./Workstation/${global.user_id}/${global.currentSubject}/slides/${document}`);
+
+        console.log("Checking paths:");
+        console.log("Program Slide Path:", filePath);
+        console.log("Personal Slide Path:", dir);
+
+        let finalPath = null;
+
+        // 🔴 FIX: Choose the correct path based on existence
+        if (fs.existsSync(filePath)) {
+            finalPath = filePath; // Use program slide path
+        } else if (fs.existsSync(dir)) {
+            finalPath = dir; // Use personal slide path
+        } else {
+            return res.status(404).send("File not found.");
+        }
 
         try {
-            if (!fs.existsSync(filePath)) {
-                return res.status(404).send('File not found.');
-            }
-
-            console.log("We are in the right track");
-
-            const text = await extractTextFromPDF(filePath);
+            console.log("Processing file:", finalPath);
+            const text = await extractTextFromPDF(finalPath);
             const questions = await generateQuestions(text);
+            console.log("Raw Questions Data:", questions);
             const jsonObject = JSON.parse(questions);
 
             const filePath2 = 'public/jsons/questions_and_answers.json';
-
-            // Write the data to the JSON file asynchronously
             fs.writeFile(filePath2, JSON.stringify(jsonObject, null, 4), (err) => {
                 if (err) {
-                    console.log("Error writing to file:", err);
-                    return res.status(500).send('Error saving questions.');
+                    console.error("Error writing to file:", err);
+                    return res.status(500).send("Error saving questions.");
                 }
-
-                console.log(`Data has been saved to ${filePath2}`);
-
-                // Make sure to send the response here
-                return res.redirect("/flashcards"); // or another route as needed
+                console.log(`Data saved to ${filePath2}`);
+                return res.redirect("/flashcards");
             });
         } catch (error) {
             console.error("Error generating questions:", error);
-            return res.status(500).send('Error generating questions: ' + error.message);
+            return res.status(500).send("Error generating questions: " + error.message);
         }
     } else {
         res.redirect("/login");
@@ -1175,38 +1262,81 @@ app.get("/flashcards", (req, res) => {
 
 //feature for summurization
 // Route to summarize text
+// app.get("/summarize/:document", async (req, res) => {
+//     if (req.isAuthenticated()) {
+//         const document = req.params.document;
+//         const filePath = path.join(__dirname, "public", "Course", currentSubject, "slides", document); // relative path
+//
+//         // Debugging log for file path
+//         console.log("Requested file path:", filePath);
+//
+//         try {
+//             // Check if the file exists
+//             if (!fs.existsSync(filePath)) {
+//                 return res.status(404).send('File not found.');
+//             }
+//
+//             // Extracting text from the PDF
+//             console.log("File found, extracting text...");
+//             const text = await extractTextFromPDF(filePath);
+//
+//             // Summarizing the text
+//
+//             // const summary = await summarizeText(text);
+//             // console.log("Summary generated:", summary);
+//             const summary = await generateSummarize(text);
+//             console.log("Summary generated:", summary);
+//
+//             // Rendering the summary
+//              // Adjusting based on the summary format
+//             res.render("summarize.ejs", {
+//                 summary,
+//                 user: user_id !== -1 ? "user Present" : null
+//             });
+//
+//         } catch (error) {
+//             console.error("Error generating summary:", error);
+//             return res.status(500).send('Error generating Summary: ' + error.message);
+//         }
+//     } else {
+//         res.redirect("/login");
+//     }
+// });
 app.get("/summarize/:document", async (req, res) => {
     if (req.isAuthenticated()) {
         const document = req.params.document;
-        const filePath = path.join(__dirname, "public", "Course", currentSubject, "slides", document); // relative path
 
-        // Debugging log for file path
-        console.log("Requested file path:", filePath);
+        // Define paths for both program slides and personal slides
+        const filePath = path.join(__dirname, "public", "Course", global.currentSubject, "slides", document);
+        const dir = path.join(__dirname, `./Workstation/${global.user_id}/${global.currentSubject}/slides/${document}`);
+
+        console.log("Checking paths:");
+        console.log("Program Slide Path:", filePath);
+        console.log("Personal Slide Path:", dir);
+
+        let finalPath = null;
+
+        // Determine the correct file path
+        if (fs.existsSync(filePath)) {
+            finalPath = filePath;
+        } else if (fs.existsSync(dir)) {
+            finalPath = dir;
+        } else {
+            return res.status(404).send("File not found.");
+        }
 
         try {
-            // Check if the file exists
-            if (!fs.existsSync(filePath)) {
-                return res.status(404).send('File not found.');
-            }
-
-            // Extracting text from the PDF
             console.log("File found, extracting text...");
-            const text = await extractTextFromPDF(filePath);
+            const text = await extractTextFromPDF(finalPath);
 
-            // Summarizing the text
-
-            // const summary = await summarizeText(text);
-            // console.log("Summary generated:", summary);
+            console.log("Generating summary...");
             const summary = await generateSummarize(text);
-            console.log("Summary generated:", summary);
 
-            // Rendering the summary
-             // Adjusting based on the summary format
+            console.log("Summary generated:", summary);
             res.render("summarize.ejs", {
                 summary,
-                user: user_id !== -1 ? "user Present" : null
+                user: global.user_id !== -1 ? "user Present" : null
             });
-
         } catch (error) {
             console.error("Error generating summary:", error);
             return res.status(500).send('Error generating Summary: ' + error.message);
@@ -1215,6 +1345,7 @@ app.get("/summarize/:document", async (req, res) => {
         res.redirect("/login");
     }
 });
+
 
 //upgrade feature
 app.get("/upgrade", async (req, res) => {
