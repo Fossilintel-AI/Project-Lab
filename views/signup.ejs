@@ -165,7 +165,7 @@
         let plan = document.getElementById("subscription_type").value;
         if (plan === "Free") {
             showSuccessMessage(); // Automatically show success for Free plan
-            return false; // Prevent form submission
+            return true; // Prevent form submission
         }
 
         let cardNumber = document.getElementById("card_number").value.trim();

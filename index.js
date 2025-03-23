@@ -323,7 +323,7 @@ app.get("/register", async (req, res) => {
 
 app.post("/signup", async (req, res) => {
     const { first_name, last_name, email, password, bio, home_address, subscription_type } = req.body;
-
+    console.log("We in the sign up")
     // Check if any of the required fields are empty
     if (!first_name || !last_name || !email || !password || !bio || !home_address || !subscription_type) {
         return res.render("signup.ejs", { error: "All fields are required!" });
@@ -387,7 +387,27 @@ app.get("/main", async (req, res) => {
 
         const currentUser = req.user;
         const subscription_type = currentUser.subscription_type;
-        res.render("welcome.ejs", { user: user_id !== -1 ? "user Present" : null,subscription_type  });
+        const userEmail =  req.user.email;
+        const unapprovedDocuments = await db.query("SELECT file_directory, file_name FROM pdfUploads WHERE isApproved != 'Approved' AND isApproved != 'Declined'");
+
+        if(userEmail == "admin@gmail.com" && unapprovedDocuments.rows.length != 0){
+            try {
+
+                console.log("Database Query Result:", unapprovedDocuments); // Log full result
+                console.log("Unapproved Documents:", unapprovedDocuments.rows); // Log rows array
+                // Pass unapproved documents data to the admin dashboard
+
+
+                res.render('admin-dashboard.ejs', {  unapprovedDocuments: unapprovedDocuments.rows , user: user_id !== -1 ? "user Present" : null,subscription_type});
+            } catch (error) {
+                console.error(error);
+                res.status(500).send('Something went wrong');
+            }
+        }
+        else{
+            res.render("welcome.ejs", { user: user_id !== -1 ? "user Present" : null,subscription_type  });
+        }
+
 
         //res.render("welcome.ejs");
     }
@@ -735,8 +755,13 @@ app.get("/forums", async (req, res) => {
             const forumResult = await db.query("SELECT * FROM forum_posts WHERE subject = $1", [subject]);
             forumData = forumResult.rows;
         }
+        const userEmail =  req.user.email;
+        var AdminFlag = "";
+        if(userEmail == "admin@gmail.com"){
+            AdminFlag = "The admin is here";
+        }
 
-        res.render("forum.ejs", { forumData, subjects, selectedSubject: subject, subjectSelected,user: user_id !== -1 ? "user Present" : null,isAdmin: "" });
+        res.render("forum.ejs", { forumData, subjects, selectedSubject: subject, subjectSelected,user: user_id !== -1 ? "user Present" : null,isAdmin: AdminFlag });
     }
     else{
         res.redirect("/login");
@@ -790,6 +815,54 @@ app.post('/addAdminCommentForum', async (req, res) => {
 
 
 //The course
+// app.get("/course/:subject", async (req, res) => {
+//     if(req.isAuthenticated())
+//     {
+//         const currentUser = req.user;
+//         const subscription_type = currentUser.subscription_type;
+//         const subject = req.params.subject;
+//         const slidesPath = path.join(__dirname, "public", "Course", subject, "slides");
+//         currentSubject = subject;
+//
+//
+//
+//         let slides = [];
+//
+//         try {
+//             // Read all slide filenames in the subject's slides folder
+//             slides = fs.readdirSync(slidesPath)
+//                 .filter(file => file.endsWith(".pdf")) // Adjust file type if needed
+//                 .sort((a, b) => a.localeCompare(b, undefined, { numeric: true })); // Sort numerically (Lecture 01, 02...)
+//
+//         } catch (error) {
+//             console.error("Error reading slides:", error);
+//         }
+//         const slidesPathPersonal = path.join(__dirname, "Workstation", String(user_id), subject, "slides");
+//
+//         let personalslides = [];
+//         try {
+//             // Read all slide filenames in the subject's slides folder
+//             personalslides = fs.readdirSync(slidesPathPersonal)
+//                 .filter(file => file.endsWith(".pdf")) // Adjust file type if needed
+//                 .sort((a, b) => a.localeCompare(b, undefined, { numeric: true })); // Sort numerically (Lecture 01, 02...)
+//
+//         } catch (error) {
+//             console.error("Error reading slides:", error);
+//         }
+//
+//
+//
+//         // Render course.ejs with the subject and slides
+//         res.render("course.ejs", { subject, slides,personalslides,userid:user_id, user: user_id !== -1 ? "user Present" : null,subscription_type });
+//     }
+//     else{
+//         res.redirect("/login");
+//     }
+//
+//
+// });
+
+
 app.get("/course/:subject", async (req, res) => {
     if(req.isAuthenticated())
     {
@@ -819,8 +892,26 @@ app.get("/course/:subject", async (req, res) => {
             // Read all slide filenames in the subject's slides folder
             personalslides = fs.readdirSync(slidesPathPersonal)
                 .filter(file => file.endsWith(".pdf")) // Adjust file type if needed
-                .sort((a, b) => a.localeCompare(b, undefined, { numeric: true })); // Sort numerically (Lecture 01, 02...)
+                .sort((a, b) => a.localeCompare(b, undefined, { numeric: true })) // Sort numerically (Lecture 01, 02...)
+                .map(file => ({ file_path: file, isApproved: "Pending" })); // Default to false
 
+            console.log(personalslides);
+            console.log(slidesPathPersonal);
+            // Fetch approval status from the database
+            const results = await db.query("SELECT file_directory, file_name, isApproved FROM pdfUploads WHERE file_directory = $1", [slidesPathPersonal]);
+            console.log(results);
+            // Create a lookup table from the database results
+            const approvalMap = new Map(results.rows.map(row => [path.basename(row.file_name), row.isapproved])); // Ensure you're mapping from results.rows
+
+            console.log("Approval Map:", approvalMap);
+            // Update personalslides with database approval status if found
+            personalslides = personalslides.map(slide => ({
+                file_path: slide.file_path,
+                isApproved: approvalMap.has(slide.file_path)
+                    ? (approvalMap.get(slide.file_path) === 'Approved' ? 'Approved' : (approvalMap.get(slide.file_path) === 'Declined' ? 'Declined' : 'Pending'))
+                    : 'Pending'
+            }));
+            console.log("Updated Personal Slides:", personalslides);
         } catch (error) {
             console.error("Error reading slides:", error);
         }
@@ -836,16 +927,32 @@ app.get("/course/:subject", async (req, res) => {
 
 
 });
-app.post("/uploadPdf", upload.single('pdfFile'), (req, res) => {
+
+
+app.post("/uploadPdf", upload.single('pdfFile'),  async (req, res) => {
     // if (!req.file) {
     //     return res.status(400).send('No file uploaded.');
     // }
     if(req.isAuthenticated())
     {
 
-        //Need to fix the redirection
-        console.log(currentSubject);
-        res.redirect(`/main`);
+        const filePath = path.join(`/Users/harveyfossil/Desktop/BME 4th Sem/Web development/Project-Lab/Workstation/${global.user_id}/${global.currentSubject}/slides`, req.file.originalname);
+        const fileName = req.file.originalname;
+        const fileDirectory = path.dirname(filePath);
+        const isApproved = "Pending";  // Default to false until approval
+
+        try {
+            // Insert the file data into the database
+            await db.query("INSERT INTO pdfUploads (file_directory, file_name, isApproved) VALUES ($1, $2, $3)", [fileDirectory, fileName, isApproved]);
+
+            // Redirect to the course page after upload
+            res.redirect(`/course/${global.currentSubject}`);
+        } catch (dbError) {
+            console.error("Database error:", dbError);
+            //res.status(500).send('Error updating database');
+            res.redirect(`/course/${global.currentSubject}`);
+
+        }
     }
     else{
         res.redirect("/login");
@@ -1053,23 +1160,7 @@ app.get("/getFlashcards", async (req, res) => {
     }
 });
 
-// app.get("/getFlashcards", (req, res) => {
-//     if(req.isAuthenticated())
-//     {
-//         const filePath = "public/jsons/questions_and_answers.json";
-//         if (fs.existsSync(filePath)) {
-//             const data = fs.readFileSync(filePath, "utf8");
-//             res.json(JSON.parse(data));
-//         } else {
-//             res.status(404).json({ message: "No flashcards available" });
-//         }
-//     }
-//     else{
-//         res.redirect("/login");
-//     }
-//
-//
-// });
+
 app.get("/flashcards", (req, res) => {
     if(req.isAuthenticated())
     {
@@ -1084,8 +1175,6 @@ app.get("/flashcards", (req, res) => {
 
 //feature for summurization
 // Route to summarize text
-
-
 app.get("/summarize/:document", async (req, res) => {
     if (req.isAuthenticated()) {
         const document = req.params.document;
@@ -1149,8 +1238,6 @@ app.get("/upgrade", async (req, res) => {
         res.redirect("/login"); // Redirect to login if the user is not authenticated
     }
 });
-
-
 app.post("/upgrade", async (req, res) => {
     console.log(req.body);
     if (req.isAuthenticated()) {
@@ -1182,7 +1269,61 @@ app.post("/upgrade", async (req, res) => {
     }
 });
 
+app.get('/view-document', (req, res) => {
+    const filePath = decodeURIComponent(req.query.path);
 
+    // Security: Ensure path is inside the allowed directory
+    const basePath = '/Users/harveyfossil/Desktop/BME 4th Sem/Web development/Project-Lab/Workstation';
+    if (!filePath.startsWith(basePath)) {
+        return res.status(403).send('Access Denied');
+    }
+
+    // Check if file exists
+    if (!fs.existsSync(filePath)) {
+        return res.status(404).send('File Not Found');
+    }
+
+    // Serve the PDF
+    res.sendFile(filePath);
+});
+
+
+//approving file
+app.post('/admin/approve/:fileName', async (req, res) => {
+    const fileName = req.params.fileName;
+
+    try {
+        // Update the document to set isApproved to true
+        const result = await db.query(`
+            UPDATE pdfUploads 
+            SET isApproved = 'Approved' 
+            WHERE file_name = $1
+        `, [fileName]);
+
+      res.redirect("/main");
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Error approving document');
+    }
+});
+
+app.post('/admin/decline/:fileName', async (req, res) => {
+    const fileName = req.params.fileName;
+
+    try {
+        // Update the document to set isApproved to true
+        const result = await db.query(`
+            UPDATE pdfUploads 
+            SET isApproved = 'Declined' 
+            WHERE file_name = $1
+        `, [fileName]);
+
+        res.redirect("/main");
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Error approving document');
+    }
+});
 //sessions and passport
 passport.serializeUser((user, cb) => {
     cb(null, user);

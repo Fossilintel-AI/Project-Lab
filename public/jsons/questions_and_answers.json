@@ -1,74 +1,50 @@
 [
     {
-        "question": "What is the email address of the professor?",
-        "answer": "jogasz@gmail.com"
+        "question": "What is a wire transfer?",
+        "answer": "A relatively inexpensive way of payment that is risky for the seller as it requires trust and won't solve the buyer's liquidity problems."
     },
     {
-        "question": "What is the subject of the course?",
-        "answer": "Business Law"
+        "question": "What is a collection?",
+        "answer": "A safer method of payment where the seller collects money from the buyer's bank account. The seller must present documents to the bank proving dispatch or delivery of goods."
     },
     {
-        "question": "Who is the professor?",
-        "answer": "Dr. Zoltan Vig"
+        "question": "What is a check?",
+        "answer": "A negotiable instrument and a written order directing a bank to pay the specified amount of money. It is a credit instrument and less frequently used in international trade nowadays."
     },
     {
-        "question": "What is the first topic covered in the syllabus?",
-        "answer": "Introduction to Law"
+        "question": "What is a bill of exchange?",
+        "answer": "A written order by the drawer (buyer) to the drawee (bank) to pay money to the payee (seller) by a certain date. It is a negotiable instrument representing a money debt without condition."
     },
     {
-        "question": "When is the first test scheduled?",
-        "answer": "March 31st"
+        "question": "What is a promissory note?",
+        "answer": "Similar to a bill of exchange, but the issuer promises to pay the specified amount by a certain date instead of the bank."
     },
     {
-        "question": "How many online Moodle tests are there, and what format do they take?",
-        "answer": "There are two tests, consisting of 25 multiple-choice questions, with 25 minutes allotted for each test."
+        "question": "What is a letter of credit?",
+        "answer": "A solution to build trust between a seller and buyer and address the buyer's need for credit. It involves several legal relationships and is governed by principles like 'strict compliance,' ensuring banks scrutinize documents formally."
     },
     {
-        "question": "Can you retake the tests?",
-        "answer": "Yes, you can retake (and correct) both tests, but the last result counts. The retake week is specified as the week to do so."
+        "question": "What is a warehouse warrant?",
+        "answer": "Similar to a bill of lading, it represents the right of disposal over goods stored in a warehouse. It is a negotiable instrument with two parts: a warrant for goods and a pawn ticket for borrowing money against the goods."
     },
     {
-        "question": "What is the benefit of attending classes?",
-        "answer": "You can gain additional scores (1 point for each attendance). You will have to sign an attendance list."
+        "question": "What is a bank guarantee?",
+        "answer": "Primarily not a payment method but a guarantee by a bank to pay on behalf of a buyer if the buyer fails to pay by the agreed date. It is used for large projects and involves an agency contract between the buyer and the bank."
     },
     {
-        "question": "What are the two types of norms?",
-        "answer": "Social norm and legal norm."
+        "question": "What is international factoring?",
+        "answer": "A special financing technique where the seller assigns its receivables to a factoring company, which makes advance payments before the due date. It also includes services like bookkeeping and collection."
     },
     {
-        "question": "What is a norm?",
-        "answer": "A behavioral standard that should be followed."
+        "question": "What is forfeiting?",
+        "answer": "A financing technique similar to factoring, but the receivable is incorporated into a bill of exchange or promissory note, and the assignment occurs through discounting."
     },
     {
-        "question": "What is the difference between a social norm and a legal norm?",
-        "answer": "A social norm is a behavioral standard that is considered correct and needs to be followed in society, but it is not sanctioned by the state. A legal norm, on the other hand, is enforced (sanctioned) by the state."
+        "question": "What is leasing?",
+        "answer": "A type of financial arrangement where one party leases an asset to another. There are two types: operating leasing and financial leasing, with the latter being more common and governed by the UNIDROIT Convention."
     },
     {
-        "question": "What are the subjects of the law?",
-        "answer": "State, legal persons (e.g., companies), and natural persons (human beings)"
-    },
-    {
-        "question": "What are legal acts, and what system do they form?",
-        "answer": "Legal norms are contained in legal acts, also known as legislation or laws. The collection of all legal acts in force within a sovereign state constitutes its legal system."
-    },
-    {
-        "question": "What is the difference between public law and private law?",
-        "answer": "Public law governs issues related to the functioning of the state, with natural and legal persons always subordinated to the state, as it represents the public interest. Private law, meanwhile, deals with relationships between natural and legal persons, and sometimes includes the state as an equal party in front of the law and courts, protecting private interests."
-    },
-    {
-        "question": "What is an example of a public law branch?",
-        "answer": "Constitutional law, administrative law, tax law, and criminal law."
-    },
-    {
-        "question": "What is an example of a private law branch?",
-        "answer": "Civil law, company law, and international trade law."
-    },
-    {
-        "question": "What is the difference between substantive law and procedural law?",
-        "answer": "Substantive law establishes the rights and obligations of individuals, defining what they may or may not do. Procedural law, on the other hand, lays down the ways to enforce substantive law and grants powers to decide the fate of a case."
-    },
-    {
-        "question": "What are the four scopes of effectivity or applicability of a norm?",
-        "answer": "1. Material scope: The subject matter or area covered by the norm (e.g., public transportation, education, trade). 2. Personal scope: Who is covered by the norm, which is usually everyone but may have specific targets (e.g., officials, traders). 3. Temporal scope: The period during which the norm is applicable, typically starting from its publication unless otherwise indicated. 4. Territorial scope: The geographical area or territory to which the norm applies, which can vary depending on the type of state (federal or unitary) or local decrees."
+        "question": "What is the difference between legal and economic ownership in leasing?",
+        "answer": "Legal ownership stays with the lessor, while the lessee assumes the risks, maintenance, and rewards related to the asset. The lessee is also obliged to properly use the asset and include it in their financial statements."
     }
 ]
