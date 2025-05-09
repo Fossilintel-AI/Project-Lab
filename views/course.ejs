@@ -15,21 +15,21 @@
                         <% if (subscription_type === 'Free' || subscription_type === 'Pro') { %>
                             <!-- Show Upgrade Popup for Free Plan Users -->
                             <a href="javascript:void(0);" class="btn btn-sm btn-primary" onclick="showUpgradePopup()">
-                                <i class="bi bi-lightning-charge"></i>
+                                <i class="bi bi-lightning-charge" ></i>
                             </a>
                         <% } else { %>
                             <!-- Button to generate flashcards for Enterprise plans -->
                             <a href="/generateQuestions/<%= encodeURIComponent(slide) %>" class="btn btn-sm btn-primary">
-                                <i class="bi bi-lightning-charge"></i>
+                                <i class="bi bi-lightning-charge" data-bs-toggle="tooltip" title="Generate Flashcards"></i>
                             </a>
                         <% } %>
                         <!-- Download button available to all subscription plans -->
                         <a href="/Course/<%= subject %>/slides/<%= encodeURIComponent(slide) %>" target="_blank" class="btn btn-sm btn-brown mr-2 download-btn">
-                            <i class="bi bi-download"></i>
+                            <i class="bi bi-download" data-bs-toggle="tooltip" title="Download Lecture"></i>
                         </a>
                         <!-- View in PDF Viewer button available to all subscription plans -->
                         <a href="/pdfview/<%= encodeURIComponent(slide) %>" class="btn btn-sm btn-primary view-btn">
-                            <i class="bi bi-eye"></i>
+                            <i class="bi bi-eye" data-bs-toggle="tooltip" title="View Lecture"></i>
                         </a>
                         <% if (subscription_type === 'Free'  || subscription_type === 'Pro') { %>
                             <!-- Show Upgrade Popup for Free Plan Users -->
@@ -39,7 +39,7 @@
                         <% } else { %>
                             <!-- Summarize Notes button for Enterprise plans -->
                             <a href="/summarize/<%= encodeURIComponent(slide) %>" class="btn btn-sm btn-brown summarize-btn">
-                                <i class="bi bi-file-text"></i>
+                                <i class="bi bi-file-text" data-bs-toggle="tooltip" title="Generate Summary"></i>
                             </a>
                         <% } %>
                     </div>
@@ -69,16 +69,17 @@
                         <% } else { %>
                             <!-- Button to generate flashcards for Enterprise plans -->
                             <a href="/generateQuestions/<%= slide.file_path %>" class="btn btn-sm btn-primary">
-                                <i class="bi bi-lightning-charge"></i>
+                                <i class="bi bi-lightning-charge" title="Generate Flashcards" data-bs-toggle="tooltip"></i>
                             </a>
                         <% } %>
                         <!-- Download button available to all subscription plans -->
-                        <a href="/Workstation/<%= userid %>/<%= subject %>/slides/<%= encodeURIComponent(slide.file_path) %>" target="_blank" class="btn btn-sm btn-brown mr-2 download-btn">
-                            <i class="bi bi-download"></i>
+                        <a href="/Workstation/<%= userid %>/<%= subject %>/slides/<%= encodeURIComponent(slide.file_path) %>" target="_blank" class="btn btn-sm btn-brown mr-2 download-btn"
+                        >
+                            <i class="bi bi-download" data-bs-toggle="tooltip" title="Download Slides"></i>
                         </a>
                         <!-- View in PDF Viewer button available to all subscription plans -->
-                        <a href="/pdfview/<%= slide.file_path %>" class="btn btn-sm btn-primary view-btn">
-                            <i class="bi bi-eye"></i>
+                        <a href="/pdfview/<%= slide.file_path %>" class="btn btn-sm btn-primary view-btn" title="View Slide">
+                            <i class="bi bi-eye" data-bs-toggle="tooltip" title="View Lecture"></i>
                         </a>
                         <% if (subscription_type === 'Free' || subscription_type === 'Pro') { %>
                             <!-- Show Upgrade Popup for Free Plan Users -->
@@ -87,8 +88,8 @@
                             </a>
                         <% } else { %>
                             <!-- Summarize Notes button for Enterprise plans -->
-                            <a href="/summarize/<%= slide.file_path %>" class="btn btn-sm btn-brown summarize-btn">
-                                <i class="bi bi-file-text"></i>
+                            <a href="/summarize/<%= slide.file_path %>" class="btn btn-sm btn-brown summarize-btn" title="Summarize Slide">
+                                <i class="bi bi-file-text" data-bs-toggle="tooltip" title="Generate Summary"></i>
                             </a>
                         <% } %>
                     </div>
@@ -136,6 +137,13 @@
     function closePopup() {
         document.getElementById("upgradePopup").style.display = "none";
     }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        tooltipTriggerList.forEach(function (tooltipTriggerEl) {
+            new bootstrap.Tooltip(tooltipTriggerEl)
+        })
+    });
 </script>
 
 <style>

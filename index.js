@@ -57,6 +57,7 @@ app.use(session({
 
 app.use(passport.initialize());
 app.use(passport.session());
+app.use(express.json()); // This is necessary to parse the body in JSON format //09 May 2025
 
 
 
@@ -319,7 +320,102 @@ app.get("/register", async (req, res) => {
     res.render("signup.ejs" );
     // res.render("index.ejs", { secret: "" ,user: ""});
 });
+app.get("/terms", async (req, res) => {
+    res.render("terms.ejs" );
+    // res.render("index.ejs", { secret: "" ,user: ""});
+});
+app.get("/faq", async (req, res) => {
+    res.render("FAQ.ejs" );
+    // res.render("index.ejs", { secret: "" ,user: ""});
+});
+app.post('/subscribe-newsletter', async (req, res) => {
+    const { email } = req.body;
+    console.log(req.body);
 
+    // Basic validation
+    if (!email || !email.includes('@')) {
+        return res.status(400).json({ success: false, message: 'Please enter a valid email address.' });
+    }
+
+    try {
+        // Check if the email is already subscribed
+        const existingSubscriber = await db.query("SELECT * FROM subscribers WHERE email = $1", [email.toLowerCase()]);
+
+        if (existingSubscriber.rows.length > 0) {
+            return res.json({ success: false, message: 'You are already subscribed.' });
+        }
+
+        // Insert new subscriber
+        await db.query("INSERT INTO subscribers (email) VALUES ($1)", [email.toLowerCase()]);
+
+        return res.json({ success: true, message: 'Thank you for subscribing!' });
+    } catch (err) {
+        console.error('Newsletter subscription error:', err);
+        return res.status(500).json({ success: false, message: 'Server error. Please try again later.' });
+    }
+});
+// Handle contact form submission
+app.post('/send-message', (req, res) => {
+    const { name, email, subject, message } = req.body;
+    //console.log(req.body);
+
+    // Insert query following your preferred format
+    const query = "INSERT INTO studentcontact (name, email, subject, message) VALUES ($1, $2, $3, $4)";
+    const values = [name, email, subject, message];
+
+    db.query(query, values, (err, result) => {
+        if (err) {
+            console.error('Error inserting data into studentcontact table: ', err);
+            return res.status(500).json({ success: false, message: 'Something went wrong. Please try again.' });
+        }
+
+        res.status(200).json({ success: true, message: 'Your message has been sent successfully!' });
+        //res.redirect('/contact');
+    });
+});
+
+
+// Backend route to handle sending reply emails
+app.post('/admin/send-reply', async (req, res) => {
+    const { email, message } = req.body;
+
+    // Update the isRead field in the database
+    try {
+        await db.query(
+            "UPDATE studentcontact SET isRead = true WHERE email = $1 AND isRead = false",
+            [email]
+        );
+        console.log('Message marked as read.');
+    } catch (err) {
+        console.error('Error updating isRead field:', err);
+        return res.status(500).send('Failed to mark message as read.');
+    }
+
+    // Construct the email
+    const mailOptions = {
+        from: 'fossil.application@gmail.com',
+        to: email,  // Student's email
+        subject: 'Reply from Admin',
+        html: `
+            <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+                <h2 style="color: #8c7258;">Admin's Reply</h2>
+                <p>Dear Student,</p>
+                <p>${message}</p>
+                <p>Best regards,<br><strong>The Admin Team</strong></p>
+            </div>
+        `
+    };
+
+    // Send the email
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            console.error("Error sending email:", error);
+            return res.status(500).send('Failed to send reply.');
+        }
+        console.log("Reply email sent:", info.response);
+        return res.status(200).send('Reply sent successfully.');
+    });
+});
 
 app.post("/signup", async (req, res) => {
     const { first_name, last_name, email, password, bio, home_address, subscription_type } = req.body;
@@ -377,45 +473,77 @@ app.post("/signup", async (req, res) => {
         return res.render("signup.ejs", { error: "An error occurred. Please try again." });
     }
 });
-
-
-
-
+// app.get("/main", async (req, res) => {
+//     if(req.isAuthenticated())
+//     {
+//
+//         const currentUser = req.user;
+//         const subscription_type = currentUser.subscription_type;
+//         const userEmail =  req.user.email;
+//         const unapprovedDocuments = await db.query("SELECT file_directory, file_name FROM pdfUploads WHERE isApproved != 'Approved' AND isApproved != 'Declined'");
+//
+//         if(userEmail == "admin@gmail.com" && unapprovedDocuments.rows.length != 0){
+//             try {
+//
+//                 console.log("Database Query Result:", unapprovedDocuments); // Log full result
+//                 console.log("Unapproved Documents:", unapprovedDocuments.rows); // Log rows array
+//                 // Pass unapproved documents data to the admin dashboard
+//
+//
+//                 res.render('admin-dashboard.ejs', {  unapprovedDocuments: unapprovedDocuments.rows , user: user_id !== -1 ? "user Present" : null,subscription_type});
+//             } catch (error) {
+//                 console.error(error);
+//                 res.status(500).send('Something went wrong');
+//             }
+//         }
+//         else{
+//             res.render("welcome.ejs", { user: user_id !== -1 ? "user Present" : null,subscription_type  });
+//         }
+//
+//
+//         //res.render("welcome.ejs");
+//     }
+//     else{
+//         res.redirect("/login");
+//     }
+//     // Render the welcome page with the books
+//
+// });
 app.get("/main", async (req, res) => {
-    if(req.isAuthenticated())
-    {
-
+    if (req.isAuthenticated()) {
         const currentUser = req.user;
         const subscription_type = currentUser.subscription_type;
-        const userEmail =  req.user.email;
+        const userEmail = req.user.email;
+
+        // Fetch unapproved documents
         const unapprovedDocuments = await db.query("SELECT file_directory, file_name FROM pdfUploads WHERE isApproved != 'Approved' AND isApproved != 'Declined'");
 
-        if(userEmail == "admin@gmail.com" && unapprovedDocuments.rows.length != 0){
+        // Fetch messages from students
+        const studentMessages = await db.query("SELECT name, email, subject, message, created_at,isRead FROM studentcontact WHERE isRead = false");
+
+        if (userEmail == "admin@gmail.com") {
             try {
-
-                console.log("Database Query Result:", unapprovedDocuments); // Log full result
+                console.log("Database Query Result for Unapproved Documents:", unapprovedDocuments); // Log full result
                 console.log("Unapproved Documents:", unapprovedDocuments.rows); // Log rows array
-                // Pass unapproved documents data to the admin dashboard
+                console.log("Student Messages:", studentMessages); // Log student messages
 
-
-                res.render('admin-dashboard.ejs', {  unapprovedDocuments: unapprovedDocuments.rows , user: user_id !== -1 ? "user Present" : null,subscription_type});
+                // Pass both unapproved documents and student messages data to the admin dashboard
+                res.render('admin-dashboard.ejs', {
+                    unapprovedDocuments: unapprovedDocuments.rows,
+                    studentMessages: studentMessages.rows,
+                    user: user_id !== -1 ? "user Present" : null,
+                    subscription_type
+                });
             } catch (error) {
                 console.error(error);
                 res.status(500).send('Something went wrong');
             }
+        } else {
+            res.render("welcome.ejs", { user: user_id !== -1 ? "user Present" : null, subscription_type });
         }
-        else{
-            res.render("welcome.ejs", { user: user_id !== -1 ? "user Present" : null,subscription_type  });
-        }
-
-
-        //res.render("welcome.ejs");
-    }
-    else{
+    } else {
         res.redirect("/login");
     }
-    // Render the welcome page with the books
-
 });
 
 

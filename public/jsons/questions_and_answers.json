@@ -1,110 +1,42 @@
 [
     {
-        "question": "What is a property in programming?",
-        "answer": "A property is a member that provides a flexible mechanism to read, write, or compute the value of a private field."
+        "question": "What is the name of the course?",
+        "answer": "Business Law"
     },
     {
-        "question": "What are the key features of properties?",
-        "answer": "Properties enable a class to expose a public way of getting and setting values while hiding implementation or verification code."
+        "question": "Who is the professor?",
+        "answer": "Dr. Zoltan Vig"
     },
     {
-        "question": "What are the different types of property accessors?",
-        "answer": "There are get, set, and init property accessors. Get is used to return the property value, set is used to assign a new value, and init is used to assign a new value only during object construction."
+        "question": "What is the professor's email address?",
+        "answer": "jogasz@gmail.com"
     },
     {
-        "question": "What is the 'value' keyword used for?",
-        "answer": "The 'value' keyword is used to define the value being assigned by the set or init accessor."
+        "question": "When is the first class?",
+        "answer": "February 10"
     },
     {
-        "question": "What are read-only, read-write, and write-only properties?",
-        "answer": "Read-only properties have only a get accessor, read-write properties have both get and set accessors, and write-only properties have only a set accessor. Write-only properties are rare and used for restricting access to sensitive data."
+        "question": "What is covered on February 17 and 24?",
+        "answer": "IP law"
     },
     {
-        "question": "What are expression body definitions for properties?",
-        "answer": "Expression body definitions use the => symbol and provide a concise way to implement property accessors that consist of single-line statements."
+        "question": "When is the first test?",
+        "answer": "March 31"
     },
     {
-        "question": "What are auto-implemented properties?",
-        "answer": "Auto-implemented properties are used when property accessors simply assign or retrieve a value from a backing field without additional logic. The C# compiler provides the backing field for you."
+        "question": "How many online Moodle tests are there, and what format do they take?",
+        "answer": "Two. They consist of 25 multiple-choice questions, with 25 minutes allotted for each test."
     },
     {
-        "question": "What is a delegate?",
-        "answer": "A delegate is a type that represents references to methods with a specific parameter list and return type. It allows methods to be passed as arguments and invoked."
+        "question": "Can you retake the tests?",
+        "answer": "Yes, you can retake (and correct) both tests, but the last result counts."
     },
     {
-        "question": "What are delegates used for?",
-        "answer": "Delegates are used to pass methods as arguments, for event handling, and for defining callback methods."
+        "question": "Is class participation and activity obligatory?",
+        "answer": "No, it is not obligatory, but you can gain additional scores (1 point for each attendance)."
     },
     {
-        "question": "How are delegates similar to and different from C++ function pointers?",
-        "answer": "Delegates are similar to C++ function pointers but are fully object-oriented. Unlike C++ pointers, delegates encapsulate both an object instance and a method."
-    },
-    {
-        "question": "How are events in .NET related to delegates?",
-        "answer": "Events in .NET are based on the delegate model, allowing an event sender to notify subscribers of an occurrence. Events follow the observer design pattern."
-    },
-    {
-        "question": "What is the role of an event sender and an event receiver?",
-        "answer": "The event sender raises the event, while the event receiver defines a response to the event by implementing an event handler method."
-    },
-    {
-        "question": "What is the common pattern for declaring and raising events?",
-        "answer": "Events are typically declared using the 'event' keyword, and a protected virtual method named 'OnEventName' is used to raise the event."
-    },
-    {
-        "question": "What are EventHandler delegates used for?",
-        "answer": "EventHandler and EventHandler<TEventArgs> delegates are provided by .NET to handle most event scenarios, with and without event data, respectively."
-    },
-    {
-        "question": "What is event data and how is it provided?",
-        "answer": "Event data is additional information associated with an event. It is provided through an event data class, which typically ends with 'EventArgs' in .NET."
-    },
-    {
-        "question": "How do you create a custom event data class?",
-        "answer": "To create a custom event data class, derive it from the EventArgs class and define the required properties or fields."
-    },
-    {
-        "question": "What is an event handler and how is it defined?",
-        "answer": "An event handler is a method that responds to an event. It must match the signature of the delegate for the event it handles and can be subscribed to the event to receive notifications."
-    },
-    {
-        "question": "What are the differences between events and delegates?",
-        "answer": "Events are defined using the 'event' keyword, can only be defined as class members, use += and -= operators, and can only be fired by the owner class."
-    },
-    {
-        "question": "What are attributes in programming?",
-        "answer": "Attributes provide a way to associate metadata or declarative information with code entities such as assemblies, types, methods, and properties."
-    },
-    {
-        "question": "How are attributes used and what are some examples?",
-        "answer": "Attributes are placed above the declaration of the entity they apply to. Examples include [Serializable], [Obsolete], and custom attributes derived from the System.Attribute class."
-    },
-    {
-        "question": "What are value types and reference types in .NET?",
-        "answer": "Value types contain the actual value, while reference types contain a pointer/reference to the value. Value types include basic types like int, char, and also structs. Reference types include classes, arrays, interfaces, and built-in types like object and string."
-    },
-    {
-        "question": "What is the 'object' type in .NET?",
-        "answer": "The 'object' type is an alias for System.Object, and all types in .NET inherit directly or indirectly from it. Variables of type object can hold values of any type."
-    },
-    {
-        "question": "How is the 'string' type in .NET treated?",
-        "answer": "The 'string' type represents a sequence of Unicode characters and is an alias for System.String. It is a reference type, but the == and != operators compare the values of the strings, not references."
-    },
-    {
-        "question": "Are strings in .NET mutable or immutable?",
-        "answer": "Strings in .NET are immutable, meaning their content cannot be changed after creation. Assigning a new value to a string variable creates a new string object."
-    },
-    {
-        "question": "What is the difference between value types and reference types in terms of memory allocation and behavior?",
-        "answer": "Value types are stored 'inline' in memory and allocated on the stack. Reference types have memory allocated on the heap and are managed by the garbage collector. Value types are copied when passed as parameters, while reference types pass a reference."
-    },
-    {
-        "question": "What are some keywords used to declare reference types?",
-        "answer": "Keywords used to declare reference types include 'class', 'interface', 'delegate', and 'record'."
-    },
-    {
-        "question": "What are some built-in reference types in C#?",
-        "answer": "Built-in reference types in C# include 'dynamic', 'object', and 'string'."
+        "question": "What are the two important sources of EU law mentioned?",
+        "answer": "Regulations and directives."
     }
 ]

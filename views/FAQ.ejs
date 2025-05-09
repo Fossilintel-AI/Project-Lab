@@ -1,0 +1,48 @@
+<%- include('header.ejs') %>
+
+<!-- FAQ Start -->
+<div class="container-xxl py-5">
+    <div class="container">
+        <h6 class="section-title bg-white text-start text-brown pe-3">Help & Support</h6>
+        <h1 class="mb-5">Frequently Asked Questions</h1>
+
+        <div class="accordion" id="faqAccordion">
+
+            <% const faqs = [
+                { question: "What is EverythingLearn?", answer: "EverythingLearn is an online learning platform that provides study tools, resources, and AI-powered features to help students learn more efficiently." },
+                { question: "Is EverythingLearn free to use?", answer: "We offer a free plan with core features. Premium plans unlock additional tools like the quiz generator, flashcards, and advanced analytics." },
+                { question: "How do I sign up?", answer: "Click the 'Register' button on the homepage and fill in your details. You’ll receive a confirmation email to activate your account." },
+                { question: "Can I change my subscription later?", answer: "Yes, you can upgrade or downgrade your subscription at any time from the profile settings under 'Manage Subscription'." },
+                { question: "How do I reset my password?", answer: "Click on 'Forgot Password' on the login page and follow the instructions. A reset link will be emailed to you." },
+                { question: "Are my notes and documents private?", answer: "By default, yes. Uploaded documents are private unless you choose to share them with others or submit them for community access." },
+                { question: "Who reviews uploaded study materials?", answer: "All uploaded documents go through an approval process by the EverythingLearn moderation team before being accessible to others." },
+                { question: "How do I create flashcards?", answer: "Go to the Flashcards section, upload or paste your content, and click 'Generate Flashcards' to let the AI create them for you." },
+                { question: "Do you support mobile devices?", answer: "Absolutely! EverythingLearn is optimized for desktops, tablets, and smartphones for seamless learning across devices." },
+                { question: "Is my personal data safe?", answer: "We follow strict data protection policies. Your information is encrypted and never sold to third parties." },
+                { question: "How do I report an issue or bug?", answer: "Use the 'Help' button at the bottom of the page or email support@everythinglearn.com with a detailed description of the issue." },
+                { question: "Can I suggest a new feature?", answer: "Yes! We welcome feedback. Please visit the 'Feedback' section in your account settings to share your ideas." },
+                { question: "How often is content updated?", answer: "Our platform is updated weekly with new questions, summaries, and tools. You’ll also receive email updates on major changes." },
+                { question: "Do you offer live tutoring?", answer: "At this time, we do not offer live tutoring. However, we plan to integrate it in future releases based on user demand." }
+            ]; %>
+
+            <% faqs.forEach((faq, index) => { %>
+                <div class="accordion-item mb-3 border">
+                    <h2 class="accordion-header" id="heading<%= index %>">
+                        <button class="accordion-button collapsed text-brown fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse<%= index %>" aria-expanded="false" aria-controls="collapse<%= index %>">
+                            <i class="fa fa-plus me-2 text-brown"></i><%= faq.question %>
+                        </button>
+                    </h2>
+                    <div id="collapse<%= index %>" class="accordion-collapse collapse" aria-labelledby="heading<%= index %>" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            <%= faq.answer %>
+                        </div>
+                    </div>
+                </div>
+            <% }); %>
+
+        </div>
+    </div>
+</div>
+<!-- FAQ End -->
+
+<%- include('footer.ejs') %>

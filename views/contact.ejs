@@ -21,7 +21,12 @@
                     <a class="btn btn-outline-dark btn-social" href="#"><i class="fab fa-twitter"></i></a>
                     <a class="btn btn-outline-dark btn-social" href="#"><i class="fab fa-facebook-f"></i></a>
                     <a class="btn btn-outline-dark btn-social" href="#"><i class="fab fa-youtube"></i></a>
-                    <a class="btn btn-outline-dark btn-social" href="#"><i class="fab fa-linkedin-in"></i></a>
+                    <a class="btn btn-outline-dark btn-social"
+                       href="https://www.linkedin.com/in/simphiwe-harvey-mankge-957870332"
+                       target="_blank"
+                       rel="noopener noreferrer">
+                        <i class="fab fa-linkedin-in"></i>
+                    </a>
                 </div>
             </div>
 
@@ -29,7 +34,11 @@
             <div class="col-lg-7 wow fadeInUp" data-wow-delay="0.3s">
                 <div class="contact-form bg-light p-4 rounded shadow">
                     <h3 class="text-center mb-4">Send Us a Message</h3>
-                    <form action="/send-message" method="POST">
+
+                    <!-- Response Message Display -->
+                    <div id="responseMessage"></div>
+
+                    <form id="contactForm" action="/send-message" method="POST">
                         <div class="mb-3">
                             <input type="text" class="form-control" name="name" placeholder="Your Name" required>
                         </div>
@@ -50,6 +59,40 @@
     </div>
 </div>
 <!-- Contact End -->
+
+<script>
+    document.querySelector('#contactForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const name = document.querySelector('input[name="name"]').value;
+        const email = document.querySelector('input[name="email"]').value;
+        const subject = document.querySelector('input[name="subject"]').value;
+        const message = document.querySelector('textarea[name="message"]').value;
+
+        const responseMessage = document.getElementById('responseMessage'); // For displaying response
+
+        try {
+            const response = await fetch('/send-message', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, email, subject, message })
+            });
+
+            const data = await response.json();
+
+            // Display the response message
+            responseMessage.innerHTML = `<div class="alert alert-${data.success ? 'success' : 'warning'}">${data.message}</div>`;
+
+            if (data.success) {
+                // Optionally reset the form after success
+                document.querySelector('#contactForm').reset();
+            }
+
+        } catch (error) {
+            responseMessage.innerHTML = `<div class="alert alert-danger">Something went wrong. Please try again later.</div>`;
+        }
+    });
+</script>
 
 <%- include('footer.ejs') %>
 
