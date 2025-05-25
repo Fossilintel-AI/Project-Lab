@@ -707,8 +707,8 @@ app.post('/add-book', async (req, res) => {
         db.query("INSERT INTO readBooks (title,date,rating,notes,userid) VALUES($1,$2,$3,$4,$5)", [title, date, rating, notes, user_id]);
         const booksResult = await db.query("SELECT * FROM readBooks WHERE userid = $1", [user_id]);
         const books = booksResult.rows;
-        res.render("welcome.ejs", { user: user_id !== -1 ? "user Present" : null, books:books });
-
+        //res.render("welcome.ejs", { user: user_id !== -1 ? "user Present" : null, books:books });
+        res.redirect("/books");
         //res.render("welcome.ejs",{books:books});
     }
     else{
@@ -731,8 +731,8 @@ app.get("/delete", (req, res) => {
                 console.log("Item updated successfully!");
                 const booksResult = await db.query("SELECT * FROM readBooks WHERE userid = $1", [user_id]);
                 const books = booksResult.rows;
-                res.render("welcome.ejs", { user: user_id !== -1 ? "user Present" : null,books: books });
-
+                //res.render("welcome.ejs", { user: user_id !== -1 ? "user Present" : null,books: books });
+                res.redirect("/books");
                 //res.render("welcome.ejs", {books: books});
             }
         });
@@ -774,8 +774,8 @@ app.post('/edit-book', async (req, res) => {
         db.query("UPDATE readBooks SET title = $1 , date = $2 , rating= $3 , notes = $4 WHERE id = $5", [title, date, rating, notes, id]);
         const booksResult = await db.query("SELECT * FROM readBooks WHERE userid = $1", [user_id]);
         const books = booksResult.rows;
-        res.render("welcome.ejs", { user: user_id !== -1 ? "user Present" : null,books: books });
-
+        //res.render("welcome.ejs", { user: user_id !== -1 ? "user Present" : null,books: books });
+        res.redirect("/books");
         //res.render("welcome.ejs", {books: books});
     }
     else{
@@ -1169,6 +1169,8 @@ app.post("/deleteSubject", async (req, res) => {
     if(req.isAuthenticated())
     {
         const { subject, day, startTime,subjectID } = req.body;
+        console.log("We are deleting");
+        console.log(req.body);
         //const user_id = req.session.user_id || 1; // Replace with actual session user ID
 
         try {

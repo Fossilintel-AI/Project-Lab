@@ -1,60 +1,228 @@
 <%- include('header.ejs') %>
-<style>
-    .summarizeClass {
-        max-width: 600px;
-        margin: 50px auto;
-        text-align: center;
-    }
-    .summarizeClass .title {
-        font-size: 24px;
-        font-weight: bold;
-        margin-bottom: 20px;
-    }
-    .summarizeClass .summary-box {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 15px;
-    }
-    .summarizeClass .btn-brown {
-        background-color: #8B4513;
-        color: white;
-        padding: 10px 20px;
-        border: none;
-        cursor: pointer;
-        font-size: 16px;
-        border-radius: 5px;
-    }
-    .summarizeClass .btn-brown:hover {
-        background-color: #A0522D;
-    }
-    .summarizeClass .summary-result {
-        margin-top: 20px;
-        padding: 15px;
-        background: #f8f8f8;
-        border: 2px solid #8B4513;
-        border-radius: 5px;
-        text-align: left;
-    }
-    .summarizeClass #summaryText {
-        font-size: 16px;
-        color: #333;
-        white-space: pre-line; /* Ensures proper paragraphing */
-    }
-</style>
-<body>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-<div class="summarizeClass">
-    <h2 class="title">Summarized Text</h2>
-
-    <div class="summary-result">
-<!--        <h3>Summary:</h3>-->
-        <p id="summaryText"><%= summary ? summary : "Your summarized text will appear here..." %></p>
+<div class="summary-container">
+    <div class="summary-header">
+        <h1 class="summary-title">
+            <i class="fas fa-file-contract"></i> Document Summary
+        </h1>
+        <div class="summary-meta">
+            <span class="meta-item">
+                <i class="fas fa-clock"></i> Generated just now
+            </span>
+            <span class="meta-item">
+                <i class="fas fa-file-word"></i> <%= summary ? summary.split(' ').length : '0' %> words
+            </span>
+        </div>
     </div>
 
-    <!-- Back Button -->
-<!--    <a href="/" class="btn btn-brown">Back to Home</a>-->
+    <div class="summary-card">
+        <div class="summary-content">
+            <div class="summary-text" id="summaryText">
+                <%= summary ? summary : "Your AI-generated summary will appear here..." %>
+            </div>
+        </div>
+
+        <div class="summary-actions">
+            <button class="action-btn copy-btn" data-target="summaryText">
+                <i class="fas fa-copy"></i> Copy Summary
+            </button>
+            <button class="action-btn download-btn">
+                <i class="fas fa-file-download"></i> Download
+            </button>
+            <a href="/" class="action-btn back-btn">
+                <i class="fas fa-arrow-left"></i> Back to Home
+            </a>
+        </div>
+    </div>
 </div>
 
+<script>
+    // Copy to clipboard functionality
+    document.querySelectorAll('.copy-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const targetId = btn.getAttribute('data-target');
+            const textToCopy = document.getElementById(targetId).innerText;
+
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                }, 2000);
+            });
+        });
+    });
+
+    // Download functionality
+    document.querySelector('.download-btn').addEventListener('click', () => {
+        const summaryText = document.getElementById('summaryText').innerText;
+        const blob = new Blob([summaryText], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'document-summary.txt';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    });
+</script>
+
+<style>
+    /* Modern Summary Styles */
+    :root {
+        --primary-brown: #8B4513;
+        --dark-brown: #5D4037;
+        --light-brown: #D2B48C;
+        --pale-beige: #F5F5DC;
+        --off-white: #FFFDFA;
+        --shadow-sm: 0 1px 3px rgba(0,0,0,0.12);
+        --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+        --shadow-lg: 0 10px 25px rgba(139, 69, 19, 0.1);
+        --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    .summary-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .summary-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .summary-title {
+        color: var(--dark-brown);
+        font-size: 2.2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+    }
+
+    .summary-meta {
+        display: flex;
+        justify-content: center;
+        gap: 1.5rem;
+        color: var(--primary-brown);
+        font-size: 0.95rem;
+        opacity: 0.8;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .summary-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: var(--shadow-lg);
+        overflow: hidden;
+        border: 1px solid var(--light-brown);
+    }
+
+    .summary-content {
+        padding: 2rem;
+    }
+
+    .summary-text {
+        font-size: 1.1rem;
+        line-height: 1.7;
+        color: var(--dark-brown);
+        white-space: pre-line;
+    }
+
+    .summary-text:empty::before {
+        content: "Your AI-generated summary will appear here...";
+        color: #999;
+        font-style: italic;
+    }
+
+    .summary-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        padding: 1.5rem;
+        background: var(--pale-beige);
+        border-top: 1px solid var(--light-brown);
+    }
+
+    .action-btn {
+        padding: 0.75rem 1.25rem;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.95rem;
+        border: none;
+    }
+
+    .copy-btn {
+        background-color: var(--primary-brown);
+        color: white;
+    }
+
+    .copy-btn:hover {
+        background-color: var(--dark-brown);
+        transform: translateY(-2px);
+    }
+
+    .download-btn {
+        background-color: white;
+        color: var(--primary-brown);
+        border: 1px solid var(--primary-brown);
+    }
+
+    .download-btn:hover {
+        background-color: var(--pale-beige);
+        transform: translateY(-2px);
+    }
+
+    .back-btn {
+        background-color: transparent;
+        color: var(--dark-brown);
+        text-decoration: none;
+        margin-left: auto;
+    }
+
+    .back-btn:hover {
+        color: var(--primary-brown);
+        transform: translateY(-2px);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .summary-title {
+            font-size: 1.8rem;
+        }
+
+        .summary-meta {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .summary-content {
+            padding: 1.5rem;
+        }
+
+        .summary-actions {
+            flex-direction: column;
+        }
+
+        .back-btn {
+            margin-left: 0;
+        }
+    }
+</style>
 
 <%- include('footer.ejs') %>

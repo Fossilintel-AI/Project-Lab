@@ -1,32 +1,303 @@
 <%- include('header.ejs') %>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card shadow">
-                <div class="card-header text-white" style="background-color: #8B4513;">
-                    <h3 class="text-center">My Profile</h3>
+<div class="profile-container">
+    <div class="profile-card">
+        <!-- Profile Header with Image -->
+        <div class="profile-header">
+            <div class="profile-avatar">
+                <div class="avatar-circle">
+                    <%= currentUser.first_name.charAt(0).toUpperCase() %><%= currentUser.last_name.charAt(0).toUpperCase() %>
                 </div>
-                <div class="card-body">
-                    <!-- Profile Picture -->
+                <div class="profile-status"></div>
+            </div>
+            <h1 class="profile-name"><%= currentUser.first_name %> <%= currentUser.last_name %></h1>
+            <p class="profile-email"><i class="fas fa-envelope"></i> <%= currentUser.email %></p>
+            <div class="profile-badge">
+                <span class="badge <%= currentUser.subscription_type.toLowerCase() %>">
+                    <i class="fas fa-crown"></i> <%= currentUser.subscription_type %>
+                </span>
+            </div>
+        </div>
 
-                    <!-- User Info -->
-                    <p><strong>Name:</strong> <%= currentUser.first_name %> <%= currentUser.last_name %></p>
-                    <p><strong>Email:</strong> <%= currentUser.email %></p>
-                    <p><strong>Subscription Type:</strong> <%= currentUser.subscription_type %></p>
-                    <p><strong>Bio:</strong> <%= currentUser.bio || 'No bio available' %></p>
-                    <p><strong>Address:</strong> <%= currentUser.address || 'No address available' %></p>
-                    <p><strong>Account Created:</strong> <%= new Date(currentUser.created_at).toLocaleDateString() %></p>
+        <!-- Profile Details -->
+        <div class="profile-details">
+            <div class="detail-section">
+                <h3><i class="fas fa-user-circle"></i> About</h3>
+                <div class="detail-item">
+                    <p class="detail-content"><%= currentUser.bio || 'No bio added yet' %></p>
                 </div>
-                <div class="card-footer text-center">
-                    <!-- Edit Profile Button -->
-                    <a href="/edit-profile" class="btn btn-warning">Edit Profile</a>
-                    <!-- Logout Button -->
-                    <a href="/logout" class="btn btn-danger">Logout</a>
+            </div>
+
+            <div class="detail-section">
+                <h3><i class="fas fa-map-marker-alt"></i> Address</h3>
+                <div class="detail-item">
+                    <p class="detail-content"><%= currentUser.address || 'No address provided' %></p>
+                </div>
+            </div>
+
+            <div class="detail-section">
+                <h3><i class="fas fa-calendar-alt"></i> Account Information</h3>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">Member Since</span>
+                        <span class="detail-value"><%= new Date(currentUser.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) %></span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Last Active</span>
+                        <span class="detail-value">Just now</span>
+                    </div>
                 </div>
             </div>
         </div>
+
+        <!-- Profile Actions -->
+        <div class="profile-actions">
+            <a href="/edit-profile" class="action-btn edit-btn">
+                <i class="fas fa-user-edit"></i> Edit Profile
+            </a>
+            <a href="/logout" class="action-btn logout-btn">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
     </div>
 </div>
+
+<style>
+    /* Modern Profile Styles */
+    :root {
+        --primary-brown: #8B4513;
+        --dark-brown: #5D4037;
+        --light-brown: #D2B48C;
+        --pale-beige: #F5F5DC;
+        --off-white: #FFFDFA;
+        --gold: #FFD700;
+        --silver: #C0C0C0;
+        --bronze: #CD7F32;
+        --shadow-sm: 0 1px 3px rgba(0,0,0,0.12);
+        --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+        --shadow-lg: 0 10px 25px rgba(139, 69, 19, 0.1);
+        --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    .profile-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: calc(100vh - 120px);
+        padding: 2rem;
+        background-color: var(--pale-beige);
+    }
+
+    .profile-card {
+        width: 100%;
+        max-width: 800px;
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: var(--shadow-lg);
+        border: 1px solid var(--light-brown);
+    }
+
+    .profile-header {
+        background: linear-gradient(135deg, var(--primary-brown) 0%, var(--dark-brown) 100%);
+        padding: 2.5rem 2rem 1.5rem;
+        text-align: center;
+        color: white;
+        position: relative;
+    }
+
+    .profile-avatar {
+        margin-bottom: 1rem;
+        position: relative;
+        display: inline-block;
+    }
+
+    .avatar-circle {
+        width: 100px;
+        height: 100px;
+        background-color: var(--off-white);
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: var(--dark-brown);
+        margin: 0 auto;
+        border: 4px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .profile-status {
+        position: absolute;
+        bottom: 5px;
+        right: 5px;
+        width: 20px;
+        height: 20px;
+        background-color: #4CAF50;
+        border-radius: 50%;
+        border: 3px solid white;
+    }
+
+    .profile-name {
+        font-size: 1.8rem;
+        margin: 0.5rem 0;
+        font-weight: 700;
+    }
+
+    .profile-email {
+        margin: 0.5rem 0 1rem;
+        opacity: 0.9;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .profile-badge {
+        margin-top: 1rem;
+    }
+
+    .badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .badge.premium {
+        background-color: var(--gold);
+        color: var(--dark-brown);
+    }
+
+    .badge.pro {
+        background-color: var(--silver);
+        color: var(--dark-brown);
+    }
+
+    .badge.basic {
+        background-color: var(--bronze);
+        color: white;
+    }
+
+    .profile-details {
+        padding: 2rem;
+    }
+
+    .detail-section {
+        margin-bottom: 2rem;
+    }
+
+    .detail-section h3 {
+        color: var(--dark-brown);
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .detail-item {
+        margin-bottom: 1rem;
+    }
+
+    .detail-content {
+        color: var(--dark-brown);
+        line-height: 1.6;
+        padding: 0.75rem;
+        background-color: var(--off-white);
+        border-radius: 8px;
+        border-left: 4px solid var(--light-brown);
+    }
+
+    .detail-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+
+    .detail-label {
+        display: block;
+        font-size: 0.9rem;
+        color: #666;
+        margin-bottom: 0.25rem;
+    }
+
+    .detail-value {
+        font-weight: 500;
+        color: var(--dark-brown);
+    }
+
+    .profile-actions {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        padding: 1.5rem;
+        background-color: var(--off-white);
+        border-top: 1px solid var(--light-brown);
+    }
+
+    .action-btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+    }
+
+    .edit-btn {
+        background-color: var(--primary-brown);
+        color: white;
+        border: none;
+    }
+
+    .edit-btn:hover {
+        background-color: var(--dark-brown);
+        transform: translateY(-2px);
+    }
+
+    .logout-btn {
+        background-color: white;
+        color: #dc3545;
+        border: 1px solid #dc3545;
+    }
+
+    .logout-btn:hover {
+        background-color: #dc3545;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .profile-container {
+            padding: 1rem;
+        }
+
+        .profile-header {
+            padding: 2rem 1rem 1rem;
+        }
+
+        .profile-details {
+            padding: 1.5rem;
+        }
+
+        .profile-actions {
+            flex-direction: column;
+        }
+
+        .action-btn {
+            justify-content: center;
+        }
+    }
+</style>
 
 <%- include('footer.ejs') %>

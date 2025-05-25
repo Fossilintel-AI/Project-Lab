@@ -11,7 +11,6 @@
                 <% unapprovedDocuments.forEach(doc => { %>
                     <div class="card">
                         <p><strong>Document:</strong> <%= doc.file_name %></p>
-                        <p><strong>Path:</strong> <%= doc.file_directory %></p>
                         <div class="btn-group">
                             <a href="/view-document?path=<%= doc.file_directory %>/<%= encodeURIComponent(doc.file_name) %>"
                                target="_blank" class="btn btn-view">

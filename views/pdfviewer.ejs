@@ -1,18 +1,45 @@
 <%- include('header.ejs') %>
 <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.6.172/build/pdf.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-<div class="pdf-container">
-    <h1 class =" text-brown" >PDF Viewer</h1>
-    <div id="pdf-render"></div>
-    <div id="controls">
-        <button class="btn-brown" id="prev">Previous</button>
-        <button class="btn-brown" id="next">Next</button>
-        <span>Page: <span id="page-num">1</span> / <span id="page-count">1</span></span>
+<div class="pdf-viewer-container">
+    <div class="pdf-viewer-header">
+        <h1 class="pdf-title">Lecture Notes Viewer</h1>
+        <div class="pdf-meta">
+            <span id="page-info">Page <span id="page-num">1</span> of <span id="page-count">1</span></span>
+        </div>
+    </div>
+
+    <div class="pdf-viewer-main">
+        <div id="pdf-render" class="pdf-canvas-container"></div>
+
+        <div class="pdf-controls">
+            <button id="prev" class="pdf-control-btn">
+                <i class="fas fa-chevron-left"></i> Previous
+            </button>
+            <div class="zoom-controls">
+                <button id="zoom-out" class="pdf-control-btn">
+                    <i class="fas fa-search-minus"></i>
+                </button>
+                <span id="zoom-level">100%</span>
+                <button id="zoom-in" class="pdf-control-btn">
+                    <i class="fas fa-search-plus"></i>
+                </button>
+            </div>
+            <button id="next" class="pdf-control-btn">
+                Next <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="pdf-notes">
+        <h3><i class="fas fa-pencil-alt"></i> Scholar's Notes</h3>
+        <textarea id="notes" placeholder="Jot down your insights here..."></textarea>
     </div>
 </div>
 
 <script>
-    const pdfUrl = "<%= pdfUrl %>"; // This should now be a relative path
+    const pdfUrl = "<%= pdfUrl %>";
     console.log("PDF URL:", pdfUrl);
 
     const pdfjsLib = window['pdfjs-dist/build/pdf'];
@@ -20,33 +47,57 @@
 
     let pdfDoc = null;
     let pageNum = 1;
+    let currentScale = 1.5; // Default zoom level
     const container = document.getElementById('pdf-render');
     const pageNumElement = document.getElementById('page-num');
     const pageCountElement = document.getElementById('page-count');
+    const zoomLevelElement = document.getElementById('zoom-level');
     const notes = document.getElementById('notes');
 
+    // Load PDF document
     pdfjsLib.getDocument(pdfUrl).promise.then(doc => {
         console.log("PDF document loaded", doc);
         pdfDoc = doc;
         pageCountElement.textContent = doc.numPages;
-        renderPage(pageNum);
+        renderPage(pageNum, currentScale);
     }).catch(err => {
         console.error('Error loading PDF: ', err);
-        document.body.innerHTML = '<h2>Error loading PDF</h2>';
+        container.innerHTML = '<div class="pdf-error">Error loading PDF document</div>';
     });
 
-    function renderPage(num) {
+    // Render PDF page
+    function renderPage(num, scale) {
         console.log("Rendering page:", num);
         pdfDoc.getPage(num).then(page => {
-            const viewport = page.getViewport({ scale: 1 });
+            // Use window width to determine scale for wide display
+            const viewportWidth = window.innerWidth * 0.9;
+            const viewport = page.getViewport({ scale: scale });
+
+            // Adjust scale to fit width
+            const adjustedScale = (viewportWidth * scale) / viewport.width;
+            const adjustedViewport = page.getViewport({ scale: adjustedScale });
+
             const canvas = document.createElement('canvas');
             const context = canvas.getContext('2d');
-            canvas.width = viewport.width;
-            canvas.height = viewport.height;
-            page.render({ canvasContext: context, viewport }).promise.then(() => {
+
+            // Set canvas dimensions
+            canvas.width = adjustedViewport.width;
+            canvas.height = adjustedViewport.height;
+
+            // Render PDF page into canvas context
+            const renderContext = {
+                canvasContext: context,
+                viewport: adjustedViewport
+            };
+
+            page.render(renderContext).promise.then(() => {
                 container.innerHTML = '';
                 container.appendChild(canvas);
                 pageNumElement.textContent = num;
+                zoomLevelElement.textContent = `${Math.round(adjustedScale * 100)}%`;
+
+                // Load notes for this page
+                notes.value = localStorage.getItem(`notes-page-${num}`) || '';
             }).catch(err => {
                 console.error('Error rendering page: ', err);
             });
@@ -55,25 +106,233 @@
         });
     }
 
+    // Navigation controls
     document.getElementById('prev').addEventListener('click', () => {
         if (pageNum <= 1) return;
         pageNum--;
-        renderPage(pageNum);
+        renderPage(pageNum, currentScale);
     });
 
     document.getElementById('next').addEventListener('click', () => {
         if (pageNum >= pdfDoc.numPages) return;
         pageNum++;
-        renderPage(pageNum);
+        renderPage(pageNum, currentScale);
     });
 
+    // Zoom controls
+    document.getElementById('zoom-in').addEventListener('click', () => {
+        currentScale += 0.25;
+        renderPage(pageNum, currentScale);
+    });
+
+    document.getElementById('zoom-out').addEventListener('click', () => {
+        if (currentScale > 0.5) {
+            currentScale -= 0.25;
+            renderPage(pageNum, currentScale);
+        }
+    });
+
+    // Notes functionality
     notes.addEventListener('input', () => {
         localStorage.setItem(`notes-page-${pageNum}`, notes.value);
     });
 
-    notes.addEventListener('focus', () => {
-        notes.value = localStorage.getItem(`notes-page-${pageNum}`) || '';
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+            if (pageNum > 1) {
+                pageNum--;
+                renderPage(pageNum, currentScale);
+            }
+        } else if (e.key === 'ArrowRight' || e.key === 'PageDown') {
+            if (pageNum < pdfDoc?.numPages) {
+                pageNum++;
+                renderPage(pageNum, currentScale);
+            }
+        }
+    });
+
+    // Handle window resize
+    window.addEventListener('resize', () => {
+        if (pdfDoc) {
+            renderPage(pageNum, currentScale);
+        }
     });
 </script>
+
+<style>
+    /* Modern PDF Viewer Styles with Earthy Brown Theme */
+    :root {
+        --primary-color: #8B4513;        /* SaddleBrown - main color */
+        --secondary-color: #A0522D;      /* Sienna - darker accent */
+        --accent-color: #D2B48C;         /* Tan - light accent */
+        --light-color: #F5F5DC;          /* Beige - background */
+        --dark-color: #5D4037;           /* Dark brown - text */
+        --gray-color: #BCAAA4;           /* Light brown/gray */
+        --shadow: 0 10px 30px rgba(139, 69, 19, 0.1);
+        --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    .pdf-viewer-container {
+        width: 100%;
+        max-width: none;
+        margin: 0;
+        padding: 2rem;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        background-color: var(--light-color);
+    }
+
+    .pdf-viewer-header {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--accent-color);
+        text-align: center;
+    }
+
+    .pdf-title {
+        color: var(--primary-color);
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin: 0 0 0.5rem 0;
+        font-family: 'Georgia', serif;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        letter-spacing: 1px;
+    }
+
+    .pdf-meta {
+        color: var(--secondary-color);
+        font-size: 1.1rem;
+        font-weight: 500;
+    }
+
+    .pdf-viewer-main {
+        background: white;
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+        padding: 2rem;
+        margin-bottom: 2rem;
+        border: 1px solid var(--accent-color);
+        width: 100%;
+    }
+
+    .pdf-canvas-container {
+        width: 100%;
+        min-height: 75vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 2rem;
+        border: 1px solid var(--accent-color);
+        border-radius: 8px;
+        overflow: auto;
+        background-color: #FFF8F0;
+    }
+
+    .pdf-canvas-container canvas {
+        width: auto;
+        max-width: 95%;
+        height: auto;
+        max-height: 80vh;
+        box-shadow: 0 4px 20px rgba(139, 69, 19, 0.1);
+    }
+
+    .pdf-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        padding: 0 1rem;
+    }
+
+    .pdf-control-btn {
+        padding: 0.75rem 1.5rem;
+        background-color: white;
+        color: var(--primary-color);
+        border: 1px solid var(--primary-color);
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        min-width: 120px;
+        justify-content: center;
+    }
+
+    .pdf-control-btn:hover {
+        background-color: var(--primary-color);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(139, 69, 19, 0.2);
+    }
+
+    .zoom-controls {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .zoom-controls span {
+        font-weight: 600;
+        color: var(--dark-color);
+        min-width: 50px;
+        text-align: center;
+    }
+
+    .pdf-notes {
+        background: white;
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+        padding: 2rem;
+        border: 1px solid var(--accent-color);
+        width: 100%;
+    }
+
+    .pdf-notes h3 {
+        color: var(--secondary-color);
+        margin-top: 0;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        justify-content: center;
+        font-family: 'Georgia', serif;
+    }
+
+    .pdf-notes textarea {
+        width: 100%;
+        min-height: 150px;
+        padding: 1rem;
+        border: 1px solid var(--accent-color);
+        border-radius: 8px;
+        font-family: inherit;
+        font-size: 1rem;
+        resize: vertical;
+        transition: var(--transition);
+        background-color: #FFFDFA;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .pdf-controls {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .pdf-title {
+            font-size: 2rem;
+        }
+
+        .pdf-canvas-container {
+            min-height: 60vh;
+        }
+    }
+</style>
 
 <%- include('footer.ejs') %>

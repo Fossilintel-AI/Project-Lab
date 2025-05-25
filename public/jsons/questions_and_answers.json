@@ -1,42 +1,114 @@
 [
     {
-        "question": "What is the name of the course?",
-        "answer": "Business Law"
+        "question": "What are the subjects of law?",
+        "answer": "state, natural persons (humans), and legal persons (organizations)"
     },
     {
-        "question": "Who is the professor?",
-        "answer": "Dr. Zoltan Vig"
+        "question": "What are some important aspects when deciding the form of business activity?",
+        "answer": "Taxation"
     },
     {
-        "question": "What is the professor's email address?",
-        "answer": "jogasz@gmail.com"
+        "question": "Why is a company form often chosen over entrepreneurship?",
+        "answer": "Limited liability and easier capital collection"
     },
     {
-        "question": "When is the first class?",
-        "answer": "February 10"
+        "question": "What are the two main types of company forms in Hungary?",
+        "answer": "Civil Code and Commercial Code or separate company laws"
     },
     {
-        "question": "What is covered on February 17 and 24?",
-        "answer": "IP law"
+        "question": "What is a company?",
+        "answer": "A legal person established by monetary or in-kind contributions from members to pursue common business activities, with shared profits and losses."
     },
     {
-        "question": "When is the first test?",
-        "answer": "March 31"
+        "question": "What are the different forms a company can take?",
+        "answer": "General partnership, limited partnership, limited liability company, or company limited by shares (stock corporation)."
     },
     {
-        "question": "How many online Moodle tests are there, and what format do they take?",
-        "answer": "Two. They consist of 25 multiple-choice questions, with 25 minutes allotted for each test."
+        "question": "What should company assets consist of, and what are the requirements?",
+        "answer": "Monetary or in-kind contributions from all members, with no minimum requirement for partnerships. Minimum requirements for other forms range from 3 million to 20 million HUF."
     },
     {
-        "question": "Can you retake the tests?",
-        "answer": "Yes, you can retake (and correct) both tests, but the last result counts."
+        "question": "What is legal personality, and what are its key features?",
+        "answer": "Legal personality refers to a company's separate legal existence from its members. It includes limited liability, mandatory forms, joint profit and loss sharing, and rules for general partnerships and limited partnerships."
     },
     {
-        "question": "Is class participation and activity obligatory?",
-        "answer": "No, it is not obligatory, but you can gain additional scores (1 point for each attendance)."
+        "question": "What are the key components of a company name and contractual nature?",
+        "answer": "Company name, form, and activity. A short name can be used, but it should differ from other registered company names in Hungary. The general rule is to have at least two members, except for limited liability companies and companies limited by shares."
     },
     {
-        "question": "What are the two important sources of EU law mentioned?",
-        "answer": "Regulations and directives."
+        "question": "What are the requirements for a company's seat and activity?",
+        "answer": "A registered seat where company documents are kept and post is received. The company can engage in any activity not prohibited or restricted by law, but one main activity should be registered. An operating license may be needed for certain activities."
+    },
+    {
+        "question": "What is the purpose of a company registry?",
+        "answer": "To provide publicity and authenticity. The company register is maintained by county company courts, and anyone can access and verify company data."
+    },
+    {
+        "question": "What are the stages of forming a company?",
+        "answer": "Conclude the articles of association, have it signed by a lawyer or drafted into a notarial deed, and register the company with the company court, completing the registration procedure."
+    },
+    {
+        "question": "What are the organs of a company?",
+        "answer": "Highest organ (members' meeting), management, supervisory board, and auditor."
+    },
+    {
+        "question": "What is the role of the highest organ (members' meeting)?",
+        "answer": "It includes all members and makes strategic decisions such as electing management, approving long-term plans, and amending articles of association."
+    },
+    {
+        "question": "What rights do members have in the members' meeting?",
+        "answer": "The right to be present, address the meeting, and vote. In a single-member company, there is no meeting, and decisions are made in writing by the sole member."
+    },
+    {
+        "question": "How is the management of a company selected and what are their responsibilities?",
+        "answer": "The management is elected by the members' meeting for a fixed term of up to 5 years. They personally represent the company, except in partnerships where a legal person member may represent. They cannot be instructed by individual members and are expected to act in the company's best interests."
+    },
+    {
+        "question": "What is the role of a supervisory board?",
+        "answer": "It is a controlling body elected by the members' meeting, consisting of at least 3 people. Any company may have it, but it is mandatory for public companies limited by shares and some private companies. They report to the members."
+    },
+    {
+        "question": "What is the role of an auditor in a company?",
+        "answer": "The auditor is elected by the members' meeting and is responsible for auditing the balance sheet (annual financial report). It is mandatory for certain company types, such as public companies."
+    },
+    {
+        "question": "What are the specific forms a company can take, and what are their key features?",
+        "answer": "General partnership: Members have joint and several liability for partnership obligations. Limited partnership: Similar to general partnerships, but with at least one partner assuming joint and several liability. Limited liability company: Members' liability is limited to capital contributions. Company limited by shares: Shareholders' liability is limited to the provision of share capital."
+    },
+    {
+        "question": "How is a general partnership managed, and what are the rules regarding membership termination?",
+        "answer": "Management is appointed or elected from among the members. Each managing director can act independently, but their measures can be overruled by a members' meeting. Membership termination can occur through mutual agreement, unilateral termination, transfer of partnership share, death, or occurrence of exclusion or conflict of interests."
+    },
+    {
+        "question": "What is a limited partnership, and how does it differ from a general partnership?",
+        "answer": "In a limited partnership, at least one partner (general partner) assumes joint and several liability, while other partners (limited partners) are not liable unless otherwise specified by law. Rules for general partnerships apply to limited partnerships as well."
+    },
+    {
+        "question": "How is a limited liability company founded, and what are the rules regarding business shares?",
+        "answer": "It is founded through initial capital provision. Members' liability is limited to capital contributions. Business shares represent rights and obligations arising from capital contributions and can be jointly owned. They can be transferred to third parties but must first be offered to members, the company, or a designated person."
+    },
+    {
+        "question": "What is the role of the members' meeting in a limited liability company?",
+        "answer": "The members' meeting is the supreme body, responsible for appointing management and approving contracts between the company and its members or managing directors."
+    },
+    {
+        "question": "How is management structured in a limited liability company?",
+        "answer": "Provided by one or more managing directors. Any restriction on their power of representation is not effective against third parties."
+    },
+    {
+        "question": "What is a company limited by shares, and how does it differ from other forms?",
+        "answer": "Operations are based on share capital, and shareholders' liability is limited to the provision of share value or issue price. Shareholders are not liable for company obligations. There are two types: public and private, depending on whether shares are listed on a stock exchange."
+    },
+    {
+        "question": "What are the key features of a company limited by shares?",
+        "answer": "No public offer of shares or recruitment of shareholders during founding. In-kind contributions require an auditor's report. Stocks represent membership rights and are registered, with a nominal value and tradability. Dividends are distributed based on taxed profits and nominal share value."
+    },
+    {
+        "question": "What is the role of the general meeting and management in a company limited by shares?",
+        "answer": "The general meeting is the supreme body. Management is provided by boards of directors, consisting of three natural persons."
+    },
+    {
+        "question": "What are the requirements for a supervisory board and audit committee in a company limited by shares?",
+        "answer": "A supervisory board is mandatory for public companies and can be established for private companies upon shareholder request. Public companies must also set up audit committees to assist the supervisory board or management board in financial reporting and auditor cooperation."
     }
 ]

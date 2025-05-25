@@ -1,244 +1,723 @@
 <%- include('header.ejs') %>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
-<div class="container">
-    <h2 class="text-center my-4">Lecture Slides for <%= subject %></h2>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!-- Add this helper function at the top of your EJS file -->
+<% function truncateText(text, maxLength) {
+    if (text.length > maxLength) {
+        return text.substring(0, maxLength) + '...';
+    }
+    return text;
+} %>
 
-    <% if (slides.length === 0) { %>
-        <p class="text-center text-muted">No slides available for this course.</p>
-    <% } else { %>
-        <ul class="list-group">
-            <% slides.forEach((slide, index) => { %>
-                <li class="list-group-item d-flex justify-content-between align-items-center slide-item">
-                    Lecture <%= index + 1 %>: <%= slide.replace('.pdf', '') %>
-                    <div class="d-flex">
-                        <% if (subscription_type === 'Free' || subscription_type === 'Pro') { %>
-                            <!-- Show Upgrade Popup for Free Plan Users -->
-                            <a href="javascript:void(0);" class="btn btn-sm btn-primary" onclick="showUpgradePopup()">
-                                <i class="bi bi-lightning-charge" ></i>
-                            </a>
-                        <% } else { %>
-                            <!-- Button to generate flashcards for Enterprise plans -->
-                            <a href="/generateQuestions/<%= encodeURIComponent(slide) %>" class="btn btn-sm btn-primary">
-                                <i class="bi bi-lightning-charge" data-bs-toggle="tooltip" title="Generate Flashcards"></i>
-                            </a>
-                        <% } %>
-                        <!-- Download button available to all subscription plans -->
-                        <a href="/Course/<%= subject %>/slides/<%= encodeURIComponent(slide) %>" target="_blank" class="btn btn-sm btn-brown mr-2 download-btn">
-                            <i class="bi bi-download" data-bs-toggle="tooltip" title="Download Lecture"></i>
-                        </a>
-                        <!-- View in PDF Viewer button available to all subscription plans -->
-                        <a href="/pdfview/<%= encodeURIComponent(slide) %>" class="btn btn-sm btn-primary view-btn">
-                            <i class="bi bi-eye" data-bs-toggle="tooltip" title="View Lecture"></i>
-                        </a>
-                        <% if (subscription_type === 'Free'  || subscription_type === 'Pro') { %>
-                            <!-- Show Upgrade Popup for Free Plan Users -->
-                            <a href="javascript:void(0);" class="btn btn-sm btn-brown  summarize-btn" onclick="showUpgradePopup()">
-                                <i class="bi bi-file-text"></i>
-                            </a>
-                        <% } else { %>
-                            <!-- Summarize Notes button for Enterprise plans -->
-                            <a href="/summarize/<%= encodeURIComponent(slide) %>" class="btn btn-sm btn-brown summarize-btn">
-                                <i class="bi bi-file-text" data-bs-toggle="tooltip" title="Generate Summary"></i>
-                            </a>
-                        <% } %>
+<div class="lecture-dashboard">
+    <!-- Header Section -->
+    <div class="dashboard-header">
+        <h1><i class="fas fa-chalkboard-teacher"></i> <%= subject %> Learning Materials</h1>
+        <p class="subtitle">Access lecture slides, generate study aids, and manage your personal notes</p>
+    </div>
+
+    <!-- Main Content Tabs -->
+    <div class="dashboard-tabs">
+        <div class="tab-nav">
+            <button class="tab-btn active" onclick="openTab('official-slides')">Official Slides</button>
+            <button class="tab-btn" onclick="openTab('personal-notes')">Personal Notes</button>
+            <button class="tab-btn" onclick="openTab('upload-section')">Upload Notes</button>
+        </div>
+
+        <!-- Official Slides Tab -->
+        <div id="official-slides" class="tab-content active-tab">
+            <div class="section-header">
+                <h2><i class="fas fa-file-pdf"></i> Lecture Slides</h2>
+                <p>Course-provided presentation materials</p>
+            </div>
+
+            <% if (slides.length === 0) { %>
+                <div class="empty-state">
+                    <i class="fas fa-folder-open"></i>
+                    <p>No slides available for this course</p>
+                </div>
+            <% } else { %>
+                <div class="lecture-grid">
+                    <% slides.forEach((slide, index) => { %>
+                        <div class="lecture-card">
+                            <div class="lecture-info">
+                                <div class="lecture-number">Lecture <%= index + 1 %></div>
+                                <h3 title="<%= slide.replace('.pdf', '') %>">
+                                    <%= truncateText(slide.replace('.pdf', ''), 50) %>
+                                </h3>
+                            </div>
+                            <div class="lecture-actions">
+                                <a href="/Course/<%= subject %>/slides/<%= encodeURIComponent(slide) %>" target="_blank" class="action-btn download">
+                                    <i class="fas fa-download"></i> Download
+                                </a>
+                                <a href="/pdfview/<%= encodeURIComponent(slide) %>" class="action-btn view">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+                                <% if (subscription_type === 'Enterprise') { %>
+                                    <div class="premium-actions">
+                                        <a href="/generateQuestions/<%= encodeURIComponent(slide) %>" class="action-btn premium">
+                                            <i class="fas fa-bolt"></i> Flashcards
+                                        </a>
+                                        <a href="/summarize/<%= encodeURIComponent(slide) %>" class="action-btn premium">
+                                            <i class="fas fa-file-alt"></i> Summary
+                                        </a>
+                                    </div>
+                                <% } else { %>
+                                    <div class="premium-locked">
+                                        <button class="action-btn locked" onclick="showUpgradePopup()">
+                                            <i class="fas fa-crown"></i> Upgrade for More
+                                        </button>
+                                    </div>
+                                <% } %>
+                            </div>
+                        </div>
+                    <% }); %>
+                </div>
+            <% } %>
+        </div>
+
+        <!-- Personal Notes Tab -->
+        <div id="personal-notes" class="tab-content">
+            <div class="section-header">
+                <h2><i class="fas fa-user-edit"></i> Personal Notes</h2>
+                <p>Your uploaded study materials</p>
+            </div>
+
+            <% if (personalslides.length === 0) { %>
+                <div class="empty-state">
+                    <i class="fas fa-upload"></i>
+                    <p>You haven't uploaded any personal notes yet</p>
+                    <button class="primary-btn" onclick="openTab('upload-section')">
+                        <i class="fas fa-plus"></i> Upload Notes
+                    </button>
+                </div>
+            <% } else { %>
+                <div class="lecture-grid">
+                    <% personalslides.forEach((slide, index) => { %>
+                        <div class="lecture-card <%= slide.isApproved !== 'Approved' ? 'pending' : '' %>">
+                            <div class="lecture-info">
+                                <div class="lecture-number">Note <%= index + 1 %></div>
+                                <h3 title="<%= slide.file_path ? slide.file_path.replace('.pdf', '') : 'Untitled' %>">
+                                    <%= truncateText(slide.file_path ? slide.file_path.replace('.pdf', '') : 'Untitled', 50) %>
+                                </h3>
+                                <div class="status-badge <%= slide.isApproved.toLowerCase() %>">
+                                    <% if (slide.isApproved === 'Approved') { %>
+                                        <i class="fas fa-check-circle"></i> Approved
+                                    <% } else if (slide.isApproved === 'Declined') { %>
+                                        <i class="fas fa-times-circle"></i> Declined
+                                    <% } else { %>
+                                        <i class="fas fa-hourglass-half"></i> Pending
+                                    <% } %>
+                                </div>
+                            </div>
+
+                            <% if (slide.isApproved === 'Approved') { %>
+                                <div class="lecture-actions">
+                                    <a href="/Workstation/<%= userid %>/<%= subject %>/slides/<%= encodeURIComponent(slide.file_path) %>" target="_blank" class="action-btn download">
+                                        <i class="fas fa-download"></i> Download
+                                    </a>
+                                    <a href="/pdfview/<%= slide.file_path %>" class="action-btn view">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
+                                    <% if (subscription_type === 'Enterprise') { %>
+                                        <div class="premium-actions">
+                                            <a href="/generateQuestions/<%= slide.file_path %>" class="action-btn premium">
+                                                <i class="fas fa-bolt"></i> Flashcards
+                                            </a>
+                                            <a href="/summarize/<%= slide.file_path %>" class="action-btn premium">
+                                                <i class="fas fa-file-alt"></i> Summary
+                                            </a>
+                                        </div>
+                                    <% } else { %>
+                                        <div class="premium-locked">
+                                            <button class="action-btn locked" onclick="showUpgradePopup()">
+                                                <i class="fas fa-crown"></i> Upgrade for More
+                                            </button>
+                                        </div>
+                                    <% } %>
+                                </div>
+                            <% } %>
+                        </div>
+                    <% }); %>
+                </div>
+            <% } %>
+        </div>
+
+        <!-- Upload Section Tab -->
+        <div id="upload-section" class="tab-content">
+            <div class="upload-container">
+                <div class="upload-card">
+                    <div class="upload-header">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <h2>Upload Personal Notes</h2>
+                        <p>Share your study materials in PDF format</p>
                     </div>
-                </li>
-            <% }); %>
-        </ul>
-    <% } %>
-</div>
-
-<div class="container">
-    <h2 class="text-center my-4">My Personal Slide Notes for <%= subject %></h2>
-    <% if (personalslides.length === 0) { %>
-        <p class="text-center text-muted">No personal slides available for this course.</p>
-    <% } else { %>
-        <ul class="list-group">
-            <% personalslides.forEach((slide, index) => { %>
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                    Lecture <%= index + 1 %>: <%= slide.file_path ? slide.file_path.replace('.pdf', '') : 'Unknown' %>
-
-                    <% if (slide.isApproved === "Approved") { %>
-                    <div class="d-flex">
-                        <% if (subscription_type === 'Free' || subscription_type === 'Pro') { %>
-                            <!-- Show Upgrade Popup for Free Plan Users -->
-                            <a href="javascript:void(0);" class="btn btn-sm btn-primary" onclick="showUpgradePopup()">
-                                <i class="bi bi-lightning-charge"></i>
-                            </a>
-                        <% } else { %>
-                            <!-- Button to generate flashcards for Enterprise plans -->
-                            <a href="/generateQuestions/<%= slide.file_path %>" class="btn btn-sm btn-primary">
-                                <i class="bi bi-lightning-charge" title="Generate Flashcards" data-bs-toggle="tooltip"></i>
-                            </a>
-                        <% } %>
-                        <!-- Download button available to all subscription plans -->
-                        <a href="/Workstation/<%= userid %>/<%= subject %>/slides/<%= encodeURIComponent(slide.file_path) %>" target="_blank" class="btn btn-sm btn-brown mr-2 download-btn"
-                        >
-                            <i class="bi bi-download" data-bs-toggle="tooltip" title="Download Slides"></i>
-                        </a>
-                        <!-- View in PDF Viewer button available to all subscription plans -->
-                        <a href="/pdfview/<%= slide.file_path %>" class="btn btn-sm btn-primary view-btn" title="View Slide">
-                            <i class="bi bi-eye" data-bs-toggle="tooltip" title="View Lecture"></i>
-                        </a>
-                        <% if (subscription_type === 'Free' || subscription_type === 'Pro') { %>
-                            <!-- Show Upgrade Popup for Free Plan Users -->
-                            <a href="javascript:void(0);" class="btn btn-sm btn-brown summarize-btn" onclick="showUpgradePopup()">
-                                <i class="bi bi-file-text"></i>
-                            </a>
-                        <% } else { %>
-                            <!-- Summarize Notes button for Enterprise plans -->
-                            <a href="/summarize/<%= slide.file_path %>" class="btn btn-sm btn-brown summarize-btn" title="Summarize Slide">
-                                <i class="bi bi-file-text" data-bs-toggle="tooltip" title="Generate Summary"></i>
-                            </a>
-                        <% } %>
-                    </div>
-                    <% } else { %>
-                        <% if (slide.isApproved === 'Approved') { %>
-                            <span class="badge bg-success text-white"><i class="bi bi-check-circle"></i> Approved</span>
-                        <% } else if (slide.isApproved === 'Declined') { %>
-                            <span class="badge bg-danger text-white"><i class="bi bi-x-circle"></i> Declined</span>
-                        <% } else { %>
-                            <span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split"></i> Pending</span>
-                        <% } %>
-
-                    <% } %>
-                </li>
-            <% }); %>
-        </ul>
-    <% } %>
-</div>
-
-<div class="container my-5">
-    <h3 class="text-center">Upload Personal Notes</h3>
-    <form action="/uploadPdf" method="POST" enctype="multipart/form-data" class="text-center">
-        <input type="file" name="pdfFile" accept="application/pdf" class="form-control my-2" required>
-        <button type="submit" class="btn btn-brown upload-btn">
-            <i class="bi bi-upload"></i> Upload
-        </button>
-    </form>
-</div>
-
-<!-- Hidden popup for upgrade message -->
-<div id="upgradePopup" class="popup">
-    <div class="popup-content">
-        <span class="popup-close" onclick="closePopup()">&times;</span>
-        <h4>Upgrade for More Features</h4>
-        <p>This feature is only available in higher subscription plans.</p>
+                    <form action="/uploadPdf" method="POST" enctype="multipart/form-data" class="upload-form">
+                        <div class="file-upload">
+                            <input type="file" id="pdfFile" name="pdfFile" accept="application/pdf" required>
+                            <label for="pdfFile">
+                                <i class="fas fa-file-pdf"></i>
+                                <span>Choose PDF File</span>
+                            </label>
+                        </div>
+                        <button type="submit" class="primary-btn upload-btn">
+                            <i class="fas fa-upload"></i> Upload Notes
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
-<!-- Script for handling the popup display -->
+<!-- Upgrade Modal -->
+<div id="upgradeModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <i class="fas fa-crown"></i>
+            <h3>Upgrade Required</h3>
+            <span class="close" onclick="closeModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <p>This feature is only available with an Enterprise subscription.</p>
+            <p>Upgrade now to unlock powerful study tools including flashcard generation and AI-powered summaries.</p>
+        </div>
+        <div class="modal-footer">
+            <button class="secondary-btn" onclick="closeModal()">Maybe Later</button>
+            <button class="primary-btn" onclick="window.location.href='/upgrade'">View Plans</button>
+        </div>
+    </div>
+</div>
+
 <script>
+    // Tab functionality
+    function openTab(tabId) {
+        // Hide all tab contents
+        document.querySelectorAll('.tab-content').forEach(tab => {
+            tab.classList.remove('active-tab');
+        });
+
+        // Remove active class from all tab buttons
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+
+        // Show selected tab content
+        document.getElementById(tabId).classList.add('active-tab');
+
+        // Add active class to clicked button
+        event.currentTarget.classList.add('active');
+    }
+
+    // Truncate long text with ellipsis
+    function truncateText(text, maxLength) {
+        if (text.length > maxLength) {
+            return text.substring(0, maxLength) + '...';
+        }
+        return text;
+    }
+
+    // Modal functionality
     function showUpgradePopup() {
-        document.getElementById("upgradePopup").style.display = "block";
+        document.getElementById('upgradeModal').style.display = 'flex';
     }
 
-    function closePopup() {
-        document.getElementById("upgradePopup").style.display = "none";
+    function closeModal() {
+        document.getElementById('upgradeModal').style.display = 'none';
     }
 
-    document.addEventListener('DOMContentLoaded', function () {
-        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-        tooltipTriggerList.forEach(function (tooltipTriggerEl) {
-            new bootstrap.Tooltip(tooltipTriggerEl)
-        })
-    });
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+        if (event.target == document.getElementById('upgradeModal')) {
+            closeModal();
+        }
+    }
 </script>
 
 <style>
-    /* Smooth transition for buttons */
-    .generate-btn, .download-btn, .view-btn, .summarize-btn {
-        transition: all 0.3s ease;
-        border-radius: 5px;
-    }
-    /* Hover effects for buttons */
-    .generate-btn:hover {
-        background-color: #007bff;
-        transform: scale(1.05);
-    }
-    .download-btn:hover {
-        background-color: #8B4513;
-        transform: scale(1.05);
-    }
-    .view-btn:hover {
-        background-color: #007bff;
-        transform: scale(1.05);
-    }
-    .summarize-btn:hover{
-        background-color: #8B4513;
-        transform: scale(1.05);
-    }
-    /* Adding animation for the "Generate Flashcards" button */
-    .generate-btn {
-        position: relative;
-        display: inline-block;
-        cursor: pointer;
-    }
-    .generate-btn:active {
-        animation: flashcardsClick 0.5s ease-in-out forwards;
-    }
-    /* Animation when user clicks the "Generate Flashcards" button */
-    @keyframes flashcardsClick {
-        0% {
-            transform: scale(1);
-            opacity: 1;
-        }
-        50% {
-            transform: scale(1.2);
-            opacity: 0.8;
-        }
-        100% {
-            transform: scale(1);
-            opacity: 1;
-        }
+    /* Modern Dashboard Styles */
+    :root {
+        --primary-brown: #8B4513;
+        --dark-brown: #5D4037;
+        --light-brown: #D2B48C;
+        --pale-beige: #F5F5DC;
+        --off-white: #FFFDFA;
+        --gold: #FFD700;
+        --silver: #C0C0C0;
+        --bronze: #CD7F32;
+        --shadow-sm: 0 1px 3px rgba(0,0,0,0.12);
+        --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+        --shadow-lg: 0 10px 25px rgba(139, 69, 19, 0.1);
+        --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     }
 
-    /* Popup styling */
-    .popup {
+    * {
+        box-sizing: border-box;
+        font-family: 'Inter', sans-serif;
+    }
+
+    body {
+        margin: 0;
+        padding: 0;
+    }
+
+    .lecture-dashboard {
+        width: 100%;
+        margin: 0 auto;
+        padding: 2rem;
+        background-color: #f9f9f9;
+        min-height: 100vh;
+    }
+
+    .dashboard-header {
+        text-align: center;
+        margin-bottom: 2rem;
+        max-width: 1200px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .dashboard-header h1 {
+        color: var(--dark-brown);
+        font-size: 2.2rem;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+    }
+
+    .dashboard-header .subtitle {
+        color: var(--primary-brown);
+        font-size: 1.1rem;
+        opacity: 0.8;
+    }
+
+    /* Tab Navigation */
+    .tab-nav {
+        display: flex;
+        border-bottom: 1px solid var(--light-brown);
+        margin-bottom: 2rem;
+        max-width: 1200px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .tab-btn {
+        padding: 0.75rem 1.5rem;
+        background: transparent;
+        border: none;
+        border-bottom: 3px solid transparent;
+        font-weight: 600;
+        color: var(--dark-brown);
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+    .tab-btn.active {
+        border-bottom-color: var(--primary-brown);
+        color: var(--primary-brown);
+    }
+
+    .tab-btn:hover:not(.active) {
+        color: var(--primary-brown);
+    }
+
+    .tab-content {
+        display: none;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .tab-content.active-tab {
+        display: block;
+        animation: fadeIn 0.5s ease;
+    }
+
+    /* Section Headers */
+    .section-header {
+        margin-bottom: 1.5rem;
+    }
+
+    .section-header h2 {
+        color: var(--dark-brown);
+        font-size: 1.5rem;
+        margin-bottom: 0.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .section-header p {
+        color: var(--primary-brown);
+        margin: 0;
+    }
+
+    /* Lecture Grid */
+    .lecture-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 1.5rem;
+        width: 100%;
+    }
+
+    /* Lecture Card */
+    .lecture-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: var(--shadow-md);
+        transition: var(--transition);
+        border: 1px solid rgba(139, 69, 19, 0.1);
+    }
+
+    .lecture-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .lecture-card.pending {
+        opacity: 0.7;
+        background: rgba(255, 255, 255, 0.7);
+    }
+
+    .lecture-info {
+        margin-bottom: 1rem;
+    }
+
+    .lecture-number {
+        font-size: 0.9rem;
+        color: var(--primary-brown);
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+    }
+
+    .lecture-card h3 {
+        color: var(--dark-brown);
+        margin: 0 0 0.5rem;
+        font-size: 1.2rem;
+        word-break: break-word;
+        white-space: normal;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+
+    /* Status Badges */
+    .status-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        margin-top: 0.5rem;
+    }
+
+    .status-badge.approved {
+        background: rgba(40, 167, 69, 0.1);
+        color: #28a745;
+    }
+
+    .status-badge.declined {
+        background: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
+    }
+
+    .status-badge.pending {
+        background: rgba(255, 193, 7, 0.1);
+        color: #ffc107;
+    }
+
+    /* Lecture Actions */
+    .lecture-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+
+    .action-btn {
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+        transition: var(--transition);
+    }
+
+    .action-btn.download {
+        background: var(--primary-brown);
+        color: white;
+    }
+
+    .action-btn.view {
+        background: #007bff;
+        color: white;
+    }
+
+    .action-btn.premium {
+        background: var(--gold);
+        color: var(--dark-brown);
+    }
+
+    .action-btn.locked {
+        background: rgba(139, 69, 19, 0.1);
+        color: var(--primary-brown);
+    }
+
+    .action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .premium-actions {
+        display: flex;
+        gap: 0.75rem;
+        width: 100%;
+        margin-top: 0.5rem;
+    }
+
+    .premium-locked {
+        width: 100%;
+        margin-top: 0.5rem;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        background: rgba(139, 69, 19, 0.05);
+        border-radius: 12px;
+        border: 1px dashed var(--light-brown);
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        color: var(--light-brown);
+        margin-bottom: 1rem;
+    }
+
+    .empty-state p {
+        color: var(--dark-brown);
+        margin-bottom: 1.5rem;
+    }
+
+    /* Upload Section */
+    .upload-container {
+        display: flex;
+        justify-content: center;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .upload-card {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: var(--shadow-md);
+        width: 100%;
+        max-width: 500px;
+        text-align: center;
+        border: 1px solid rgba(139, 69, 19, 0.1);
+    }
+
+    .upload-header i {
+        font-size: 3rem;
+        color: var(--primary-brown);
+        margin-bottom: 1rem;
+    }
+
+    .upload-header h2 {
+        color: var(--dark-brown);
+        margin: 0 0 0.5rem;
+    }
+
+    .upload-header p {
+        color: var(--primary-brown);
+        margin: 0 0 1.5rem;
+    }
+
+    .file-upload {
+        margin-bottom: 1.5rem;
+    }
+
+    .file-upload input[type="file"] {
+        display: none;
+    }
+
+    .file-upload label {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        border: 2px dashed var(--light-brown);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+    .file-upload label:hover {
+        border-color: var(--primary-brown);
+    }
+
+    .file-upload label i {
+        font-size: 2rem;
+        color: var(--primary-brown);
+        margin-bottom: 0.5rem;
+    }
+
+    .file-upload label span {
+        color: var(--dark-brown);
+        font-weight: 500;
+    }
+
+    /* Buttons */
+    .primary-btn {
+        padding: 0.75rem 1.5rem;
+        background: var(--primary-brown);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .primary-btn:hover {
+        background: var(--dark-brown);
+        transform: translateY(-2px);
+    }
+
+    .secondary-btn {
+        padding: 0.75rem 1.5rem;
+        background: white;
+        color: var(--dark-brown);
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+    .secondary-btn:hover {
+        background: #f8f9fa;
+    }
+
+    /* Modal Styles */
+    .modal {
         display: none;
         position: fixed;
-        z-index: 1;
-        left: 0;
         top: 0;
+        left: 0;
         width: 100%;
         height: 100%;
-        overflow: auto;
-        background-color: rgba(0, 0, 0, 0.4);
+        background: rgba(0,0,0,0.5);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
     }
 
-    .popup-content {
-        background-color: #fefefe;
-        margin: 15% auto;
-        padding: 20px;
-        border: 1px solid #888;
-        width: 80%;
-        max-width: 400px;
+    .modal-content {
+        background: white;
+        border-radius: 12px;
+        width: 100%;
+        max-width: 450px;
+        overflow: hidden;
+        box-shadow: var(--shadow-lg);
+    }
+
+    .modal-header {
+        padding: 1.5rem;
+        background: var(--pale-beige);
         text-align: center;
+        position: relative;
     }
 
-    .popup-close {
-        color: #aaa;
-        float: right;
-        font-size: 28px;
-        font-weight: bold;
+    .modal-header i {
+        font-size: 2rem;
+        color: var(--gold);
+        margin-bottom: 1rem;
     }
 
-    .popup-close:hover,
-    .popup-close:focus {
-        color: black;
-        text-decoration: none;
+    .modal-header h3 {
+        margin: 0;
+        color: var(--dark-brown);
+    }
+
+    .close {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        font-size: 1.5rem;
+        color: #999;
         cursor: pointer;
     }
 
-    .badge {
-        width: 120px; /* Set a fixed width for consistency */
+    .modal-body {
+        padding: 1.5rem;
         text-align: center;
-        display: inline-block; /* Keeps it inline with other elements */
-        padding: 5px 10px;
-        font-size: 0.9rem;
-        border-radius: 12px;}
+    }
 
+    .modal-body p {
+        margin: 0 0 1rem;
+        color: #666;
+    }
+
+    .modal-footer {
+        display: flex;
+        padding: 1rem 1.5rem;
+        gap: 0.75rem;
+        justify-content: center;
+        background: #f9f9f9;
+        border-top: 1px solid #eee;
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .lecture-dashboard {
+            padding: 1rem;
+        }
+
+        .lecture-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .tab-nav {
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .dashboard-header h1 {
+            font-size: 1.8rem;
+        }
+
+        .lecture-actions {
+            flex-direction: column;
+        }
+
+        .action-btn, .premium-actions {
+            width: 100%;
+            justify-content: center;
+        }
+    }
 </style>
 
 <%- include('footer.ejs') %>

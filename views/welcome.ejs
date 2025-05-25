@@ -1,67 +1,75 @@
 <%- include('header.ejs') %>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-<!-- This is the first line buttons -->
-<section class="row-buttons">
-    <div class="button-container">
-        <% if (subscription_type === 'Pro' || subscription_type === 'Enterprise') { %>
-            <button class="dashboard-button" onclick="window.location.href='/todo-list'">
-                <i class="bi bi-list-check"></i> To-Do List
-            </button>
-        <% } else { %>
-            <button class="dashboard-button" onclick="showUpgradePopup()">
-                <i class="bi bi-list-check"  ></i> To-Do List
-            </button>
-        <% } %>
+<div class="course-dashboard">
+    <!-- Feature Cards Section -->
+    <section class="feature-cards">
+        <div class="feature-grid">
+            <!-- To-Do List Card -->
+            <div class="feature-card <%= subscription_type === 'Pro' || subscription_type === 'Enterprise' ? '' : 'locked' %>"
+                 onclick="<%= subscription_type === 'Pro' || subscription_type === 'Enterprise' ? 'window.location.href=\'/todo-list\'' : 'showUpgradePopup()' %>">
+                <div class="feature-icon">
+                    <i class="fas fa-tasks"></i>
+                    <%= subscription_type === 'Pro' || subscription_type === 'Enterprise' ? '' : '' %>
+                </div>
+                <h3>To-Do List</h3>
+                <p>Organize your tasks and stay on top of your coursework</p>
+                <div class="feature-badge <%= subscription_type === 'Pro' || subscription_type === 'Enterprise' ? 'pro' : 'free' %>">
+                    <%= subscription_type === 'Pro' || subscription_type === 'Enterprise' ? 'Available' : 'Pro+' %>
+                </div>
+            </div>
 
-        <% if ( subscription_type === 'Enterprise') { %>
-            <button class="dashboard-button" onclick="window.location.href='/books'">
-                <i class="bi bi-journal-bookmark"></i> Books I've Read
-            </button>
-        <% } else { %>
-            <button class="dashboard-button" onclick="showUpgradePopup()" >
-                <i class="bi bi-journal-bookmark"></i> Books I've Read
-            </button>
-        <% } %>
+            <!-- Book Notes Card -->
+            <div class="feature-card <%= subscription_type === 'Enterprise' ? '' : 'locked' %>"
+                 onclick="<%= subscription_type === 'Enterprise' ? 'window.location.href=\'/books\'' : 'showUpgradePopup()' %>">
+                <div class="feature-icon">
+                    <i class="fas fa-book-open"></i>
+                    <%= subscription_type === 'Enterprise' ? '' : '' %>
+                </div>
+                <h3>Book Notes</h3>
+                <p>Annotate and organize your study materials</p>
+                <div class="feature-badge <%= subscription_type === 'Enterprise' ? 'enterprise' : 'pro' %>">
+                    <%= subscription_type === 'Enterprise' ? 'Available' : 'Enterprise' %>
+                </div>
+            </div>
 
-        <% if (subscription_type === 'Free' || subscription_type === 'Pro' || subscription_type === 'Enterprise') { %>
-            <button class="dashboard-button" onclick="window.location.href='/dictionary'">
-                <i class="bi bi-file-earmark-text"></i> Dictionary
-            </button>
-        <% } else { %>
-            <button class="dashboard-button" disabled>
-                <i class="bi bi-file-earmark-text"></i> Dictionary
-            </button>
-        <% } %>
+            <!-- Forums Card -->
 
-        <% if (subscription_type === 'Free' || subscription_type === 'Pro' || subscription_type === 'Enterprise') { %>
-            <button class="dashboard-button" onclick="window.location.href='/forums'">
-                <i class="bi bi-chat-dots"></i> Forums
-            </button>
-        <% } else { %>
-            <button class="dashboard-button" disabled>
-                <i class="bi bi-chat-dots"></i> Forums
-            </button>
-        <% } %>
+            <div class="feature-card" onclick="window.location.href='/forums'">
+                <div class="feature-icon">
+                    <i class="fas fa-comments"></i>
+                </div>
+                <h3>Forums</h3>
+                <p>Discuss topics with peers and instructors</p>
+                <div class="feature-badge free">Available</div>
+            </div>
 
-        <% if (subscription_type === 'Pro' || subscription_type === 'Enterprise') { %>
-            <button class="dashboard-button" onclick="window.location.href='/timetable'">
-                <i class="bi bi-chat-dots"></i> Timetable
-            </button>
-        <% } else { %>
-            <button class="dashboard-button" onclick="showUpgradePopup()">
-                <i class="bi bi-chat-dots"></i> Timetable
-            </button>
-        <% } %>
-    </div>
-</section>
+            <!-- Timetable Card -->
+            <div class="feature-card <%= subscription_type === 'Pro' || subscription_type === 'Enterprise' ? '' : 'locked' %>"
+                 onclick="<%= subscription_type === 'Pro' || subscription_type === 'Enterprise' ? 'window.location.href=\'/timetable\'' : 'showUpgradePopup()' %>">
+                <div class="feature-icon">
+                    <i class="fas fa-calendar-alt"></i>
+                    <%= subscription_type === 'Pro' || subscription_type === 'Enterprise' ? '' : '' %>
+                </div>
+                <h3>Timetable</h3>
+                <p>Schedule and manage your study sessions</p>
+                <div class="feature-badge <%= subscription_type === 'Pro' || subscription_type === 'Enterprise' ? 'pro' : 'free' %>">
+                    <%= subscription_type === 'Pro' || subscription_type === 'Enterprise' ? 'Available' : 'Pro+' %>
+                </div>
+            </div>
+        </div>
+    </section>
 
-<!-- Course Recommendations Start -->
-<div class="container-xxl py-5">
-    <div class="container">
-        <h2 class="text-center mb-4">Available Courses</h2>
-        <div class="row g-4">
+    <!-- Course Recommendations Section -->
+    <section class="course-recommendations">
+        <div class="section-header">
+            <h2>Available Courses</h2>
+            <p>Expand your knowledge with our curated selection</p>
+        </div>
+
+        <div class="course-grid">
             <%
-            // Define all available courses
             const courses = [
                 { name: "Automated Software Engineering", img: "automated.jpg", desc: "Learn how to design and automate software development processes efficiently." },
                 { name: "Business Law", img: "business.jpg", desc: "Understand the legal principles that govern businesses and commercial transactions." },
@@ -77,105 +85,503 @@
                 { name: "Web Development 101", img: "web.jpg", desc: "Learn to build responsive websites from scratch using HTML, CSS, and JavaScript." }
             ];
 
-            // Define course access based on subscription type
             let maxCourses;
-            if (subscription_type === 'Free') {
-                maxCourses = 3;  // Free users can access only 2 courses
-            } else if (subscription_type === 'Pro') {
-                maxCourses = 6;  // Pro users can access up to 5 courses
-            } else if (subscription_type === 'Enterprise') {
-                maxCourses = courses.length;  // Enterprise users can access all courses
-            }
+            if (subscription_type === 'Free') maxCourses = 3;
+            else if (subscription_type === 'Pro') maxCourses = 6;
+            else maxCourses = courses.length;
 
-            // Slice the courses array based on the subscription type
             const accessibleCourses = courses.slice(0, maxCourses);
             %>
 
-            <!-- Render available courses based on subscription -->
             <% accessibleCourses.forEach(course => { %>
-                <div class="col-lg-4 col-sm-6">
-                    <div class="card">
-                        <img src="../images/course/<%= course.img %>" class="card-img-top" alt="<%= course.name %>" style="height: 200px; object-fit: cover;">
-                        <div class="card-body text-center">
-                            <h5 class="card-title"><%= course.name %></h5>
-                            <p class="card-text"><%= course.desc %></p>
-                            <a href="/course/<%= course.name %>" class="btn btn-brown">Start Learning</a>
-                        </div>
+                <div class="course-card">
+                    <div class="course-image">
+                        <img src="../images/course/<%= course.img %>" alt="<%= course.name %>">
+                        <div class="course-overlay"></div>
+                    </div>
+                    <div class="course-content">
+                        <h3><%= course.name %></h3>
+                        <p><%= course.desc %></p>
+                        <a href="/course/<%= course.name %>" class="course-button">
+                            Start Learning <i class="fas fa-arrow-right"></i>
+                        </a>
                     </div>
                 </div>
             <% }) %>
 
+            <% if (subscription_type !== 'Enterprise') { %>
+                <div class="upgrade-card">
+                    <div class="upgrade-content">
+                        <i class="fas fa-gem"></i>
+                        <h3>Unlock More Courses</h3>
+                        <p>Upgrade to <%= subscription_type === 'Free' ? 'Pro or Enterprise' : 'Enterprise' %> to access all <%= courses.length %> courses</p>
+                        <button class="upgrade-button" onclick="showUpgradePopup()">
+                            Upgrade Now <i class="fas fa-arrow-up"></i>
+                        </button>
+                    </div>
+                </div>
+            <% } %>
+        </div>
+    </section>
+</div>
 
+<!-- Upgrade Popup Modal -->
+<div id="upgradePopup" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closePopup()">&times;</span>
+        <div class="modal-header">
+            <i class="fas fa-crown"></i>
+            <h3>Upgrade Your Plan</h3>
+        </div>
+        <div class="modal-body">
+            <p>This feature is only available in higher subscription plans.</p>
+            <p>Upgrade now to unlock premium features and enhance your learning experience.</p>
+        </div>
+        <div class="modal-footer">
+            <button class="modal-button secondary" onclick="closePopup()">Maybe Later</button>
+            <button class="modal-button primary" onclick="window.location.href='/upgrade'">View Plans</button>
         </div>
     </div>
 </div>
-<!-- Course Recommendations End -->
 
-<!-- Hidden popup for upgrade message -->
-<div id="upgradePopup" class="popup">
-    <div class="popup-content">
-        <span class="popup-close" onclick="closePopup()">&times;</span>
-        <h4>Upgrade for More Features</h4>
-        <p>This feature is only available in higher subscription plans.</p>
-    </div>
-</div>
-
-<%- include('footer.ejs') %>
-
-<!-- JavaScript for Popup -->
 <script>
-    // Function to show the popup
     function showUpgradePopup() {
-        document.getElementById("upgradePopup").style.display = "block";
+        document.getElementById("upgradePopup").style.display = "flex";
     }
 
-    // Function to close the popup
     function closePopup() {
         document.getElementById("upgradePopup").style.display = "none";
     }
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+        const modal = document.getElementById("upgradePopup");
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
 </script>
 
-<!-- CSS for Popup -->
 <style>
-    /* Popup styles */
-    .popup {
-        display: none; /* Hidden by default */
-        position: fixed;
-        left: 0;
-        top: 0;
+    /* Modern Dashboard Styles */
+    :root {
+        --primary-brown: #8B4513;
+        --dark-brown: #5D4037;
+        --light-brown: #D2B48C;
+        --pale-beige: #F5F5DC;
+        --off-white: #FFFDFA;
+        --gold: #FFD700;
+        --silver: #C0C0C0;
+        --bronze: #CD7F32;
+        --shadow-sm: 0 1px 3px rgba(0,0,0,0.12);
+        --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+        --shadow-lg: 0 10px 25px rgba(139, 69, 19, 0.1);
+        --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    * {
+        box-sizing: border-box;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .course-dashboard {
+        max-width: 1400px;
+        margin: 2rem auto;
+        padding: 0 1.5rem;
+    }
+
+    /* Feature Cards Section */
+    .feature-cards {
+        margin-bottom: 3rem;
+    }
+
+    .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .feature-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: var(--shadow-md);
+        transition: var(--transition);
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(139, 69, 19, 0.1);
+    }
+
+    .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .feature-card.locked {
+        opacity: 0.7;
+    }
+
+    .feature-card.locked:hover {
+        transform: none;
+        box-shadow: var(--shadow-md);
+    }
+
+    .feature-icon {
+        width: 60px;
+        height: 60px;
+        background: var(--pale-beige);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+        color: var(--primary-brown);
+        font-size: 1.5rem;
+        position: relative;
+    }
+
+    .lock-icon {
+        position: absolute;
+        bottom: -5px;
+        right: -5px;
+        background: white;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+        color: var(--dark-brown);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .feature-card h3 {
+        color: var(--dark-brown);
+        margin: 0 0 0.5rem;
+        font-size: 1.25rem;
+    }
+
+    .feature-card p {
+        color: #666;
+        margin: 0 0 1.5rem;
+        font-size: 0.9rem;
+        line-height: 1.5;
+    }
+
+    .feature-badge {
+        position: absolute;
+        bottom: 1.5rem;
+        right: 1.5rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .feature-badge.free {
+        background: var(--light-brown);
+        color: var(--dark-brown);
+    }
+
+    .feature-badge.pro {
+        background: var(--silver);
+        color: var(--dark-brown);
+    }
+
+    .feature-badge.enterprise {
+        background: var(--gold);
+        color: var(--dark-brown);
+    }
+
+    /* Course Recommendations Section */
+    .section-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .section-header h2 {
+        color: var(--dark-brown);
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .section-header p {
+        color: var(--primary-brown);
+        margin: 0;
+    }
+
+    .course-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 2rem;
+    }
+
+    .course-card {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: var(--shadow-md);
+        transition: var(--transition);
+        border: 1px solid rgba(139, 69, 19, 0.1);
+    }
+
+    .course-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .course-image {
+        height: 180px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .course-image img {
         width: 100%;
         height: 100%;
-        background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
-        z-index: 1000;
-        animation: fadeIn 0.5s ease-in-out;
+        object-fit: cover;
+        transition: var(--transition);
     }
 
-    /* Popup content box */
-    .popup-content {
+    .course-card:hover .course-image img {
+        transform: scale(1.05);
+    }
+
+    .course-overlay {
         position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background-color: white;
-        padding: 20px;
-        border-radius: 10px;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.3));
+    }
+
+    .course-content {
+        padding: 1.5rem;
+    }
+
+    .course-content h3 {
+        color: var(--dark-brown);
+        margin: 0 0 0.5rem;
+        font-size: 1.25rem;
+    }
+
+    .course-content p {
+        color: #666;
+        margin: 0 0 1.5rem;
+        font-size: 0.9rem;
+        line-height: 1.5;
+    }
+
+    .course-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        background: var(--primary-brown);
+        color: white;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.9rem;
+        transition: var(--transition);
+    }
+
+    .course-button:hover {
+        background: var(--dark-brown);
+        transform: translateY(-2px);
+    }
+
+    .course-button i {
+        font-size: 0.8rem;
+    }
+
+    /* Upgrade Card */
+    .upgrade-card {
+        background: linear-gradient(135deg, var(--primary-brown) 0%, var(--dark-brown) 100%);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        color: white;
         text-align: center;
-        width: 300px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     }
 
-    /* Close button */
-    .popup-close {
+    .upgrade-content i {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        color: var(--gold);
+    }
+
+    .upgrade-content h3 {
+        margin: 0 0 0.5rem;
+        font-size: 1.5rem;
+    }
+
+    .upgrade-content p {
+        margin: 0 0 1.5rem;
+        opacity: 0.9;
+    }
+
+    .upgrade-button {
+        background: white;
+        color: var(--dark-brown);
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .upgrade-button:hover {
+        background: var(--pale-beige);
+        transform: translateY(-2px);
+    }
+
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .modal-content {
+        background: white;
+        border-radius: 12px;
+        width: 100%;
+        max-width: 400px;
+        overflow: hidden;
+        box-shadow: var(--shadow-lg);
+    }
+
+    .modal-header {
+        background: var(--pale-beige);
+        padding: 1.5rem;
+        text-align: center;
+        border-bottom: 1px solid var(--light-brown);
+    }
+
+    .modal-header i {
+        font-size: 2rem;
+        color: var(--gold);
+        margin-bottom: 1rem;
+    }
+
+    .modal-header h3 {
+        margin: 0;
+        color: var(--dark-brown);
+    }
+
+    .modal-body {
+        padding: 1.5rem;
+        text-align: center;
+    }
+
+    .modal-body p {
+        margin: 0 0 1rem;
+        color: #666;
+    }
+
+    .modal-footer {
+        display: flex;
+        padding: 1rem 1.5rem;
+        background: #f9f9f9;
+        border-top: 1px solid #eee;
+    }
+
+    .modal-button {
+        flex: 1;
+        padding: 0.75rem;
+        border-radius: 6px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: var(--transition);
+        border: none;
+    }
+
+    .modal-button.primary {
+        background: var(--primary-brown);
+        color: white;
+        margin-left: 0.5rem;
+    }
+
+    .modal-button.primary:hover {
+        background: var(--dark-brown);
+    }
+
+    .modal-button.secondary {
+        background: white;
+        color: #666;
+        border: 1px solid #ddd;
+    }
+
+    .modal-button.secondary:hover {
+        background: #f5f5f5;
+    }
+
+    .close {
         position: absolute;
-        top: 10px;
-        right: 10px;
-        font-size: 24px;
+        top: 1rem;
+        right: 1rem;
+        font-size: 1.5rem;
+        color: #999;
         cursor: pointer;
     }
 
-    /* Fade-in animation */
     @keyframes fadeIn {
         from { opacity: 0; }
         to { opacity: 1; }
     }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .course-dashboard {
+            padding: 0 1rem;
+        }
+
+        .feature-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .course-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .feature-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .modal-footer {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .modal-button {
+            width: 100%;
+        }
+
+        .modal-button.primary {
+            margin-left: 0;
+            margin-top: 0.5rem;
+        }
+    }
 </style>
+
+<%- include('footer.ejs') %>
