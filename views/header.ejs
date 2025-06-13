@@ -120,8 +120,13 @@
                 <a href="/login" class="btn btn-outline-brown py-2 px-4 mx-2 d-none d-lg-block">Login</a>
                 <a href="/register" class="btn btn-brown py-2 px-4 mx-2 d-none d-lg-block">Join Now <i class="fa fa-arrow-right ms-3"></i></a>
             <% } else { %>
-                <!-- User Logged In: Show Profile & Logout -->
-                <a href="/profile" class="btn btn-outline-brown py-2 px-4 mx-2 d-none d-lg-block">My Profile</a>
+                <!-- User Logged In: Show Profile/Dashboard & Logout -->
+                <% if (locals.isAdmin) { %>
+                    <a href="/dashboard" class="btn btn-outline-brown py-2 px-4 mx-2 d-none d-lg-block">Dashboard</a>
+                <% } else { %>
+                    <a href="/profile" class="btn btn-outline-brown py-2 px-4 mx-2 d-none d-lg-block">My Profile</a>
+                <% } %>
+
                 <a href="/logout" class="btn btn-brown py-2 px-4 mx-2 d-none d-lg-block">Logout</a>
 
                 <!-- Show Upgrade Button for Free or Pro Subscription -->

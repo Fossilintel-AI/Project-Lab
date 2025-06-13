@@ -22,6 +22,7 @@
             <button class="tab-btn active" onclick="openTab('official-slides')">Official Slides</button>
             <button class="tab-btn" onclick="openTab('personal-notes')">Personal Notes</button>
             <button class="tab-btn" onclick="openTab('upload-section')">Upload Notes</button>
+            <button class="tab-btn" onclick="openTab('assignment-section')">Assignments</button>
         </div>
 
         <!-- Official Slides Tab -->
@@ -167,8 +168,540 @@
                 </div>
             </div>
         </div>
+
+        <!-- Assignment Section Tab -->
+        <div id="assignment-section" class="tab-content">
+            <div class="section-header">
+                <h2><i class="fas fa-tasks"></i> Assignments</h2>
+                <p>View and submit your course assignments</p>
+            </div>
+
+            <% if (locals.isAdmin) { %>
+                <!-- Admin View -->
+                <div class="admin-assignment-controls">
+                    <button class="primary-btn" onclick="showCreateAssignmentModal()">
+                        <i class="fas fa-plus"></i> Create New Assignment
+                    </button>
+
+                    <% if (assignments.length > 0) { %>
+                        <div class="assignment-list mt-4">
+                            <h3>Existing Assignments</h3>
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                    <tr>
+                                        <th>Title</th>
+                                        <th>Questions</th>
+                                        <th>Total Marks</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <% assignments.forEach(assignment => { %>
+                                        <tr>
+                                            <td><%= assignment.title %></td>
+                                            <td><%= assignment.questionCount %></td>
+                                            <td><%= assignment.totalMarks %></td>
+                                            <td>
+                                                <button class="btn btn-sm btn-primary"
+                                                        onclick="viewAssignment('<%= assignment.filename %>')">
+                                                    <i class="fas fa-eye"></i> View
+                                                </button>
+                                                <button class="btn btn-sm btn-danger"
+                                                        onclick="deleteAssignment('<%= assignment.filename %>')">
+                                                    <i class="fas fa-trash"></i> Delete
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    <% }) %>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    <% } else { %>
+                        <div class="empty-state mt-4">
+                            <i class="fas fa-tasks fa-3x"></i>
+                            <p class="mt-3">No assignments created yet</p>
+                        </div>
+                    <% } %>
+                </div>
+            <% } else { %>
+                <!-- Student View -->
+                <% if (assignments.length > 0) { %>
+                    <div class="assignment-list mt-4">
+                        <div class="row">
+                            <% assignments.forEach(assignment => { %>
+                                <div class="col-md-6 mb-4">
+                                    <div class="card assignment-card">
+                                        <div class="card-body">
+                                            <h5 class="card-title"><%= assignment.title %></h5>
+                                            <p class="card-text">
+                                            <span class="badge bg-primary">
+                                                <%= assignment.questionCount %> questions
+                                            </span>
+                                                                        <span class="badge bg-success ms-2">
+                                                <%= assignment.totalMarks %> total marks
+                                            </span>
+                                            </p>
+
+                                            <% if (assignment.attempted) { %>
+                                                <div class="alert alert-info">
+                                                    Completed - Grade: <%= assignment.grade %>%
+                                                </div>
+                                            <% } else { %>
+                                                <button class="btn btn-primary"
+                                                        onclick="viewAssignment('<%= assignment.filename %>')">
+                                                    <i class="fas fa-eye"></i> View Assignment
+                                                </button>
+                                            <% } %>
+                                        </div>
+                                    </div>
+                                </div>
+                            <% }) %>
+                        </div>
+                    </div>
+                <% } else { %>
+                    <div class="empty-state mt-4">
+                        <i class="fas fa-tasks fa-3x"></i>
+                        <p class="mt-3">No assignments available for this course yet</p>
+                    </div>
+                <% } %>
+            <% } %>
+        </div>
+
     </div>
 </div>
+
+
+
+<!-- New ends here -->
+<!-- Add this modal at the bottom of your course.ejs file, before the closing body tag -->
+<!-- Create Assignment Modal -->
+<div id="createAssignmentModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><%= existingAssignment ? "Edit Assignment" : "Create Assignment" %></h3>
+            <span class="close" onclick="closeModal('createAssignmentModal')">&times;</span>
+        </div>
+        <div class="modal-body">
+            <form id="assignmentForm">
+                <div class="form-group">
+                    <label>Assignment Title:</label>
+                    <input type="text" class="form-control" name="title" id="assignmentTitle" required>
+                </div>
+                <div id="questions" class="questions-container"></div>
+                <div class="form-group text-center mt-3">
+                    <button type="button" class="btn btn-outline-primary" onclick="addQuestion()">
+                        <i class="fas fa-plus"></i> Add Question
+                    </button>
+                </div>
+                <input type="hidden" id="filename" value="<%= filename || '' %>">
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('createAssignmentModal')">Cancel</button>
+            <button class="btn btn-primary" onclick="submitAssignment()">Save Assignment</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    //viewing java
+    function viewAssignment(filename) {
+        // Get the subject from EJS rendering
+        const subject = '<%= subject %>';
+        const cleanFilename = filename.replace(/\.json$/i, '');
+
+        // Debug output
+        //alert(`Viewing assignment: ${cleanFilename} for subject: ${subject}`);
+        console.log(`Viewing assignment: ${cleanFilename} for subject: ${subject}`);
+
+        // Construct the URL
+        const url = `/Course/${subject}/assignments/${encodeURIComponent(cleanFilename)}`;
+        console.log('Navigating to:', url);
+        //alert(`Navigating to: ${url}`);
+
+        window.location.href = url;
+    }
+
+    function deleteAssignment(filename) {
+        if (confirm('Are you sure you want to delete this assignment?')) {
+            fetch(`/course/<%= subject %>/assignments/${filename}`, {
+                method: 'DELETE'
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error: ' + (data.message || 'Failed to delete assignment'));
+                    }
+                })
+                .catch(err => {
+                    console.error("Error deleting assignment:", err);
+                    alert('Failed to delete assignment');
+                });
+        }
+    }
+
+
+
+    // Assignment-related JavaScript
+    const existingAssignment = <%- JSON.stringify(existingAssignment || null) %>;
+    const assignmentFilename = "<%= filename || '' %>";
+    let questionIndex = 0;
+
+    function showCreateAssignmentModal() {
+        document.getElementById('questions').innerHTML = '';
+        questionIndex = 0;
+        document.getElementById('assignmentTitle').value = '';
+
+        if (existingAssignment && existingAssignment.questions) {
+            document.getElementById("assignmentTitle").value = existingAssignment.title || "";
+            existingAssignment.questions.forEach(q => addQuestion(q));
+        }
+
+        document.getElementById('createAssignmentModal').style.display = 'block';
+    }
+
+    function addQuestion(existing = null) {
+        const container = document.getElementById("questions");
+        const qDiv = document.createElement("div");
+        qDiv.className = "question-block";
+        qDiv.dataset.index = questionIndex;
+        qDiv.id = `question-${questionIndex}`;
+
+        const type = existing?.type || "mcq";
+        const questionText = existing?.question || "";
+        const marks = existing?.marks || "";
+
+        qDiv.innerHTML = `
+            <div class="question-header">
+                <h5>Question ${questionIndex + 1}</h5>
+                <button type="button" class="btn btn-sm btn-danger" onclick="removeQuestion(${questionIndex})">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            </div>
+            <div class="form-group">
+                <label>Question Type:</label>
+                <select class="form-control" name="questions[${questionIndex}][type]" onchange="updateOptions(this)">
+                    <option value="mcq" ${type === "mcq" ? "selected" : ""}>Multiple Choice</option>
+                    <option value="truefalse" ${type === "truefalse" ? "selected" : ""}>True/False</option>
+                    <option value="written" ${type === "written" ? "selected" : ""}>Written Answer</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Question:</label>
+                <textarea class="form-control" name="questions[${questionIndex}][question]" rows="3" required>${questionText}</textarea>
+            </div>
+            <div class="options"></div>
+            <div class="form-group">
+                <label>Marks:</label>
+                <input type="number" class="form-control" name="questions[${questionIndex}][marks]" value="${marks}" required>
+            </div>
+        `;
+
+        container.appendChild(qDiv);
+        const optionsDiv = qDiv.querySelector(".options");
+        addOptionsBlock(optionsDiv, type, questionIndex, existing);
+        questionIndex++;
+    }
+
+    function removeQuestion(index) {
+        const question = document.getElementById(`question-${index}`);
+        if (question) {
+            question.remove();
+        }
+    }
+
+    function updateOptions(select) {
+        const block = select.closest(".question-block");
+        const index = block.dataset.index;
+        const optionsDiv = block.querySelector(".options");
+        optionsDiv.innerHTML = "";
+        addOptionsBlock(optionsDiv, select.value, index);
+    }
+
+    function addOptionsBlock(container, type, qIndex, existing = null) {
+        if (type === "mcq") {
+            const opts = existing?.options || [];
+            const correct = existing?.correct || "A";
+            let html = `<div class="form-group">
+                <label>Options:</label>
+                <div class="option-list" id="option-list-${qIndex}">`;
+
+            for (let i = 0; i < Math.max(opts.length, 2); i++) {
+                html += renderLabeledOption(qIndex, i, opts[i] || "");
+            }
+
+            html += `</div>
+                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="addOption(${qIndex})">
+                    <i class="fas fa-plus"></i> Add Option
+                </button>
+                <div class="form-group mt-2">
+                    <label>Correct Answer:</label>
+                    <select class="form-control" name="questions[${qIndex}][correct]" id="correct-select-${qIndex}" required>`;
+
+            for (let i = 0; i < Math.max(opts.length, 2); i++) {
+                const letter = String.fromCharCode(65 + i);
+                html += `<option value="${letter}" ${correct === letter ? "selected" : ""}>${letter}</option>`;
+            }
+
+            html += `</select>
+                </div>
+            </div>`;
+            container.innerHTML = html;
+        } else if (type === "truefalse") {
+            const correct = existing?.correct || "True";
+            container.innerHTML = `
+                <div class="form-group">
+                    <label>Options:</label>
+                    <ul class="list-unstyled">
+                        <li>A. True</li>
+                        <li>B. False</li>
+                    </ul>
+                </div>
+                <div class="form-group">
+                    <label>Correct Answer:</label>
+                    <select class="form-control" name="questions[${qIndex}][correct]" required>
+                        <option value="True" ${correct === "True" ? "selected" : ""}>True</option>
+                        <option value="False" ${correct === "False" ? "selected" : ""}>False</option>
+                    </select>
+                </div>
+            `;
+        } else {
+            container.innerHTML = ""; // Written answer has no options or correct answer
+        }
+    }
+
+    function renderLabeledOption(qIndex, optIndex, value = "") {
+        const letter = String.fromCharCode(65 + optIndex);
+        return `
+            <div class="input-group mb-2">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">${letter}.</span>
+                </div>
+                <input type="text" class="form-control" name="questions[${qIndex}][options][]" value="${value}"
+                       oninput="refreshCorrectOptions(${qIndex})" required>
+            </div>`;
+    }
+
+    function addOption(qIndex) {
+        const list = document.getElementById(`option-list-${qIndex}`);
+        const count = list.querySelectorAll("input").length;
+        const letter = String.fromCharCode(65 + count);
+
+        const optionDiv = document.createElement('div');
+        optionDiv.className = 'input-group mb-2';
+        optionDiv.innerHTML = `
+            <div class="input-group-prepend">
+                <span class="input-group-text">${letter}.</span>
+            </div>
+            <input type="text" class="form-control" name="questions[${qIndex}][options][]"
+                   oninput="refreshCorrectOptions(${qIndex})" required>
+        `;
+
+        list.appendChild(optionDiv);
+        refreshCorrectOptions(qIndex);
+    }
+
+    function refreshCorrectOptions(qIndex) {
+        const list = document.getElementById(`option-list-${qIndex}`);
+        const inputs = list.querySelectorAll("input");
+        const select = document.getElementById(`correct-select-${qIndex}`);
+        if (!select) return;
+        select.innerHTML = "";
+        inputs.forEach((input, i) => {
+            const letter = String.fromCharCode(65 + i);
+            const option = document.createElement("option");
+            option.value = letter;
+            option.textContent = letter;
+            select.appendChild(option);
+        });
+    }
+
+    function submitAssignment() {
+        const title = document.getElementById('assignmentTitle').value;
+        const filename = document.getElementById('filename').value; // Will be empty for new assignments
+        const questions = [];
+        const subject = '<%= subject %>';
+
+        // Collect all questions
+        for (let i = 0; i < questionIndex; i++) {
+            const block = document.getElementById(`question-${i}`);
+            if (!block) continue;
+
+            const type = block.querySelector(`select[name="questions[${i}][type]"]`).value;
+            const question = block.querySelector(`textarea[name="questions[${i}][question]"]`).value;
+            const marks = parseInt(block.querySelector(`input[name="questions[${i}][marks]"]`).value);
+
+            let options = [];
+            let correct = null;
+
+            if (type === "mcq") {
+                const optionInputs = block.querySelectorAll(`input[name="questions[${i}][options][]"]`);
+                optionInputs.forEach(input => options.push(input.value));
+                correct = block.querySelector(`select[name="questions[${i}][correct]"]`).value;
+            } else if (type === "truefalse") {
+                correct = block.querySelector(`select[name="questions[${i}][correct]"]`).value;
+            }
+
+            questions.push({ type, question, marks, options, correct });
+        }
+
+        // Determine if we're creating or updating
+        const url = filename ? `/course/${subject}/assignments/${filename}` : '/assignment/save';
+        const method = filename ? 'PUT' : 'POST';
+
+        fetch(url, {
+            method: method,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ title, questions, filename, subject })
+        })
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    alert(`Assignment ${filename ? 'updated' : 'created'} successfully!`);
+                    closeModal('createAssignmentModal');
+                    location.reload();
+                } else {
+                    throw new Error(data.message || 'Operation failed');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert(`Failed to ${filename ? 'update' : 'create'} assignment: ${error.message}`);
+            });
+    }
+
+    function closeModal(modalId) {
+        document.getElementById(modalId).style.display = 'none';
+    }
+</script>
+
+<style>
+    /* Assignment Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1050;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.4);
+    }
+
+    .modal-content {
+        background-color: #fefefe;
+        margin: 5% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+        max-width: 800px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .modal-header {
+        padding: 10px 0;
+        border-bottom: 1px solid #eee;
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .modal-header h3 {
+        margin: 0;
+        color: #333;
+    }
+
+    .close {
+        color: #aaa;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .close:hover {
+        color: #333;
+    }
+
+    .modal-body {
+        padding: 10px 0;
+        max-height: 70vh;
+        overflow-y: auto;
+    }
+
+    .modal-footer {
+        padding: 15px 0 0;
+        border-top: 1px solid #eee;
+        text-align: right;
+    }
+
+    /* Question Block Styles */
+    .question-block {
+        background: #f9f9f9;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 20px;
+        border: 1px solid #eee;
+    }
+
+    .question-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .question-header h5 {
+        margin: 0;
+        color: #333;
+    }
+
+    .questions-container {
+        margin-top: 20px;
+    }
+
+    /* Form Styles */
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+
+    textarea.form-control {
+        min-height: 100px;
+    }
+
+    .option-list {
+        margin-bottom: 10px;
+    }
+
+    .input-group-text {
+        min-width: 40px;
+        justify-content: center;
+    }
+</style>
+
+
+
+
+
+
 
 <!-- Upgrade Modal -->
 <div id="upgradeModal" class="modal">
@@ -222,8 +755,8 @@
         document.getElementById('upgradeModal').style.display = 'flex';
     }
 
-    function closeModal() {
-        document.getElementById('upgradeModal').style.display = 'none';
+    function closeModal(modalId) {
+        document.getElementById(modalId).style.display = 'none';
     }
 
     // Close modal when clicking outside
@@ -232,6 +765,7 @@
             closeModal();
         }
     }
+
 </script>
 
 <style>

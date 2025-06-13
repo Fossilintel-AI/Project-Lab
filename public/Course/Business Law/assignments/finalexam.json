@@ -1,0 +1,15 @@
+{
+  "title": "finalExam",
+  "questions": [
+    {
+      "type": "truefalse",
+      "question": "sdf",
+      "marks": 2,
+      "options": [],
+      "correct": "True"
+    }
+  ],
+  "filename": "finalexam.json",
+  "createdAt": "2025-06-13T16:23:24.438Z",
+  "updatedAt": "2025-06-13T16:23:24.438Z"
+}

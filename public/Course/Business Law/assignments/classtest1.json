@@ -1,0 +1,26 @@
+{
+  "title": "Classtest1",
+  "questions": [
+    {
+      "type": "mcq",
+      "question": "Who is the president of America",
+      "marks": 2,
+      "options": [
+        "Obama",
+        "Trump",
+        "John"
+      ],
+      "correct": "B"
+    },
+    {
+      "type": "truefalse",
+      "question": "The lion king was acted in SA",
+      "marks": 2,
+      "options": [],
+      "correct": "False"
+    }
+  ],
+  "filename": "classtest1.json",
+  "createdAt": "2025-06-13T15:51:01.022Z",
+  "updatedAt": "2025-06-13T15:51:01.022Z"
+}

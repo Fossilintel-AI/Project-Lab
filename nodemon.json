@@ -1,3 +1,10 @@
 {
-  "ignore": ["public/jsons/questions_and_answers.json"]
+  "watch": ["server.js", "index.js", "routes/", "controllers/"],
+  "ignore": [
+    "public/Course/",
+    "public/Course/**/*",
+    "public/**/*.json",
+    "public/jsons/questions_and_answers.json"
+  ],
+  "ext": "js,ejs,json"
 }

@@ -1,0 +1,15 @@
+{
+  "title": "homework1",
+  "questions": [
+    {
+      "type": "truefalse",
+      "question": "make thals",
+      "marks": 1,
+      "options": [],
+      "correct": "True"
+    }
+  ],
+  "filename": "homework1.json",
+  "createdAt": "2025-06-13T16:00:33.851Z",
+  "updatedAt": "2025-06-13T16:00:33.851Z"
+}

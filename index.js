@@ -41,6 +41,8 @@ app.use(express.static("public"));
 app.use('/Workstation', express.static(path.join(__dirname, 'Workstation')));
 
 app.use(cors());
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
 
 //encryption
 const saltRounds = 10;
@@ -286,8 +288,9 @@ app.get("/", async (req, res) => {
     if(req.isAuthenticated()) {
 
     const currentUser = req.user;
+     const   AdminFlag = "The admin is here";
     const subscription_type = currentUser.subscription_type;
-    res.render("index.ejs", { user: user_id !== -1 ? "user Present" : null,subscription_type });
+    res.render("index.ejs", { user: user_id !== -1 ? "user Present" : null,subscription_type, isAdmin:AdminFlag });
     }
     else
     {
@@ -298,6 +301,54 @@ app.get("/", async (req, res) => {
 
     //res.render("index.ejs", );
     //res.render("test.ejs");
+});
+app.get("/dashboard", async (req, res) => {
+    if (req.isAuthenticated()) {
+        const currentUser = req.user;
+        const subscription_type = currentUser.subscription_type;
+        const userEmail = req.user.email;
+
+        if (userEmail == "admin@gmail.com") {
+            try {
+                // Fetch unapproved documents
+                const unapprovedDocuments = await db.query(
+                    "SELECT file_directory, file_name FROM pdfUploads WHERE isApproved != 'Approved' AND isApproved != 'Declined'"
+                );
+
+                // Fetch messages from students
+                const studentMessages = await db.query(
+                    "SELECT name, email, subject, message, created_at, isRead FROM studentcontact WHERE isRead = false"
+                );
+
+                // Fetch assignment attempts with student names
+                const assignmentAttempts = await db.query(`
+                    SELECT aa.*, u.first_name, u.last_name, u.email 
+                    FROM assignment_attempts aa
+                    JOIN users u ON aa.user_id = u.user_id
+                    ORDER BY aa.attempt_date DESC
+                `);
+
+                res.render('admin-dashboard.ejs', {
+                    unapprovedDocuments: unapprovedDocuments.rows,
+                    studentMessages: studentMessages.rows,
+                    assignmentAttempts: assignmentAttempts.rows,
+                    user: "user Present",
+                    subscription_type
+                });
+
+            } catch (error) {
+                console.error(error);
+                res.status(500).send('Something went wrong');
+            }
+        } else {
+            res.render("welcome.ejs", {
+                user: "user Present",
+                subscription_type
+            });
+        }
+    } else {
+        res.redirect("/login");
+    }
 });
 app.get("/about", async (req, res) => {
 
@@ -513,34 +564,9 @@ app.get("/main", async (req, res) => {
     if (req.isAuthenticated()) {
         const currentUser = req.user;
         const subscription_type = currentUser.subscription_type;
-        const userEmail = req.user.email;
 
-        // Fetch unapproved documents
-        const unapprovedDocuments = await db.query("SELECT file_directory, file_name FROM pdfUploads WHERE isApproved != 'Approved' AND isApproved != 'Declined'");
+        res.render("welcome.ejs", { user: user_id !== -1 ? "user Present" : null, subscription_type });
 
-        // Fetch messages from students
-        const studentMessages = await db.query("SELECT name, email, subject, message, created_at,isRead FROM studentcontact WHERE isRead = false");
-
-        if (userEmail == "admin@gmail.com") {
-            try {
-                console.log("Database Query Result for Unapproved Documents:", unapprovedDocuments); // Log full result
-                console.log("Unapproved Documents:", unapprovedDocuments.rows); // Log rows array
-                console.log("Student Messages:", studentMessages); // Log student messages
-
-                // Pass both unapproved documents and student messages data to the admin dashboard
-                res.render('admin-dashboard.ejs', {
-                    unapprovedDocuments: unapprovedDocuments.rows,
-                    studentMessages: studentMessages.rows,
-                    user: user_id !== -1 ? "user Present" : null,
-                    subscription_type
-                });
-            } catch (error) {
-                console.error(error);
-                res.status(500).send('Something went wrong');
-            }
-        } else {
-            res.render("welcome.ejs", { user: user_id !== -1 ? "user Present" : null, subscription_type });
-        }
     } else {
         res.redirect("/login");
     }
@@ -617,23 +643,42 @@ app.get("/logout", (req, res, next) => {
 });
 
 //user Profile
-app.get("/profile", (req, res) => {
+app.get("/profile", async (req, res) => {
     if (!req.isAuthenticated()) {
-        return res.redirect("/login"); // Redirect to login if not authenticated
+        return res.redirect("/login");
     }
 
-    // Assuming `req.user` contains user data after authentication
-    const currentUser = {
-        first_name: req.user.first_name,
-        last_name: req.user.last_name,
-        email: req.user.email,
-        subscription_type: req.user.subscription_type,
-        bio: req.user.bio,
-        created_at: req.user.created_at,
-        address: req.user.address
-    };
+    try {
+        const currentUser = {
+            first_name: req.user.first_name,
+            last_name: req.user.last_name,
+            email: req.user.email,
+            subscription_type: req.user.subscription_type,
+            bio: req.user.bio,
+            created_at: req.user.created_at,
+            address: req.user.address,
+            user_id: req.user.user_id // Make sure we have the user_id
+        };
 
-    res.render("profile.ejs", { currentUser,user: user_id !== -1 ? "user Present" : null });
+        // Fetch the student's assignment attempts
+        const assignmentAttempts = await db.query(`
+            SELECT aa.*, u.first_name, u.last_name, u.email 
+            FROM assignment_attempts aa
+            JOIN users u ON aa.user_id = u.user_id
+            WHERE aa.user_id = $1
+            ORDER BY aa.attempt_date DESC
+        `, [currentUser.user_id]);
+
+        res.render("profile.ejs", {
+            currentUser,
+            assignmentAttempts: assignmentAttempts.rows,
+            user: "user Present"
+        });
+
+    } catch (error) {
+        console.error("Error loading profile:", error);
+        res.status(500).send("Error loading profile");
+    }
 });
 app.get("/edit-profile", (req, res) => {
     if (!req.isAuthenticated()) {
@@ -991,6 +1036,95 @@ app.post('/addAdminCommentForum', async (req, res) => {
 // });
 
 
+// app.get("/course/:subject", async (req, res) => {
+//     if(req.isAuthenticated())
+//     {
+//         const currentUser = req.user;
+//         const subscription_type = currentUser.subscription_type;
+//         const subject = req.params.subject;
+//         const slidesPath = path.join(__dirname, "public", "Course", subject, "slides");
+//         currentSubject = subject;
+//
+//
+//
+//         let slides = [];
+//
+//         try {
+//             // Read all slide filenames in the subject's slides folder
+//             slides = fs.readdirSync(slidesPath)
+//                 .filter(file => file.endsWith(".pdf")) // Adjust file type if needed
+//                 .sort((a, b) => a.localeCompare(b, undefined, { numeric: true })); // Sort numerically (Lecture 01, 02...)
+//
+//         } catch (error) {
+//             console.error("Error reading slides:", error);
+//         }
+//         const slidesPathPersonal = path.join(__dirname, "Workstation", String(user_id), subject, "slides");
+//
+//         let personalslides = [];
+//         try {
+//             // Read all slide filenames in the subject's slides folder
+//             personalslides = fs.readdirSync(slidesPathPersonal)
+//                 .filter(file => file.endsWith(".pdf")) // Adjust file type if needed
+//                 .sort((a, b) => a.localeCompare(b, undefined, { numeric: true })) // Sort numerically (Lecture 01, 02...)
+//                 .map(file => ({ file_path: file, isApproved: "Pending" })); // Default to false
+//
+//             console.log(personalslides);
+//             console.log(slidesPathPersonal);
+//             // Fetch approval status from the database
+//             const results = await db.query("SELECT file_directory, file_name, isApproved FROM pdfUploads WHERE file_directory = $1", [slidesPathPersonal]);
+//             console.log(results);
+//             // Create a lookup table from the database results
+//             const approvalMap = new Map(results.rows.map(row => [path.basename(row.file_name), row.isapproved])); // Ensure you're mapping from results.rows
+//
+//             console.log("Approval Map:", approvalMap);
+//             // Update personalslides with database approval status if found
+//             personalslides = personalslides.map(slide => ({
+//                 file_path: slide.file_path,
+//                 isApproved: approvalMap.has(slide.file_path)
+//                     ? (approvalMap.get(slide.file_path) === 'Approved' ? 'Approved' : (approvalMap.get(slide.file_path) === 'Declined' ? 'Declined' : 'Pending'))
+//                     : 'Pending'
+//             }));
+//             console.log("Updated Personal Slides:", personalslides);
+//         } catch (error) {
+//             console.error("Error reading slides:", error);
+//         }
+//
+//         //reading the file name
+//         const assignmentsDir = path.join(__dirname, "public", "Course", subject, "assignments");
+//
+//         // Read assignments if directory exists
+//         let assignments = [];
+//         if (fs.existsSync(assignmentsDir)) {
+//             const assignmentFiles = fs.readdirSync(assignmentsDir)
+//                 .filter(f => f.endsWith(".json"))
+//                 .map(file => {
+//                     const filePath = path.join(assignmentsDir, file);
+//                     const data = JSON.parse(fs.readFileSync(filePath));
+//                     return {
+//                         filename: file,
+//                         title: data.title,
+//                         questionCount: data.questions.length,
+//                         totalMarks: data.questions.reduce((sum, q) => sum + q.marks, 0)
+//                     };
+//                 });
+//             assignments = assignmentFiles;
+//         }
+//
+//
+//         const userEmail =  req.user.email;
+//         var AdminFlag = "";
+//         if(userEmail == "admin@gmail.com"){
+//             AdminFlag = "The admin is here";
+//         }
+//         // Render course.ejs with the subject and slides
+//         res.render("course.ejs", { subject,assignments, slides,personalslides,userid:user_id, user: user_id !== -1 ? "user Present" : null,subscription_type,isAdmin:AdminFlag,existingAssignment: null, filename: null });
+//     }
+//     else{
+//         res.redirect("/login");
+//     }
+//
+//
+// });
 app.get("/course/:subject", async (req, res) => {
     if(req.isAuthenticated())
     {
@@ -999,8 +1133,6 @@ app.get("/course/:subject", async (req, res) => {
         const subject = req.params.subject;
         const slidesPath = path.join(__dirname, "public", "Course", subject, "slides");
         currentSubject = subject;
-
-
 
         let slides = [];
 
@@ -1013,7 +1145,7 @@ app.get("/course/:subject", async (req, res) => {
         } catch (error) {
             console.error("Error reading slides:", error);
         }
-        const slidesPathPersonal = path.join(__dirname, "Workstation", String(user_id), subject, "slides");
+        const slidesPathPersonal = path.join(__dirname, "Workstation", String(currentUser.user_id), subject, "slides");
 
         let personalslides = [];
         try {
@@ -1044,16 +1176,62 @@ app.get("/course/:subject", async (req, res) => {
             console.error("Error reading slides:", error);
         }
 
+        //reading the file name
+        const assignmentsDir = path.join(__dirname, "public", "Course", subject, "assignments");
 
+        // Read assignments if directory exists
+        let assignments = [];
+        if (fs.existsSync(assignmentsDir)) {
+            const assignmentFiles = fs.readdirSync(assignmentsDir)
+                .filter(f => f.endsWith(".json"))
+                .map(file => {
+                    const filePath = path.join(assignmentsDir, file);
+                    const data = JSON.parse(fs.readFileSync(filePath));
+                    return {
+                        filename: file,
+                        title: data.title,
+                        questionCount: data.questions.length,
+                        totalMarks: data.questions.reduce((sum, q) => sum + q.marks, 0)
+                    };
+                });
 
+            // Check attempt status for each assignment
+            for (let i = 0; i < assignmentFiles.length; i++) {
+                const attempt = await db.query(
+                    `SELECT grade FROM assignment_attempts 
+                     WHERE user_id = $1 AND filename = $2`,
+                    [currentUser.user_id, assignmentFiles[i].filename]
+                );
+
+                assignmentFiles[i].attempted = attempt.rows.length > 0;
+                assignmentFiles[i].grade = attempt.rows[0]?.grade || null;
+            }
+
+            assignments = assignmentFiles;
+        }
+
+        const userEmail =  req.user.email;
+        var AdminFlag = "";
+        if(userEmail == "admin@gmail.com"){
+            AdminFlag = "The admin is here";
+        }
         // Render course.ejs with the subject and slides
-        res.render("course.ejs", { subject, slides,personalslides,userid:user_id, user: user_id !== -1 ? "user Present" : null,subscription_type });
+        res.render("course.ejs", {
+            subject,
+            assignments,
+            slides,
+            personalslides,
+            userid: currentUser.user_id,
+            user: "user Present",
+            subscription_type,
+            isAdmin: AdminFlag,
+            existingAssignment: null,
+            filename: null
+        });
     }
     else{
         res.redirect("/login");
     }
-
-
 });
 
 
@@ -1549,6 +1727,245 @@ app.get('/view-document', (req, res) => {
 });
 
 
+// Save or update assignment
+app.post("/assignment/save", (req, res) => {
+    const { title, questions, filename } = req.body;
+    const subject = req.body.subject || req.query.subject; // Make sure to pass subject from frontend
+
+    if (!title || !questions) {
+        return res.status(400).json({ success: false, message: "Title and questions are required" });
+    }
+
+    // Create a filename-safe version of the title
+    const safeTitle = title.toLowerCase()
+        .replace(/[^a-z0-9]/g, '-')  // Replace non-alphanumeric with hyphens
+        .replace(/-+/g, '-')         // Replace multiple hyphens with single
+        .replace(/^-|-$/g, '');      // Remove leading/trailing hyphens
+
+    const assignmentFilename = `${safeTitle}.json`;
+
+    // Create the assignment directory path
+    const assignmentsDir = path.join(__dirname, "public", "Course", subject, "assignments");
+
+    try {
+        // Ensure directory exists
+        if (!fs.existsSync(assignmentsDir)) {
+            fs.mkdirSync(assignmentsDir, { recursive: true });
+        }
+
+        const filePath = path.join(assignmentsDir, assignmentFilename);
+        const assignmentData = {
+            title,
+            questions,
+            filename: assignmentFilename,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+
+        fs.writeFileSync(filePath, JSON.stringify(assignmentData, null, 2));
+
+        res.json({
+            success: true,
+            message: "Assignment saved successfully",
+            filename: assignmentFilename,
+            path: filePath
+        });
+    } catch (err) {
+        console.error("Error saving assignment:", err);
+        res.status(500).json({
+            success: false,
+            message: "Error saving assignment",
+            error: err.message
+        });
+    }
+});
+
+// Add this to your server routes
+app.get('/Course/:subject/assignments/:filename', async (req, res) => {
+    try {
+        const userEmail = req.user.email;
+        console.log("we got it");
+        const { subject, filename } = req.params;
+
+        // Read the assignment file (adjust path as needed)
+        const assignmentPath = path.join(__dirname, "public", "Course", subject, "assignments", filename+ ".json");
+        const assignmentData = JSON.parse(fs.readFileSync(assignmentPath, 'utf-8'));
+        var Admin;
+        if(userEmail =="admin@gmail.com"){
+            Admin = "The admin is here";
+        }
+        // Render the EJS template
+        res.render('assignmentView.ejs', {
+            assignment: assignmentData,
+            subject: subject,
+            filename:filename,
+            isAdmin: Admin
+        });
+    } catch (err) {
+        console.error('Error loading assignment:', err);
+        res.status(500).send('Error loading assignment');
+    }
+});
+// app.put("/course/:subject/assignments/:filename", (req, res) => {
+//     const { subject, filename } = req.params;
+//     const { title, questions } = req.body;
+//     const assignmentsDir = path.join(__dirname, "public", "Course", subject, "assignments");
+//     const filePath = path.join(assignmentsDir, filename);
+//
+//     if (!fs.existsSync(assignmentsDir)) {
+//         return res.status(400).json({ success: false, message: "Subject directory doesn't exist" });
+//     }
+//
+//     try {
+//         const assignmentData = {
+//             title,
+//             questions,
+//             filename,
+//             updatedAt: new Date().toISOString()
+//         };
+//
+//         // Preserve creation date if file exists
+//         if (fs.existsSync(filePath)) {
+//             const existing = JSON.parse(fs.readFileSync(filePath));
+//             assignmentData.createdAt = existing.createdAt || new Date().toISOString();
+//         } else {
+//             assignmentData.createdAt = new Date().toISOString();
+//         }
+//
+//         fs.writeFileSync(filePath, JSON.stringify(assignmentData, null, 2));
+//         res.json({ success: true, message: "Assignment updated successfully" });
+//     } catch (err) {
+//         console.error("Error updating assignment:", err);
+//         res.status(500).json({ success: false, message: "Error updating assignment" });
+//     }
+// });
+// Delete assignment
+app.delete("/course/:subject/assignments/:filename", (req, res) => {
+    const { subject, filename } = req.params;
+    const filePath = path.join(__dirname, "public", "Course", subject, "assignments", filename);
+    console.log("Attempting to read:", filePath); // Debug log
+    try {
+        fs.unlinkSync(filePath);
+        res.json({ success: true });
+    } catch (err) {
+        console.error("Error deleting assignment:", err);
+        res.status(500).json({ success: false, message: "Could not delete assignment" });
+    }
+});
+app.post("/assignments/submit/:filename", async (req, res) => {
+    if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    const { filename } = req.params;
+    const { answers } = req.body; // Now this will be an array
+    const userId = req.user.user_id;
+
+    try {
+        // 1. Load the assignment
+        const assignmentPath = path.join(__dirname, "public", "Course", currentSubject, "assignments", filename+".json");
+        const assignmentData = JSON.parse(fs.readFileSync(assignmentPath, 'utf-8'));
+
+        // 2. Check if already attempted
+        const existingAttempt = await db.query(
+            `SELECT * FROM assignment_attempts
+             WHERE user_id = $1 AND filename = $2`,
+            [userId, filename+".json"] // Make sure this matches your filename format
+        );
+
+        if (existingAttempt.rows.length > 0) {
+            return res.status(400).json({
+                message: "You have already submitted this assignment"
+            });
+        }
+
+        // 3. Grade the assignment
+        let totalScore = 0;
+        let maxScore = 0;
+        const gradedAnswers = [];
+
+        assignmentData.questions.forEach((question, index) => {
+            maxScore += question.marks;
+            const studentAnswer = answers[index]; // Now using simple array index
+            let isCorrect = false;
+            let score = 0;
+
+            if (question.type === 'mcq' || question.type === 'truefalse') {
+                isCorrect = studentAnswer === question.correct;
+                score = isCorrect ? question.marks : 0;
+            } else {
+                // For written answers, we'll just give partial credit
+                score = question.marks * 0.5; // 50% for attempting
+                isCorrect = null; // Manual grading needed
+            }
+
+            totalScore += score;
+            gradedAnswers.push({
+                question: question.question,
+                correctAnswer: question.correct,
+                studentAnswer,
+                isCorrect,
+                marks: question.marks,
+                awardedMarks: score
+            });
+        });
+
+        const grade = Math.round((totalScore / maxScore) * 100);
+
+        // 4. Save to database
+         await db.query(
+            `INSERT INTO assignment_attempts
+             (user_id, subject, assignment_title, filename, grade)
+             VALUES ($1, $2, $3, $4, $5)`,
+            [
+                userId,
+                currentSubject,
+                assignmentData.title,
+                filename+".json", // Consistent filename format
+                grade,
+
+            ]
+        );
+
+        res.redirect('/main');
+
+    } catch (error) {
+        console.error("Error submitting assignment:", error);
+        res.status(500).json({
+            message: "Error submitting assignment",
+            error: error.message
+        });
+    }
+});
+app.get("/admin/attempt/:attemptId", async (req, res) => {
+    try {
+        const { attemptId } = req.params;
+        const result = await db.query(`
+            SELECT aa.*, u.first_name, u.last_name, u.email 
+            FROM assignment_attempts aa
+            JOIN users u ON aa.user_id = u.user_id
+            WHERE aa.attempt_id = $1
+        `, [attemptId]);
+
+        if (result.rows.length > 0) {
+            res.json({
+                success: true,
+                attempt: result.rows[0]
+            });
+        } else {
+            res.status(404).json({
+                success: false,
+                message: "Attempt not found"
+            });
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            success: false,
+            message: "Server error"
+        });
+    }
+});
 //approving file
 app.post('/admin/approve/:fileName', async (req, res) => {
     const fileName = req.params.fileName;

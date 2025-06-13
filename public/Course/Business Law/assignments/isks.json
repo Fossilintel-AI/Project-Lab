@@ -1,0 +1,15 @@
+{
+  "title": "isks",
+  "questions": [
+    {
+      "type": "truefalse",
+      "question": "aada",
+      "marks": 3,
+      "options": [],
+      "correct": "True"
+    }
+  ],
+  "filename": "isks.json",
+  "createdAt": "2025-06-13T15:55:57.736Z",
+  "updatedAt": "2025-06-13T15:55:57.736Z"
+}
