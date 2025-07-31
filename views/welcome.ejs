@@ -11,7 +11,6 @@
                  onclick="<%= subscription_type === 'Pro' || subscription_type === 'Enterprise' ? 'window.location.href=\'/todo-list\'' : 'showUpgradePopup()' %>">
                 <div class="feature-icon">
                     <i class="fas fa-tasks"></i>
-                    <%= subscription_type === 'Pro' || subscription_type === 'Enterprise' ? '' : '' %>
                 </div>
                 <h3>To-Do List</h3>
                 <p>Organize your tasks and stay on top of your coursework</p>
@@ -25,7 +24,6 @@
                  onclick="<%= subscription_type === 'Enterprise' ? 'window.location.href=\'/books\'' : 'showUpgradePopup()' %>">
                 <div class="feature-icon">
                     <i class="fas fa-book-open"></i>
-                    <%= subscription_type === 'Enterprise' ? '' : '' %>
                 </div>
                 <h3>Book Notes</h3>
                 <p>Annotate and organize your study materials</p>
@@ -35,7 +33,6 @@
             </div>
 
             <!-- Forums Card -->
-
             <div class="feature-card" onclick="window.location.href='/forums'">
                 <div class="feature-icon">
                     <i class="fas fa-comments"></i>
@@ -50,7 +47,6 @@
                  onclick="<%= subscription_type === 'Pro' || subscription_type === 'Enterprise' ? 'window.location.href=\'/timetable\'' : 'showUpgradePopup()' %>">
                 <div class="feature-icon">
                     <i class="fas fa-calendar-alt"></i>
-                    <%= subscription_type === 'Pro' || subscription_type === 'Enterprise' ? '' : '' %>
                 </div>
                 <h3>Timetable</h3>
                 <p>Schedule and manage your study sessions</p>
@@ -58,8 +54,22 @@
                     <%= subscription_type === 'Pro' || subscription_type === 'Enterprise' ? 'Available' : 'Pro+' %>
                 </div>
             </div>
+
+            <!-- StudyStream Card (Pro+ Only) -->
+            <div class="feature-card <%= subscription_type === 'Pro' || subscription_type === 'Enterprise' ? '' : 'locked' %>"
+                 onclick="<%= subscription_type === 'Pro' || subscription_type === 'Enterprise' ? 'window.location.href=\'/studystream\'' : 'showUpgradePopup()' %>">
+                <div class="feature-icon">
+                    <i class="fas fa-play-circle"></i>
+                </div>
+                <h3>StudyStream</h3>
+                <p>Search videos, explore categories & boost your learning</p>
+                <div class="feature-badge <%= subscription_type === 'Pro' || subscription_type === 'Enterprise' ? 'pro' : 'free' %>">
+                    <%= subscription_type === 'Pro' || subscription_type === 'Enterprise' ? 'Available' : 'Pro+' %>
+                </div>
+            </div>
         </div>
     </section>
+
 
     <!-- Course Recommendations Section -->
     <section class="course-recommendations">

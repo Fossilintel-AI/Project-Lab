@@ -28,6 +28,11 @@ import nodemailer from "nodemailer";
 import cors from "cors";
 
 
+//Youtube and google
+import { google } from 'googleapis';
+import dotenv from 'dotenv';
+
+
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -61,7 +66,13 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(express.json()); // This is necessary to parse the body in JSON format //09 May 2025
 
+dotenv.config();
 
+//Youtube
+const youtube = google.youtube({
+    version: 'v3',
+    auth: "AIzaSyDK83UnOEm4yhiymQH5ALDmxsQqtorsOaM" // API Key
+});
 
 
 // Set storage engine for Multer
@@ -2002,6 +2013,33 @@ app.post('/admin/decline/:fileName', async (req, res) => {
         res.status(500).send('Error approving document');
     }
 });
+
+
+//Study stream
+
+// Route to search for study videos
+app.get('/search', async (req, res) => {
+    try {
+        const query = req.query.q || 'study videos'; // Default search
+        const response = await youtube.search.list({
+            part: 'snippet',
+            q: query,
+            maxResults: 20,
+            type: 'video'
+        });
+
+        res.json(response.data.items);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Route to search for study videos
+app.get('/studystream', async (req, res) => {
+    res.render("videos.ejs");
+});
+
+
 //sessions and passport
 passport.serializeUser((user, cb) => {
     cb(null, user);
