@@ -71,7 +71,7 @@ dotenv.config();
 //Youtube
 const youtube = google.youtube({
     version: 'v3',
-    auth: "AIzaSyDK83UnOEm4yhiymQH5ALDmxsQqtorsOaM" // API Key
+    auth: process.env.Youtube_API_KEY // API Key
 });
 
 
