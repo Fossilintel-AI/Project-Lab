@@ -56,12 +56,18 @@
                                 </a>
                                 <% if (subscription_type === 'Enterprise') { %>
                                     <div class="premium-actions">
+
+                                        <a href="/youtubeRecommendation/<%= encodeURIComponent(slide) %>" class="action-btn premium">
+                                            <i class="fas fa-video"></i>
+                                        </a>
                                         <a href="/generateQuestions/<%= encodeURIComponent(slide) %>" class="action-btn premium">
                                             <i class="fas fa-bolt"></i> Flashcards
                                         </a>
                                         <a href="/summarize/<%= encodeURIComponent(slide) %>" class="action-btn premium">
                                             <i class="fas fa-file-alt"></i> Summary
                                         </a>
+
+
                                     </div>
                                 <% } else { %>
                                     <div class="premium-locked">
@@ -122,6 +128,10 @@
                                     </a>
                                     <% if (subscription_type === 'Enterprise') { %>
                                         <div class="premium-actions">
+                                            <a href="/youtubeRecommendation/<%= slide.file_path %>" class="action-btn premium">
+                                                <i class="fas fa-video"></i>
+                                            </a>
+
                                             <a href="/generateQuestions/<%= slide.file_path %>" class="action-btn premium">
                                                 <i class="fas fa-bolt"></i> Flashcards
                                             </a>

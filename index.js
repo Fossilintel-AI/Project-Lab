@@ -239,6 +239,33 @@ Text:${text}
     }
 }
 
+// Function to generate Youtube search  using Cohere
+async function generateYoutubeSearch(text) {
+    try {
+        // const prompt = `Based on the following text, generate a set of questions and Answers Text in the form as key: value pair object {dont include question and answer tags ,let the answer start with ***}:\n\nText: ${text}`;
+        const prompt = `with the following text, please create a short headline title I can use to search a video relating to the text in youtube, It should only be the headline only nothing else, very short for a search
+:${text}`;
+
+        const response = await cohere.chat({
+            model: 'command-r-plus',
+            messages: [
+                { role: 'user', content: prompt }
+            ]
+        });
+
+        if (response.message && Array.isArray(response.message.content) && response.message.content[0].text) {
+            const generatedText = response.message.content[0].text.trim();
+            return generatedText;
+        } else {
+            throw new Error('Unexpected response structure');
+        }
+    } catch (error) {
+        console.error('Error generating questions:', error);
+        throw error;
+    }
+}
+
+
 
 //Email sender settings
 const transporter = nodemailer.createTransport({
@@ -1579,48 +1606,7 @@ app.get("/flashcards", (req, res) => {
 
 });
 
-//feature for summurization
-// Route to summarize text
-// app.get("/summarize/:document", async (req, res) => {
-//     if (req.isAuthenticated()) {
-//         const document = req.params.document;
-//         const filePath = path.join(__dirname, "public", "Course", currentSubject, "slides", document); // relative path
-//
-//         // Debugging log for file path
-//         console.log("Requested file path:", filePath);
-//
-//         try {
-//             // Check if the file exists
-//             if (!fs.existsSync(filePath)) {
-//                 return res.status(404).send('File not found.');
-//             }
-//
-//             // Extracting text from the PDF
-//             console.log("File found, extracting text...");
-//             const text = await extractTextFromPDF(filePath);
-//
-//             // Summarizing the text
-//
-//             // const summary = await summarizeText(text);
-//             // console.log("Summary generated:", summary);
-//             const summary = await generateSummarize(text);
-//             console.log("Summary generated:", summary);
-//
-//             // Rendering the summary
-//              // Adjusting based on the summary format
-//             res.render("summarize.ejs", {
-//                 summary,
-//                 user: user_id !== -1 ? "user Present" : null
-//             });
-//
-//         } catch (error) {
-//             console.error("Error generating summary:", error);
-//             return res.status(500).send('Error generating Summary: ' + error.message);
-//         }
-//     } else {
-//         res.redirect("/login");
-//     }
-// });
+
 app.get("/summarize/:document", async (req, res) => {
     if (req.isAuthenticated()) {
         const document = req.params.document;
@@ -1654,6 +1640,51 @@ app.get("/summarize/:document", async (req, res) => {
             console.log("Summary generated:", summary);
             res.render("summarize.ejs", {
                 summary,
+                user: global.user_id !== -1 ? "user Present" : null
+            });
+        } catch (error) {
+            console.error("Error generating summary:", error);
+            return res.status(500).send('Error generating Summary: ' + error.message);
+        }
+    } else {
+        res.redirect("/login");
+    }
+});
+
+
+app.get("/youtubeRecommendation/:document", async (req, res) => {
+    if (req.isAuthenticated()) {
+        const document = req.params.document;
+
+        // Define paths for both program slides and personal slides
+        const filePath = path.join(__dirname, "public", "Course", global.currentSubject, "slides", document);
+        const dir = path.join(__dirname, `./Workstation/${global.user_id}/${global.currentSubject}/slides/${document}`);
+
+        console.log("Checking paths:");
+        console.log("Program Slide Path:", filePath);
+        console.log("Personal Slide Path:", dir);
+
+        let finalPath = null;
+
+        // Determine the correct file path
+        if (fs.existsSync(filePath)) {
+            finalPath = filePath;
+        } else if (fs.existsSync(dir)) {
+            finalPath = dir;
+        } else {
+            return res.status(404).send("File not found.");
+        }
+
+        try {
+            console.log("File found, extracting text...");
+            const text = await extractTextFromPDF(finalPath);
+
+            console.log("Generating summary...");
+            const searchTitle = await generateYoutubeSearch(text);
+
+            console.log("Search text generated:", searchTitle);
+            res.render("videoRecommendation.ejs", {
+                searchTitle,
                 user: global.user_id !== -1 ? "user Present" : null
             });
         } catch (error) {
@@ -2020,6 +2051,7 @@ app.post('/admin/decline/:fileName', async (req, res) => {
 // Route to search for study videos
 app.get('/search', async (req, res) => {
     try {
+        console.log(req.query.q);
         const query = req.query.q || 'study videos'; // Default search
         const response = await youtube.search.list({
             part: 'snippet',
