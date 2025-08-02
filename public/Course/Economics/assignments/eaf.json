@@ -1,0 +1,21 @@
+{
+  "title": "eaf",
+  "subject": "Economics",
+  "filename": "eaf.json",
+  "dueDate": "2025-08-09T14:55",
+  "timeLimit": 2,
+  "questions": [
+    {
+      "type": "mcq",
+      "question": "dfsg",
+      "marks": 1,
+      "options": [
+        "ds",
+        "d"
+      ],
+      "correct": "A"
+    }
+  ],
+  "createdAt": "2025-08-02T12:55:38.653Z",
+  "updatedAt": "2025-08-02T12:55:38.653Z"
+}

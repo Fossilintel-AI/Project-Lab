@@ -1228,10 +1228,15 @@ app.get("/course/:subject", async (req, res) => {
                     return {
                         filename: file,
                         title: data.title,
+                        subject: data.subject,
                         questionCount: data.questions.length,
-                        totalMarks: data.questions.reduce((sum, q) => sum + q.marks, 0)
+                        totalMarks: data.questions.reduce((sum, q) => sum + q.marks, 0),
+                        deadline: data.deadline || null,
+                        isTimed: data.isTimed || false,
+                        timeLimit: data.timeLimit || null,
                     };
                 });
+
 
             // Check attempt status for each assignment
             for (let i = 0; i < assignmentFiles.length; i++) {
@@ -1769,35 +1774,35 @@ app.get('/view-document', (req, res) => {
 });
 
 
-// Save or update assignment
+
 app.post("/assignment/save", (req, res) => {
-    const { title, questions, filename } = req.body;
-    const subject = req.body.subject || req.query.subject; // Make sure to pass subject from frontend
+    const { title, questions, filename, subject, deadline, isTimed, timeLimit } = req.body;
 
     if (!title || !questions) {
         return res.status(400).json({ success: false, message: "Title and questions are required" });
     }
 
-    // Create a filename-safe version of the title
     const safeTitle = title.toLowerCase()
-        .replace(/[^a-z0-9]/g, '-')  // Replace non-alphanumeric with hyphens
-        .replace(/-+/g, '-')         // Replace multiple hyphens with single
-        .replace(/^-|-$/g, '');      // Remove leading/trailing hyphens
+        .replace(/[^a-z0-9]/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '');
 
     const assignmentFilename = `${safeTitle}.json`;
-
-    // Create the assignment directory path
     const assignmentsDir = path.join(__dirname, "public", "Course", subject, "assignments");
 
     try {
-        // Ensure directory exists
         if (!fs.existsSync(assignmentsDir)) {
             fs.mkdirSync(assignmentsDir, { recursive: true });
         }
 
         const filePath = path.join(assignmentsDir, assignmentFilename);
+
         const assignmentData = {
             title,
+            subject,
+            deadline,
+            isTimed,
+            timeLimit: isTimed ? timeLimit : null,
             questions,
             filename: assignmentFilename,
             createdAt: new Date().toISOString(),
@@ -1822,66 +1827,145 @@ app.post("/assignment/save", (req, res) => {
     }
 });
 
-// Add this to your server routes
+
+
+
+// // Save or update assignment(commented tdiay)
+// app.post("/assignment/save", (req, res) => {
+//     const { title, questions, filename } = req.body;
+//     const subject = req.body.subject || req.query.subject; // Make sure to pass subject from frontend
+//
+//     if (!title || !questions) {
+//         return res.status(400).json({ success: false, message: "Title and questions are required" });
+//     }
+//
+//     // Create a filename-safe version of the title
+//     const safeTitle = title.toLowerCase()
+//         .replace(/[^a-z0-9]/g, '-')  // Replace non-alphanumeric with hyphens
+//         .replace(/-+/g, '-')         // Replace multiple hyphens with single
+//         .replace(/^-|-$/g, '');      // Remove leading/trailing hyphens
+//
+//     const assignmentFilename = `${safeTitle}.json`;
+//
+//     // Create the assignment directory path
+//     const assignmentsDir = path.join(__dirname, "public", "Course", subject, "assignments");
+//
+//     try {
+//         // Ensure directory exists
+//         if (!fs.existsSync(assignmentsDir)) {
+//             fs.mkdirSync(assignmentsDir, { recursive: true });
+//         }
+//
+//         const filePath = path.join(assignmentsDir, assignmentFilename);
+//         const assignmentData = {
+//             title,
+//             questions,
+//             filename: assignmentFilename,
+//             createdAt: new Date().toISOString(),
+//             updatedAt: new Date().toISOString()
+//         };
+//
+//         fs.writeFileSync(filePath, JSON.stringify(assignmentData, null, 2));
+//
+//         res.json({
+//             success: true,
+//             message: "Assignment saved successfully",
+//             filename: assignmentFilename,
+//             path: filePath
+//         });
+//     } catch (err) {
+//         console.error("Error saving assignment:", err);
+//         res.status(500).json({
+//             success: false,
+//             message: "Error saving assignment",
+//             error: err.message
+//         });
+//     }
+// });
+
+//check if assignment is attempted
+app.get('/assignments/check/:filename', async (req, res) => {
+    if (!req.isAuthenticated()) {
+        return res.status(401).json({ attempted: false });
+    }
+
+    const { filename } = req.params;
+    const userId = req.user.user_id;
+
+    try {
+        const check = await db.query(
+            `SELECT 1 FROM assignment_attempts WHERE user_id = $1 AND filename = $2`,
+            [userId, filename + ".json"]
+        );
+
+        res.json({ attempted: check.rows.length > 0 });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ attempted: false });
+    }
+});
+
+
+// Add this to your server routes(COMMENTED BY ME)
+// app.get('/Course/:subject/assignments/:filename', async (req, res) => {
+//     try {
+//         const userEmail = req.user.email;
+//         console.log("we got it");
+//         const { subject, filename } = req.params;
+//
+//         // Read the assignment file (adjust path as needed)
+//         const assignmentPath = path.join(__dirname, "public", "Course", subject, "assignments", filename+ ".json");
+//         const assignmentData = JSON.parse(fs.readFileSync(assignmentPath, 'utf-8'));
+//         var Admin;
+//         if(userEmail =="admin@gmail.com"){
+//             Admin = "The admin is here";
+//         }
+//
+//
+//         // Render the EJS template
+//         res.render('assignmentView.ejs', {
+//             assignment: assignmentData,
+//             subject: subject,
+//             filename:filename,
+//             isAdmin: Admin
+//         });
+//     } catch (err) {
+//         console.error('Error loading assignment:', err);
+//         res.status(500).send('Error loading assignment');
+//     }
+// });
 app.get('/Course/:subject/assignments/:filename', async (req, res) => {
     try {
         const userEmail = req.user.email;
-        console.log("we got it");
+        const userId = req.user.user_id;
         const { subject, filename } = req.params;
 
-        // Read the assignment file (adjust path as needed)
-        const assignmentPath = path.join(__dirname, "public", "Course", subject, "assignments", filename+ ".json");
+        const assignmentPath = path.join(__dirname, "public", "Course", subject, "assignments", filename + ".json");
         const assignmentData = JSON.parse(fs.readFileSync(assignmentPath, 'utf-8'));
-        var Admin;
-        if(userEmail =="admin@gmail.com"){
-            Admin = "The admin is here";
+
+        // Check if already attempted
+        const attempt = await db.query(
+            `SELECT 1 FROM assignment_attempts WHERE user_id = $1 AND filename = $2`,
+            [userId, filename + ".json"]
+        );
+
+        if (attempt.rows.length > 0) {
+            return res.status(403).send("You have already attempted this assignment.");
         }
-        // Render the EJS template
+
         res.render('assignmentView.ejs', {
             assignment: assignmentData,
             subject: subject,
-            filename:filename,
-            isAdmin: Admin
+            filename: filename,
+            isAdmin: userEmail === "admin@gmail.com"
         });
     } catch (err) {
         console.error('Error loading assignment:', err);
         res.status(500).send('Error loading assignment');
     }
 });
-// app.put("/course/:subject/assignments/:filename", (req, res) => {
-//     const { subject, filename } = req.params;
-//     const { title, questions } = req.body;
-//     const assignmentsDir = path.join(__dirname, "public", "Course", subject, "assignments");
-//     const filePath = path.join(assignmentsDir, filename);
-//
-//     if (!fs.existsSync(assignmentsDir)) {
-//         return res.status(400).json({ success: false, message: "Subject directory doesn't exist" });
-//     }
-//
-//     try {
-//         const assignmentData = {
-//             title,
-//             questions,
-//             filename,
-//             updatedAt: new Date().toISOString()
-//         };
-//
-//         // Preserve creation date if file exists
-//         if (fs.existsSync(filePath)) {
-//             const existing = JSON.parse(fs.readFileSync(filePath));
-//             assignmentData.createdAt = existing.createdAt || new Date().toISOString();
-//         } else {
-//             assignmentData.createdAt = new Date().toISOString();
-//         }
-//
-//         fs.writeFileSync(filePath, JSON.stringify(assignmentData, null, 2));
-//         res.json({ success: true, message: "Assignment updated successfully" });
-//     } catch (err) {
-//         console.error("Error updating assignment:", err);
-//         res.status(500).json({ success: false, message: "Error updating assignment" });
-//     }
-// });
-// Delete assignment
+
+
 app.delete("/course/:subject/assignments/:filename", (req, res) => {
     const { subject, filename } = req.params;
     const filePath = path.join(__dirname, "public", "Course", subject, "assignments", filename);
@@ -1894,25 +1978,123 @@ app.delete("/course/:subject/assignments/:filename", (req, res) => {
         res.status(500).json({ success: false, message: "Could not delete assignment" });
     }
 });
+
+// //grading
+// app.post("/assignments/submit/:filename", async (req, res) => {
+//     if (!req.isAuthenticated()) {
+//         return res.status(401).json({ message: "Not authenticated" });
+//     }
+//
+//     const { filename } = req.params;
+//     const { answers } = req.body; // Now this will be an array
+//     const userId = req.user.user_id;
+//
+//     try {
+//         // 1. Load the assignment
+//         const assignmentPath = path.join(__dirname, "public", "Course", currentSubject, "assignments", filename+".json");
+//         const assignmentData = JSON.parse(fs.readFileSync(assignmentPath, 'utf-8'));
+//
+//         // 2. Check if already attempted
+//         const existingAttempt = await db.query(
+//             `SELECT * FROM assignment_attempts
+//              WHERE user_id = $1 AND filename = $2`,
+//             [userId, filename+".json"] // Make sure this matches your filename format
+//         );
+//
+//         if (existingAttempt.rows.length > 0) {
+//             return res.status(400).json({
+//                 message: "You have already submitted this assignment"
+//             });
+//         }
+//
+//         // 3. Grade the assignment
+//         let totalScore = 0;
+//         let maxScore = 0;
+//         const gradedAnswers = [];
+//
+//         assignmentData.questions.forEach((question, index) => {
+//             maxScore += question.marks;
+//             const studentAnswer = answers[index]; // Now using simple array index
+//             let isCorrect = false;
+//             let score = 0;
+//
+//             if (question.type === 'mcq' || question.type === 'truefalse') {
+//                 isCorrect = studentAnswer === question.correct;
+//                 score = isCorrect ? question.marks : 0;
+//             } else {
+//                 // For written answers, we'll just give partial credit
+//                 score = question.marks * 0.5; // 50% for attempting
+//                 isCorrect = null; // Manual grading needed
+//             }
+//
+//             totalScore += score;
+//             gradedAnswers.push({
+//                 question: question.question,
+//                 correctAnswer: question.correct,
+//                 studentAnswer,
+//                 isCorrect,
+//                 marks: question.marks,
+//                 awardedMarks: score
+//             });
+//         });
+//
+//         const grade = Math.round((totalScore / maxScore) * 100);
+//
+//         // 4. Save to database
+//          await db.query(
+//             `INSERT INTO assignment_attempts
+//              (user_id, subject, assignment_title, filename, grade)
+//              VALUES ($1, $2, $3, $4, $5)`,
+//             [
+//                 userId,
+//                 currentSubject,
+//                 assignmentData.title,
+//                 filename+".json", // Consistent filename format
+//                 grade,
+//
+//             ]
+//         );
+//
+//         res.redirect('/main');
+//
+//     } catch (error) {
+//         console.error("Error submitting assignment:", error);
+//         res.status(500).json({
+//             message: "Error submitting assignment",
+//             error: error.message
+//         });
+//     }
+// });
 app.post("/assignments/submit/:filename", async (req, res) => {
     if (!req.isAuthenticated()) {
         return res.status(401).json({ message: "Not authenticated" });
     }
 
     const { filename } = req.params;
-    const { answers } = req.body; // Now this will be an array
     const userId = req.user.user_id;
 
+    // Normalize answers from both JSON (manual) and form (auto) submissions
+    let answers = [];
+    const rawAnswers = req.body.answers;
+
+    if (Array.isArray(rawAnswers)) {
+        answers = rawAnswers;
+    } else if (typeof rawAnswers === 'object' && rawAnswers !== null) {
+        answers = Object.values(rawAnswers);
+    } else {
+        //return res.status(400).json({ message: "Invalid answers format." });
+    }
+
     try {
-        // 1. Load the assignment
-        const assignmentPath = path.join(__dirname, "public", "Course", currentSubject, "assignments", filename+".json");
+        // 1. Load the assignment JSON
+        const assignmentPath = path.join(__dirname, "public", "Course", currentSubject, "assignments", filename + ".json");
         const assignmentData = JSON.parse(fs.readFileSync(assignmentPath, 'utf-8'));
 
         // 2. Check if already attempted
         const existingAttempt = await db.query(
             `SELECT * FROM assignment_attempts
              WHERE user_id = $1 AND filename = $2`,
-            [userId, filename+".json"] // Make sure this matches your filename format
+            [userId, filename + ".json"]
         );
 
         if (existingAttempt.rows.length > 0) {
@@ -1928,7 +2110,7 @@ app.post("/assignments/submit/:filename", async (req, res) => {
 
         assignmentData.questions.forEach((question, index) => {
             maxScore += question.marks;
-            const studentAnswer = answers[index]; // Now using simple array index
+            const studentAnswer = answers[index];
             let isCorrect = false;
             let score = 0;
 
@@ -1936,12 +2118,13 @@ app.post("/assignments/submit/:filename", async (req, res) => {
                 isCorrect = studentAnswer === question.correct;
                 score = isCorrect ? question.marks : 0;
             } else {
-                // For written answers, we'll just give partial credit
-                score = question.marks * 0.5; // 50% for attempting
-                isCorrect = null; // Manual grading needed
+                // Written answer gets partial credit
+                score = question.marks * 0.5;
+                isCorrect = null;
             }
 
             totalScore += score;
+
             gradedAnswers.push({
                 question: question.question,
                 correctAnswer: question.correct,
@@ -1954,8 +2137,8 @@ app.post("/assignments/submit/:filename", async (req, res) => {
 
         const grade = Math.round((totalScore / maxScore) * 100);
 
-        // 4. Save to database
-         await db.query(
+        // 4. Save submission to DB
+        await db.query(
             `INSERT INTO assignment_attempts
              (user_id, subject, assignment_title, filename, grade)
              VALUES ($1, $2, $3, $4, $5)`,
@@ -1963,14 +2146,12 @@ app.post("/assignments/submit/:filename", async (req, res) => {
                 userId,
                 currentSubject,
                 assignmentData.title,
-                filename+".json", // Consistent filename format
-                grade,
-
+                filename + ".json",
+                grade
             ]
         );
 
         res.redirect('/main');
-
     } catch (error) {
         console.error("Error submitting assignment:", error);
         res.status(500).json({
@@ -1979,6 +2160,8 @@ app.post("/assignments/submit/:filename", async (req, res) => {
         });
     }
 });
+
+
 app.get("/admin/attempt/:attemptId", async (req, res) => {
     try {
         const { attemptId } = req.params;
@@ -2047,7 +2230,6 @@ app.post('/admin/decline/:fileName', async (req, res) => {
 
 
 //Study stream
-
 // Route to search for study videos
 app.get('/search', async (req, res) => {
     try {

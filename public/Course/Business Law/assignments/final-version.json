@@ -1,0 +1,22 @@
+{
+  "title": "final version",
+  "subject": "Business Law",
+  "deadline": "2025-08-02T20:08",
+  "isTimed": true,
+  "timeLimit": 1,
+  "questions": [
+    {
+      "type": "mcq",
+      "question": "dsf",
+      "marks": 3,
+      "options": [
+        "a",
+        "sd"
+      ],
+      "correct": "A"
+    }
+  ],
+  "filename": "final-version.json",
+  "createdAt": "2025-08-02T18:02:33.651Z",
+  "updatedAt": "2025-08-02T18:02:33.651Z"
+}
