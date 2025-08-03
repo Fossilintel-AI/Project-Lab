@@ -505,9 +505,47 @@
 
     async function viewAssignment(filename) {
         selectedAssignmentFilename = filename.replace(/\.json$/i, '');
-        const modal = new bootstrap.Modal(document.getElementById('confirmStartModal'));
-        modal.show();
+
+        // 🔍 Check deadline before showing modal
+        const subject = '<%= subject %>';
+        const response = await fetch(`/assignments/info/${selectedAssignmentFilename}`);
+        const result = await response.json();
+
+        if (result.status === 'late') {
+            // ⏰ Past deadline – auto submit with grade 0
+            const submitResponse = await fetch(`/assignments/force-submit/${selectedAssignmentFilename}`, {
+                method: "POST"
+            });
+
+            if (submitResponse.ok) {
+                const modalHtml = `
+                <div class="modal fade" id="deadlineModal" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header bg-warning text-dark">
+                                <h5 class="modal-title">Deadline Passed</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p>The deadline for this assignment has passed. A submission with a grade of 0 has been recorded automatically.</p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">OK</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+                const deadlineModal = new bootstrap.Modal(document.getElementById('deadlineModal'));
+                deadlineModal.show();
+            }
+        } else {
+            // 🟢 Show confirm start modal
+            const modal = new bootstrap.Modal(document.getElementById('confirmStartModal'));
+            modal.show();
+        }
     }
+
 
     document.getElementById("confirmStartBtn").addEventListener("click", async function () {
         const subject = '<%= subject %>';

@@ -1827,6 +1827,62 @@ app.post("/assignment/save", (req, res) => {
     }
 });
 
+//new
+app.get("/assignments/info/:filename", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ status: 'unauthenticated' });
+
+    const { filename } = req.params;
+    try {
+        const assignmentPath = path.join(__dirname, "public", "Course", currentSubject, "assignments", filename + ".json");
+        const assignmentData = JSON.parse(fs.readFileSync(assignmentPath, 'utf-8'));
+
+        const now = new Date();
+        const deadline = new Date(assignmentData.deadline);
+
+        if (now > deadline) {
+            return res.json({ status: 'late' });
+        } else {
+            return res.json({ status: 'on-time' });
+        }
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ status: 'error', error: err.message });
+    }
+});
+app.post("/assignments/force-submit/:filename", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Not authenticated" });
+
+    const { filename } = req.params;
+    const userId = req.user.user_id;
+
+    try {
+        const assignmentPath = path.join(__dirname, "public", "Course", currentSubject, "assignments", filename + ".json");
+        const assignmentData = JSON.parse(fs.readFileSync(assignmentPath, 'utf-8'));
+
+        const now = new Date();
+        const deadline = new Date(assignmentData.deadline);
+        if (now <= deadline) return res.status(400).json({ message: "Assignment is still open." });
+
+        // Check if already submitted
+        const attempt = await db.query(
+            `SELECT * FROM assignment_attempts WHERE user_id = $1 AND filename = $2`,
+            [userId, filename + ".json"]
+        );
+        if (attempt.rows.length > 0) return res.status(400).json({ message: "Already submitted." });
+
+        // Insert grade 0
+        await db.query(
+            `INSERT INTO assignment_attempts (user_id, subject, assignment_title, filename, grade)
+             VALUES ($1, $2, $3, $4, $5)`,
+            [userId, currentSubject, assignmentData.title, filename + ".json", 0]
+        );
+
+        return res.status(200).json({ message: "Auto-submission successful with grade 0" });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: "Error during auto-submission", error: err.message });
+    }
+});
 
 
 
