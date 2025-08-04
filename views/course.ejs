@@ -353,6 +353,35 @@
 </div>
 
 
+<!-- Success Modal -->
+<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-success">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="successModalLabel">Success</h5>
+                <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="successMessage">
+                Assignment created successfully!
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Error Modal -->
+<div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-danger">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="errorModalLabel">Error</h5>
+                <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="errorMessage">
+                Failed to create assignment.
+            </div>
+        </div>
+    </div>
+</div>
 
 
 
@@ -789,6 +818,7 @@
             const marks = parseInt(block.querySelector(`input[name="questions[${i}][marks]"]`).value);
             let options = [];
             let correct = null;
+
             if (type === "mcq") {
                 const optionInputs = block.querySelectorAll(`input[name="questions[${i}][options][]"]`);
                 optionInputs.forEach(input => options.push(input.value));
@@ -796,6 +826,7 @@
             } else if (type === "truefalse") {
                 correct = block.querySelector(`select[name="questions[${i}][correct]"]`).value;
             }
+
             questions.push({ type, question, marks, options, correct });
         }
 
@@ -813,18 +844,23 @@
             })
             .then(data => {
                 if (data.success) {
-                    alert(`Assignment ${filename ? 'updated' : 'created'} successfully!`);
+                    document.getElementById('successMessage').textContent = `Assignment ${filename ? 'updated' : 'created'} successfully!`;
+                    const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+                    successModal.show();
                     closeModal('createAssignmentModal');
-                    location.reload();
+                    setTimeout(() => location.reload(), 1500); // optional auto-reload
                 } else {
                     throw new Error(data.message || 'Operation failed');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert(`Failed to ${filename ? 'update' : 'create'} assignment: ${error.message}`);
+                document.getElementById('errorMessage').textContent = `Failed to ${filename ? 'update' : 'create'} assignment: ${error.message}`;
+                const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+                errorModal.show();
             });
     }
+
 
 
     function closeModal(modalId) {
