@@ -29,6 +29,8 @@
             <button class="tab-btn" onclick="openTab('personal-notes')">Personal Notes</button>
             <button class="tab-btn" onclick="openTab('upload-section')">Upload Notes</button>
             <button class="tab-btn" onclick="openTab('assignment-section')">Assignments</button>
+            <button class="tab-btn" onclick="openTab('video-section')">Lecture Videos</button>
+
         </div>
 
         <!-- Official Slides Tab -->
@@ -292,6 +294,65 @@
                         <p class="mt-3">No assignments available for this course yet</p>
                     </div>
                 <% } %>
+            <% } %>
+        </div>
+
+        <!-- Video Section Tab -->
+        <div id="video-section" class="tab-content">
+            <div class="section-header">
+                <h2><i class="fas fa-video"></i> Course Videos</h2>
+                <p>Watch uploaded course videos</p>
+            </div>
+
+            <% if (locals.isAdmin) { %>
+                <!-- Admin Upload Form -->
+                <div class="upload-container mb-4">
+                    <div class="upload-card">
+                        <div class="upload-header">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <h3>Upload Video</h3>
+                            <p>Share recorded lectures or related videos</p>
+                        </div>
+                        <form action="/uploadVideo" method="POST" enctype="multipart/form-data" class="upload-form">
+                            <input type="text" name="title" placeholder="Video Title" required class="form-control mb-2">
+                            <input type="file" name="videoFile" accept="video/*" required class="form-control mb-2">
+                            <button type="submit" class="primary-btn upload-btn">
+                                <i class="fas fa-upload"></i> Upload Video
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            <% } %>
+
+            <% if (videos.length === 0) { %>
+                <div class="empty-state">
+                    <i class="fas fa-video-slash"></i>
+                    <p>No videos available yet</p>
+                </div>
+            <% } else { %>
+                <div class="lecture-grid">
+                    <% videos.forEach((video, index) => { %>
+                        <div class="lecture-card">
+                            <div class="lecture-info">
+                                <div class="lecture-number">Video <%= index + 1 %></div>
+                                <h3><%= video.title %></h3>
+                            </div>
+                            <video width="100%" height="240" controls>
+                                <source src="/Course/<%= subject %>/videos/<%= video.filename %>" type="video/mp4">
+                                Your browser does not support the video tag.
+                            </video>
+
+
+                        <% if (locals.isAdmin) { %>
+                                <form action="/deleteVideo/<%= video.id %>" method="POST" style="margin-top:10px;">
+                                    <button type="submit" class="btn btn-sm btn-danger">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </form>
+                            <% } %>
+                        </div>
+                    <% }) %>
+                </div>
             <% } %>
         </div>
 

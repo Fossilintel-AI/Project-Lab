@@ -156,7 +156,8 @@ const cohere = new CohereClientV2({
     token: 'SWaeBAPGPwj2ClLJ3ToDPqipg6sVGNvfCIrLDo9p', // Your Cohere API key
 });
 
-
+//videos
+let videos = [];
 
 
 // Function to extract text from PDF
@@ -1258,6 +1259,9 @@ app.get("/course/:subject", async (req, res) => {
         if(userEmail == "admin@gmail.com"){
             AdminFlag = "The admin is here";
         }
+
+        const subjectVideos = videos.filter(v => v.subject === subject);
+
         // Render course.ejs with the subject and slides
         res.render("course.ejs", {
             subject,
@@ -1269,7 +1273,8 @@ app.get("/course/:subject", async (req, res) => {
             subscription_type,
             isAdmin: AdminFlag,
             existingAssignment: null,
-            filename: null
+            filename: null,
+            videos: subjectVideos
         });
     }
     else{
@@ -2308,6 +2313,69 @@ app.get('/search', async (req, res) => {
 app.get('/studystream', async (req, res) => {
     res.render("videos.ejs");
 });
+// Multer storage
+const Videostorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const filePath = path.join(__dirname, "public", "Course", currentSubject, "videos");
+        if (!fs.existsSync(filePath)) {
+            fs.mkdirSync(filePath, { recursive: true });
+        }
+        cb(null, filePath);
+    },
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + "-" + file.originalname);
+    },
+});
+
+// Use `storage:` not `Videostorage` key
+const Videoupload = multer({ storage: Videostorage });
+
+// Serve the entire `public/Course` folder under `/videos`
+app.use("/videos", express.static(path.join(__dirname, "public", "Course")));
+
+// Upload video route
+app.post("/uploadVideo", Videoupload.single("videoFile"), (req, res) => {
+    const { title } = req.body;
+    if (!req.file) {
+        return res.status(400).send("No video uploaded.");
+    }
+
+    const newVideo = {
+        id: Date.now(),
+        title,
+        filename: req.file.filename,  // just filename, path can be built dynamically
+        subject: currentSubject       // store subject
+    };
+    videos.push(newVideo);
+
+
+    res.redirect("back"); // Redirects back to the same page
+});
+
+// Delete video route
+app.post("/deleteVideo/:id", (req, res) => {
+    const videoId = parseInt(req.params.id);
+    const video = videos.find((v) => v.id === videoId);
+
+    if (!video) {
+        return res.status(404).send("Video not found.");
+    }
+
+    // Delete file
+    const filePath = path.join(__dirname, "public", "Course", video.filename);
+    if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+    }
+
+    // Remove from array
+    videos = videos.filter((v) => v.id !== videoId);
+
+    res.redirect("back");
+});
+
+
+
+
 
 
 //sessions and passport
