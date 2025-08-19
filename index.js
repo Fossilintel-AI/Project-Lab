@@ -160,6 +160,26 @@ const cohere = new CohereClientV2({
 let videos = [];
 
 
+function getVideosForSubject(subject) {
+    const videosPath = path.join(__dirname, "public", "Course", subject, "videos");
+
+    if (!fs.existsSync(videosPath)) return []; // No folder yet
+
+    const files = fs.readdirSync(videosPath);
+
+    // Map to video objects
+    const videoList = files.map((filename, index) => ({
+        id: Date.now() + index, // temporary id for the session
+        title: filename.replace(/\d+-/, '').replace(/\.[^/.]+$/, ''), // strip timestamp & extension
+        filename,
+        subject
+    }));
+
+    return videoList;
+}
+
+
+
 // Function to extract text from PDF
 async function extractTextFromPDF(filePath) {
     try {
@@ -1259,8 +1279,9 @@ app.get("/course/:subject", async (req, res) => {
         if(userEmail == "admin@gmail.com"){
             AdminFlag = "The admin is here";
         }
+        const videoList = getVideosForSubject(subject);
 
-        const subjectVideos = videos.filter(v => v.subject === subject);
+        const subjectVideos = videoList.filter(v => v.subject === subject);
 
         // Render course.ejs with the subject and slides
         res.render("course.ejs", {
