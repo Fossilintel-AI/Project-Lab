@@ -26,7 +26,10 @@
     <div class="dashboard-tabs">
         <div class="tab-nav">
             <button class="tab-btn active" onclick="openTab('official-slides')">Official Slides</button>
-            <button class="tab-btn" onclick="openTab('personal-notes')">Personal Notes</button>
+
+            <% if (!locals.isAdmin) { %>
+                <button class="tab-btn" onclick="openTab('personal-notes')">Personal Notes</button>
+            <% } %>
             <button class="tab-btn" onclick="openTab('upload-section')">Upload Notes</button>
             <button class="tab-btn" onclick="openTab('assignment-section')">Assignments</button>
             <button class="tab-btn" onclick="openTab('video-section')">Lecture Videos</button>
@@ -59,19 +62,41 @@
                                 <a href="/Course/<%= subject %>/slides/<%= encodeURIComponent(slide) %>" target="_blank" class="action-btn download">
                                     <i class="fas fa-download"></i> Download
                                 </a>
-                                <a href="/pdfview/<%= encodeURIComponent(slide) %>" class="action-btn view">
+                                <a href="/pdfview/<%= encodeURIComponent(slide) %>" class="action-btn download">
                                     <i class="fas fa-eye"></i> View
                                 </a>
+
+                                <% if (!locals.isAdmin) { %>
+
+                                    <!-- ✅ Progress Checkbox -->
+                                    <form action="/progress/update" method="POST" style="display:inline;">
+                                        <input type="hidden" name="subject" value="<%= subject %>">
+                                        <input type="hidden" name="content_name" value="<%= slide %>">
+                                        <input type="hidden" name="is_completed" value="false">
+
+                                        <div class="form-check form-switch d-inline-flex align-items-center">
+                                            <input class="form-check-input" type="checkbox" name="is_completed" value="true"
+                                                   onchange="this.form.submit()"
+                                                    <%= completedSlides.includes(slide) ? 'checked' : '' %>>
+                                            <label class="form-check-label ms-2">
+                                                <i class=""></i> Done
+                                            </label>
+                                        </div>
+                                    </form>
+
+                                <% } %>
+
+
                                 <% if (subscription_type === 'Enterprise') { %>
                                     <div class="premium-actions">
 
-                                        <a href="/youtubeRecommendation/<%= encodeURIComponent(slide) %>" class="action-btn premium">
+                                        <a href="/youtubeRecommendation/<%= encodeURIComponent(slide) %>" class="action-btn download">
                                             <i class="fas fa-video"></i>
                                         </a>
-                                        <a href="/generateQuestions/<%= encodeURIComponent(slide) %>" class="action-btn premium">
+                                        <a href="/generateQuestions/<%= encodeURIComponent(slide) %>" class="action-btn download">
                                             <i class="fas fa-bolt"></i> Flashcards
                                         </a>
-                                        <a href="/summarize/<%= encodeURIComponent(slide) %>" class="action-btn premium">
+                                        <a href="/summarize/<%= encodeURIComponent(slide) %>" class="action-btn download">
                                             <i class="fas fa-file-alt"></i> Summary
                                         </a>
 
@@ -89,6 +114,10 @@
                     <% }); %>
                 </div>
             <% } %>
+
+
+
+
         </div>
 
         <!-- Personal Notes Tab -->
@@ -131,19 +160,19 @@
                                     <a href="/Workstation/<%= userid %>/<%= subject %>/slides/<%= encodeURIComponent(slide.file_path) %>" target="_blank" class="action-btn download">
                                         <i class="fas fa-download"></i> Download
                                     </a>
-                                    <a href="/pdfview/<%= slide.file_path %>" class="action-btn view">
+                                    <a href="/pdfview/<%= slide.file_path %>" class="action-btn download">
                                         <i class="fas fa-eye"></i> View
                                     </a>
                                     <% if (subscription_type === 'Enterprise') { %>
                                         <div class="premium-actions">
-                                            <a href="/youtubeRecommendation/<%= slide.file_path %>" class="action-btn premium">
+                                            <a href="/youtubeRecommendation/<%= slide.file_path %>" class="action-btn download">
                                                 <i class="fas fa-video"></i>
                                             </a>
 
-                                            <a href="/generateQuestions/<%= slide.file_path %>" class="action-btn premium">
+                                            <a href="/generateQuestions/<%= slide.file_path %>" class="action-btn download">
                                                 <i class="fas fa-bolt"></i> Flashcards
                                             </a>
-                                            <a href="/summarize/<%= slide.file_path %>" class="action-btn premium">
+                                            <a href="/summarize/<%= slide.file_path %>" class="action-btn download">
                                                 <i class="fas fa-file-alt"></i> Summary
                                             </a>
                                         </div>
@@ -164,6 +193,31 @@
 
         <!-- Upload Section Tab -->
         <div id="upload-section" class="tab-content">
+
+            <% if (locals.isAdmin) { %>
+                <div class="upload-container">
+                    <div class="upload-card">
+                        <div class="upload-header">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <h2>Upload Lecture Slides</h2>
+
+                        </div>
+                        <form action="/AdminuploadPdf" method="POST" enctype="multipart/form-data" class="upload-form">
+                            <div class="file-upload">
+                                <input type="file" id="pdfFile" name="pdfFile" accept="application/pdf" required>
+                                <label for="pdfFile">
+                                    <i class="fas fa-file-pdf"></i>
+                                    <span>Choose PDF File</span>
+                                </label>
+                            </div>
+                            <button type="submit" class="primary-btn upload-btn">
+                                <i class="fas fa-upload"></i> Upload Notes
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                <% } else { %>
+
             <div class="upload-container">
                 <div class="upload-card">
                     <div class="upload-header">
@@ -185,117 +239,89 @@
                     </form>
                 </div>
             </div>
+                <% } %>
         </div>
 
         <!-- Assignment Section Tab -->
-        <div id="assignment-section" class="tab-content">
-            <div class="section-header">
-                <h2><i class="fas fa-tasks"></i> Assignments</h2>
-                <p>View and submit your course assignments</p>
+        <div id="assignment-section" class="tab-content py-4">
+
+            <!-- Section Header -->
+            <div class="section-header text-center mb-5">
+                <h2 class="fw-bold text-brown">
+                    <i class="fas fa-tasks me-2"></i>Assignments
+                </h2>
+                <p class="text-muted fs-6">View and submit your course assignments</p>
             </div>
 
             <% if (locals.isAdmin) { %>
-                <!-- Admin View -->
-                <div class="admin-assignment-controls mb-4">
-                    <button class="primary-btn" onclick="showCreateAssignmentModal()">
-                        <i class="fas fa-plus"></i> Create New Assignment
+                <!-- Admin Controls -->
+                <div class="admin-assignment-controls mb-4 text-end">
+                    <button class="btn btn-brown btn-sm shadow-sm" onclick="showCreateAssignmentModal()">
+                        <i class="fas fa-plus me-1"></i> New Assignment
                     </button>
                 </div>
-
-                <% if (assignments.length > 0) { %>
-                    <div class="assignment-list">
-                        <h3>Existing Assignments</h3>
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle">
-                                <thead class="table-light">
-                                <tr>
-                                    <th>Title</th>
-                                    <th>Questions</th>
-                                    <th>Total Marks</th>
-                                    <th>Deadline</th>
-                                    <th>Timed</th>
-                                    <th>Time Limit (min)</th>
-                                    <th>Actions</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                <% assignments.forEach(assignment => { %>
-                                    <tr>
-                                        <td><%= assignment.title %></td>
-                                        <td><%= assignment.questionCount %></td>
-                                        <td><%= assignment.totalMarks %></td>
-                                        <td>
-                                            <%= assignment.deadline ? new Date(assignment.deadline + ':00Z').toLocaleString() : 'N/A' %>
-                                        </td>
-
-                                        <td><%= assignment.isTimed ? 'Yes' : 'No' %></td>
-                                        <td><%= assignment.isTimed ? assignment.timeLimit + ' min' : 'N/A' %></td>
-                                        <td>
-                                            <button class="btn btn-sm btn-primary me-2" onclick="viewAssignment('<%= assignment.filename %>')">
-                                                <i class="fas fa-eye"></i> View
-                                            </button>
-                                            <button class="btn btn-sm btn-danger" onclick="deleteAssignment('<%= assignment.filename %>')">
-                                                <i class="fas fa-trash"></i> Delete
-                                            </button>
-                                        </td>
-                                    </tr>
-                                <% }) %>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                <% } else { %>
-                    <div class="empty-state mt-4 text-center">
-                        <i class="fas fa-tasks fa-3x text-muted"></i>
-                        <p class="mt-3">No assignments created yet</p>
-                    </div>
-                <% } %>
-
-            <% } else { %>
-                <!-- Student View -->
-                <% if (assignments.length > 0) { %>
-                    <div class="assignment-list mt-4">
-                        <div class="row">
-                            <% assignments.forEach(assignment => { %>
-                                <div class="col-md-6 mb-4">
-                                    <div class="card assignment-card shadow-sm">
-                                        <div class="card-body">
-                                            <h5 class="card-title"><%= assignment.title %></h5>
-                                            <p class="card-text mb-1">
-                                                <span class="badge bg-primary"><%= assignment.questionCount %> questions</span>
-                                                <span class="badge bg-success ms-2"><%= assignment.totalMarks %> total marks</span>
-                                            </p>
-                                            <p class="card-text mt-2">
-                                                <small class="text-muted">
-                                                    <i class="far fa-clock"></i>
-                                                    Deadline: <%= assignment.deadline ? new Date(assignment.deadline).toLocaleString() : 'No deadline' %><br>
-                                                    <i class="fas fa-hourglass-half"></i>
-                                                    Timed: <%= assignment.isTimed ? `Yes (${assignment.timeLimit} mins)` : 'No' %>
-                                                </small>
-                                            </p>
-                                            <% if (assignment.attempted) { %>
-                                                <div class="alert alert-info p-2 mt-3">
-                                                    Completed - Grade: <strong><%= assignment.grade %>%</strong>
-                                                </div>
-                                            <% } else { %>
-                                                <button class="btn btn-primary mt-3" onclick="viewAssignment('<%= assignment.filename %>')">
-                                                    <i class="fas fa-eye"></i> View Assignment
-                                                </button>
-                                            <% } %>
-                                        </div>
-                                    </div>
-                                </div>
-                            <% }) %>
-                        </div>
-                    </div>
-                <% } else { %>
-                    <div class="empty-state mt-4 text-center">
-                        <i class="fas fa-tasks fa-3x text-muted"></i>
-                        <p class="mt-3">No assignments available for this course yet</p>
-                    </div>
-                <% } %>
             <% } %>
+
+            <% if (assignments.length > 0) { %>
+                <!-- Assignment List -->
+                <div class="assignment-list">
+                    <% assignments.forEach(assignment => { %>
+                        <div class="assignment-item p-3 mb-3 shadow-sm rounded-3 d-flex justify-content-between align-items-center">
+                            <div class="assignment-info">
+                                <h5 class="mb-1 fw-bold"><%= assignment.title %></h5>
+                                <div class="text-muted fs-7">
+                                    <span><i class="far fa-clock me-1"></i> Deadline: <%= assignment.deadline ? new Date(assignment.deadline).toLocaleString() : 'No deadline' %></span>
+                                    <% if (assignment.isTimed) { %> | <span><i class="fas fa-hourglass-half me-1"></i> Timed: <%= assignment.timeLimit %> mins</span><% } %>
+                                </div>
+                                <div class="text-muted fs-7 mt-1">
+                                    <span><i class="fas fa-list-ol me-1"></i> <%= assignment.questionCount %> questions</span> |
+                                    <span><i class="fas fa-star me-1"></i> <%= assignment.totalMarks %> marks</span>
+                                </div>
+                                <% if (!locals.isAdmin && assignment.attempted) { %>
+                                    <div class="mt-1 text-success fw-semibold fs-7">Completed - Grade: <%= assignment.grade %>%</div>
+                                <% } %>
+                            </div>
+
+                            <div class="assignment-actions d-flex align-items-center">
+                                <% if (!locals.isAdmin && !assignment.attempted) { %>
+                                    <button class="btn btn-outline-primary" onclick="viewAssignment('<%= assignment.filename %>')">
+                                        Begin
+                                    </button>
+
+                            <% } else { %>
+                                    <button class="btn btn-outline-primary btn-sm me-2" onclick="viewAssignment('<%= assignment.filename %>')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                <% } %>
+
+                                <% if (locals.isAdmin) { %>
+                                    <button class="btn btn-outline-danger btn-sm" onclick="deleteAssignment('<%= assignment.filename %>')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                <% } %>
+                            </div>
+                        </div>
+                    <% }) %>
+                </div>
+
+        <% } else { %>
+                <div class="empty-state mt-5 text-center text-muted">
+                    <i class="fas fa-tasks fa-3x mb-2"></i>
+                    <p class="mb-0 fs-6">No assignments available</p>
+                </div>
+            <% } %>
+
         </div>
+
+        <style>
+            .text-brown { color: #6b4c3b; }
+            .btn-brown { background-color: #6b4c3b; color: #fff; border: none; transition: 0.2s; }
+            .btn-brown:hover { background-color: #8a674f; }
+            .assignment-item { background-color: #fff; transition: 0.2s; }
+            .assignment-item:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.08); }
+            .assignment-actions button { min-width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; padding: 0; }
+        </style>
+
 
         <!-- Video Section Tab -->
         <div id="video-section" class="tab-content">
@@ -448,7 +474,28 @@
 
 <style>
 
+    .btn-brown {
+        background-color: #6b4c3b;
+        color: #fff;
+        border: none;
+        transition: 0.3s;
+    }
 
+    .btn-brown:hover {
+        background-color: #8a674f;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+    }
+
+    .btn-begin {
+        padding: 0.5rem 1.2rem;
+        font-weight: 600;
+        border-radius: 50px; /* pill shape */
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
 
 
 

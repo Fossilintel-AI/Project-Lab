@@ -95,6 +95,46 @@ const storage = multer.diskStorage({
         cb(null, file.originalname);
     }
 });
+
+//for admin upload
+// Set storage engine for Multer
+const Adminstorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        if (!global.user_id || !global.currentSubject) {
+            return cb(new Error("User ID or Subject is missing"));
+        }
+
+        const dir = path.join(__dirname, `./public/Course/${global.currentSubject}/slides`);
+
+        // Create directory if it doesn't exist
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+        }
+
+        cb(null, dir);
+    },
+    filename: (req, file, cb) => {
+        cb(null, file.originalname);
+    }
+});
+
+// Initialize Adminupload middleware
+const Adminupload = multer({
+    storage: Adminstorage,
+    limits: { fileSize: 5 * 1024 * 1024 }, // Limit to 5MB
+    fileFilter: (req, file, cb) => {
+        const fileTypes = /pdf/;
+        const extname = fileTypes.test(path.extname(file.originalname).toLowerCase());
+        const mimetype = fileTypes.test(file.mimetype);
+
+        if (extname && mimetype) {
+            cb(null, true);
+        } else {
+            cb(new Error("Only PDF files are allowed!"));
+        }
+    }
+});
+
 // Initialize upload middleware
 const upload = multer({
     storage: storage,
@@ -702,11 +742,47 @@ app.get("/logout", (req, res, next) => {
 });
 
 //user Profile
+// app.get("/profile", async (req, res) => {
+//     if (!req.isAuthenticated()) {
+//         return res.redirect("/login");
+//     }
+//
+//     try {
+//         const currentUser = {
+//             first_name: req.user.first_name,
+//             last_name: req.user.last_name,
+//             email: req.user.email,
+//             subscription_type: req.user.subscription_type,
+//             bio: req.user.bio,
+//             created_at: req.user.created_at,
+//             address: req.user.address,
+//             user_id: req.user.user_id // Make sure we have the user_id
+//         };
+//
+//         // Fetch the student's assignment attempts
+//         const assignmentAttempts = await db.query(`
+//             SELECT aa.*, u.first_name, u.last_name, u.email
+//             FROM assignment_attempts aa
+//             JOIN users u ON aa.user_id = u.user_id
+//             WHERE aa.user_id = $1
+//             ORDER BY aa.attempt_date DESC
+//         `, [currentUser.user_id]);
+//
+//         res.render("profile.ejs", {
+//             currentUser,
+//             assignmentAttempts: assignmentAttempts.rows,
+//             user: "user Present"
+//         });
+//
+//     } catch (error) {
+//         console.error("Error loading profile:", error);
+//         res.status(500).send("Error loading profile");
+//     }
+// });
 app.get("/profile", async (req, res) => {
     if (!req.isAuthenticated()) {
         return res.redirect("/login");
     }
-
     try {
         const currentUser = {
             first_name: req.user.first_name,
@@ -716,10 +792,10 @@ app.get("/profile", async (req, res) => {
             bio: req.user.bio,
             created_at: req.user.created_at,
             address: req.user.address,
-            user_id: req.user.user_id // Make sure we have the user_id
+            user_id: req.user.user_id
         };
 
-        // Fetch the student's assignment attempts
+        // Fetch assignment attempts
         const assignmentAttempts = await db.query(`
             SELECT aa.*, u.first_name, u.last_name, u.email 
             FROM assignment_attempts aa
@@ -728,9 +804,20 @@ app.get("/profile", async (req, res) => {
             ORDER BY aa.attempt_date DESC
         `, [currentUser.user_id]);
 
+        // 🔹 Fetch progress summary per subject
+        const progressSummary = await db.query(`
+            SELECT subject,
+                   COUNT(*) FILTER (WHERE is_completed = true) AS completed,
+                   COUNT(*) AS total
+            FROM progress
+            WHERE user_id = $1
+            GROUP BY subject
+        `, [currentUser.user_id]);
+
         res.render("profile.ejs", {
             currentUser,
             assignmentAttempts: assignmentAttempts.rows,
+            progressSummary: progressSummary.rows,
             user: "user Present"
         });
 
@@ -739,6 +826,9 @@ app.get("/profile", async (req, res) => {
         res.status(500).send("Error loading profile");
     }
 });
+
+
+
 app.get("/edit-profile", (req, res) => {
     if (!req.isAuthenticated()) {
         return res.redirect("/login");
@@ -1279,6 +1369,36 @@ app.get("/course/:subject", async (req, res) => {
         if(userEmail == "admin@gmail.com"){
             AdminFlag = "The admin is here";
         }
+
+        // ✅ Fetch completed slides for this student
+        let completedSlides = [];
+        try {
+
+            // ✅ Insert missing slides into progress table with default is_completed = false
+            if(AdminFlag == ""){
+                for (const slide of slides) {
+                    await db.query(
+                        `INSERT INTO progress (user_id, subject, content_name, is_completed)
+                 VALUES ($1, $2, $3, false)
+                 ON CONFLICT (user_id, subject, content_name) DO NOTHING`,
+                        [currentUser.user_id, subject, slide]
+                    );
+                }
+            }
+
+
+
+            const result = await db.query(
+                `SELECT content_name FROM progress 
+             WHERE user_id = $1 AND subject = $2 AND is_completed = true`,
+                [currentUser.user_id, subject]
+            );
+            completedSlides = result.rows.map(row => row.content_name);
+        } catch (err) {
+            console.error("Error fetching progress:", err);
+        }
+
+
         const videoList = getVideosForSubject(subject);
 
         const subjectVideos = videoList.filter(v => v.subject === subject);
@@ -1288,6 +1408,7 @@ app.get("/course/:subject", async (req, res) => {
             subject,
             assignments,
             slides,
+            completedSlides,   // ✅ pass to frontend
             personalslides,
             userid: currentUser.user_id,
             user: "user Present",
@@ -1303,6 +1424,36 @@ app.get("/course/:subject", async (req, res) => {
     }
 });
 
+//progress
+app.post("/progress/update", async (req, res) => {
+    if (!req.isAuthenticated()) return res.redirect("/login");
+
+    let { subject, content_name, is_completed } = req.body;
+    const userId = req.user.user_id;
+
+    // ✅ Handle array case (["false", "true"]) or single value
+    if (Array.isArray(is_completed)) {
+        is_completed = is_completed.includes("true");
+    } else {
+        is_completed = is_completed === "true";
+    }
+
+    try {
+        await db.query(
+            `INSERT INTO progress (user_id, subject, content_name, is_completed)
+             VALUES ($1, $2, $3, $4)
+                 ON CONFLICT (user_id, subject, content_name)
+             DO UPDATE SET is_completed = EXCLUDED.is_completed`,
+            [userId, subject, content_name, is_completed]
+        );
+        res.redirect("back");
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error updating progress");
+    }
+});
+
+
 
 app.post("/uploadPdf", upload.single('pdfFile'),  async (req, res) => {
     // if (!req.file) {
@@ -1311,6 +1462,7 @@ app.post("/uploadPdf", upload.single('pdfFile'),  async (req, res) => {
     if(req.isAuthenticated())
     {
 
+        console.log("We are uploading");
         const filePath = path.join(`/Users/harveyfossil/Desktop/BME 4th Sem/Web development/Project-Lab/Workstation/${global.user_id}/${global.currentSubject}/slides`, req.file.originalname);
         const fileName = req.file.originalname;
         const fileDirectory = path.dirname(filePath);
@@ -1319,6 +1471,35 @@ app.post("/uploadPdf", upload.single('pdfFile'),  async (req, res) => {
         try {
             // Insert the file data into the database
             await db.query("INSERT INTO pdfUploads (file_directory, file_name, isApproved) VALUES ($1, $2, $3)", [fileDirectory, fileName, isApproved]);
+
+            // Redirect to the course page after upload
+            res.redirect(`/course/${global.currentSubject}`);
+        } catch (dbError) {
+            console.error("Database error:", dbError);
+            //res.status(500).send('Error updating database');
+            res.redirect(`/course/${global.currentSubject}`);
+
+        }
+    }
+    else{
+        res.redirect("/login");
+    }
+
+
+});
+app.post("/AdminuploadPdf", Adminupload.single('pdfFile'),  async (req, res) => {
+    // if (!req.file) {
+    //     return res.status(400).send('No file uploaded.');
+    // }
+    if(req.isAuthenticated())
+    {
+
+        const filePath = path.join(`/Users/harveyfossil/Desktop/BME 4th Sem/Web development/Project-Lab/public/${global.currentSubject}/slides`, req.file.originalname);
+        const fileName = req.file.originalname;
+        const fileDirectory = path.dirname(filePath);
+
+
+        try {
 
             // Redirect to the course page after upload
             res.redirect(`/course/${global.currentSubject}`);
@@ -1912,59 +2093,6 @@ app.post("/assignments/force-submit/:filename", async (req, res) => {
 
 
 
-// // Save or update assignment(commented tdiay)
-// app.post("/assignment/save", (req, res) => {
-//     const { title, questions, filename } = req.body;
-//     const subject = req.body.subject || req.query.subject; // Make sure to pass subject from frontend
-//
-//     if (!title || !questions) {
-//         return res.status(400).json({ success: false, message: "Title and questions are required" });
-//     }
-//
-//     // Create a filename-safe version of the title
-//     const safeTitle = title.toLowerCase()
-//         .replace(/[^a-z0-9]/g, '-')  // Replace non-alphanumeric with hyphens
-//         .replace(/-+/g, '-')         // Replace multiple hyphens with single
-//         .replace(/^-|-$/g, '');      // Remove leading/trailing hyphens
-//
-//     const assignmentFilename = `${safeTitle}.json`;
-//
-//     // Create the assignment directory path
-//     const assignmentsDir = path.join(__dirname, "public", "Course", subject, "assignments");
-//
-//     try {
-//         // Ensure directory exists
-//         if (!fs.existsSync(assignmentsDir)) {
-//             fs.mkdirSync(assignmentsDir, { recursive: true });
-//         }
-//
-//         const filePath = path.join(assignmentsDir, assignmentFilename);
-//         const assignmentData = {
-//             title,
-//             questions,
-//             filename: assignmentFilename,
-//             createdAt: new Date().toISOString(),
-//             updatedAt: new Date().toISOString()
-//         };
-//
-//         fs.writeFileSync(filePath, JSON.stringify(assignmentData, null, 2));
-//
-//         res.json({
-//             success: true,
-//             message: "Assignment saved successfully",
-//             filename: assignmentFilename,
-//             path: filePath
-//         });
-//     } catch (err) {
-//         console.error("Error saving assignment:", err);
-//         res.status(500).json({
-//             success: false,
-//             message: "Error saving assignment",
-//             error: err.message
-//         });
-//     }
-// });
-
 //check if assignment is attempted
 app.get('/assignments/check/:filename', async (req, res) => {
     if (!req.isAuthenticated()) {
@@ -1988,34 +2116,7 @@ app.get('/assignments/check/:filename', async (req, res) => {
 });
 
 
-// Add this to your server routes(COMMENTED BY ME)
-// app.get('/Course/:subject/assignments/:filename', async (req, res) => {
-//     try {
-//         const userEmail = req.user.email;
-//         console.log("we got it");
-//         const { subject, filename } = req.params;
-//
-//         // Read the assignment file (adjust path as needed)
-//         const assignmentPath = path.join(__dirname, "public", "Course", subject, "assignments", filename+ ".json");
-//         const assignmentData = JSON.parse(fs.readFileSync(assignmentPath, 'utf-8'));
-//         var Admin;
-//         if(userEmail =="admin@gmail.com"){
-//             Admin = "The admin is here";
-//         }
-//
-//
-//         // Render the EJS template
-//         res.render('assignmentView.ejs', {
-//             assignment: assignmentData,
-//             subject: subject,
-//             filename:filename,
-//             isAdmin: Admin
-//         });
-//     } catch (err) {
-//         console.error('Error loading assignment:', err);
-//         res.status(500).send('Error loading assignment');
-//     }
-// });
+
 app.get('/Course/:subject/assignments/:filename', async (req, res) => {
     try {
         const userEmail = req.user.email;
@@ -2154,22 +2255,20 @@ app.post("/assignments/submit/:filename", async (req, res) => {
 
     const { filename } = req.params;
     const userId = req.user.user_id;
+    const subject = req.body.subject || currentSubject; // Get subject from frontend or use current
 
-    // Normalize answers from both JSON (manual) and form (auto) submissions
     let answers = [];
-    const rawAnswers = req.body.answers;
 
-    if (Array.isArray(rawAnswers)) {
-        answers = rawAnswers;
-    } else if (typeof rawAnswers === 'object' && rawAnswers !== null) {
-        answers = Object.values(rawAnswers);
-    } else {
-        //return res.status(400).json({ message: "Invalid answers format." });
+    // Handle different answer formats
+    if (Array.isArray(req.body.answers)) {
+        answers = req.body.answers;
+    } else if (typeof req.body.answers === 'object') {
+        answers = Object.values(req.body.answers);
     }
 
     try {
         // 1. Load the assignment JSON
-        const assignmentPath = path.join(__dirname, "public", "Course", currentSubject, "assignments", filename + ".json");
+        const assignmentPath = path.join(__dirname, "public", "Course", subject, "assignments", filename + ".json");
         const assignmentData = JSON.parse(fs.readFileSync(assignmentPath, 'utf-8'));
 
         // 2. Check if already attempted
@@ -2192,7 +2291,7 @@ app.post("/assignments/submit/:filename", async (req, res) => {
 
         assignmentData.questions.forEach((question, index) => {
             maxScore += question.marks;
-            const studentAnswer = answers[index];
+            const studentAnswer = answers[index] || ''; // Handle missing answers
             let isCorrect = false;
             let score = 0;
 
@@ -2201,7 +2300,7 @@ app.post("/assignments/submit/:filename", async (req, res) => {
                 score = isCorrect ? question.marks : 0;
             } else {
                 // Written answer gets partial credit
-                score = question.marks * 0.5;
+                score = studentAnswer.trim() ? question.marks * 0.5 : 0;
                 isCorrect = null;
             }
 
@@ -2217,7 +2316,7 @@ app.post("/assignments/submit/:filename", async (req, res) => {
             });
         });
 
-        const grade = Math.round((totalScore / maxScore) * 100);
+        const grade = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
 
         // 4. Save submission to DB
         await db.query(
@@ -2226,14 +2325,22 @@ app.post("/assignments/submit/:filename", async (req, res) => {
              VALUES ($1, $2, $3, $4, $5)`,
             [
                 userId,
-                currentSubject,
+                subject,
                 assignmentData.title,
                 filename + ".json",
                 grade
+
             ]
         );
 
-        res.redirect('/main');
+        // Return JSON response instead of redirect
+        res.json({
+            success: true,
+            grade: grade,
+            totalScore: totalScore,
+            maxScore: maxScore
+        });
+
     } catch (error) {
         console.error("Error submitting assignment:", error);
         res.status(500).json({
@@ -2242,7 +2349,6 @@ app.post("/assignments/submit/:filename", async (req, res) => {
         });
     }
 });
-
 
 app.get("/admin/attempt/:attemptId", async (req, res) => {
     try {
