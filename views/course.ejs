@@ -697,10 +697,10 @@
         const response = await fetch(`/assignments/check/${cleanFilename}`);
         const result = await response.json();
 
-        if (result.attempted) {
-            alert("You have already attempted this assignment. You cannot access it again.");
-            return;
-        }
+        // if (result.attempted) {
+        //     alert("You have already attempted this assignment. You cannot access it again.");
+        //     return;
+        // }
 
         sessionStorage.setItem(`started-${cleanFilename}`, Date.now());
         window.location.href = `/Course/${subject}/assignments/${encodeURIComponent(cleanFilename)}`;

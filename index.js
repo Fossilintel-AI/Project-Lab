@@ -463,7 +463,6 @@ app.get("/contact", async (req, res) => {
     //res.render("test.ejs");
 });
 app.get("/login", async (req, res) => {
-    console.log("we are here1");
     res.render("login.ejs" );
 });
 app.get("/register", async (req, res) => {
@@ -480,7 +479,7 @@ app.get("/faq", async (req, res) => {
 });
 app.post('/subscribe-newsletter', async (req, res) => {
     const { email } = req.body;
-    console.log(req.body);
+
 
     // Basic validation
     if (!email || !email.includes('@')) {
@@ -507,7 +506,7 @@ app.post('/subscribe-newsletter', async (req, res) => {
 // Handle contact form submission
 app.post('/send-message', (req, res) => {
     const { name, email, subject, message } = req.body;
-    //console.log(req.body);
+
 
     // Insert query following your preferred format
     const query = "INSERT INTO studentcontact (name, email, subject, message) VALUES ($1, $2, $3, $4)";
@@ -535,7 +534,7 @@ app.post('/admin/send-reply', async (req, res) => {
             "UPDATE studentcontact SET isRead = true WHERE email = $1 AND isRead = false",
             [email]
         );
-        console.log('Message marked as read.');
+
     } catch (err) {
         console.error('Error updating isRead field:', err);
         return res.status(500).send('Failed to mark message as read.');
@@ -562,14 +561,14 @@ app.post('/admin/send-reply', async (req, res) => {
             console.error("Error sending email:", error);
             return res.status(500).send('Failed to send reply.');
         }
-        console.log("Reply email sent:", info.response);
+
         return res.status(200).send('Reply sent successfully.');
     });
 });
 
 app.post("/signup", async (req, res) => {
     const { first_name, last_name, email, password, bio, home_address, subscription_type } = req.body;
-    console.log("We in the sign up")
+
     // Check if any of the required fields are empty
     if (!first_name || !last_name || !email || !password || !bio || !home_address || !subscription_type) {
         return res.render("signup.ejs", { error: "All fields are required!" });
@@ -623,42 +622,8 @@ app.post("/signup", async (req, res) => {
         return res.render("signup.ejs", { error: "An error occurred. Please try again." });
     }
 });
-// app.get("/main", async (req, res) => {
-//     if(req.isAuthenticated())
-//     {
-//
-//         const currentUser = req.user;
-//         const subscription_type = currentUser.subscription_type;
-//         const userEmail =  req.user.email;
-//         const unapprovedDocuments = await db.query("SELECT file_directory, file_name FROM pdfUploads WHERE isApproved != 'Approved' AND isApproved != 'Declined'");
-//
-//         if(userEmail == "admin@gmail.com" && unapprovedDocuments.rows.length != 0){
-//             try {
-//
-//                 console.log("Database Query Result:", unapprovedDocuments); // Log full result
-//                 console.log("Unapproved Documents:", unapprovedDocuments.rows); // Log rows array
-//                 // Pass unapproved documents data to the admin dashboard
-//
-//
-//                 res.render('admin-dashboard.ejs', {  unapprovedDocuments: unapprovedDocuments.rows , user: user_id !== -1 ? "user Present" : null,subscription_type});
-//             } catch (error) {
-//                 console.error(error);
-//                 res.status(500).send('Something went wrong');
-//             }
-//         }
-//         else{
-//             res.render("welcome.ejs", { user: user_id !== -1 ? "user Present" : null,subscription_type  });
-//         }
-//
-//
-//         //res.render("welcome.ejs");
-//     }
-//     else{
-//         res.redirect("/login");
-//     }
-//     // Render the welcome page with the books
-//
-// });
+
+
 app.get("/main", async (req, res) => {
     if (req.isAuthenticated()) {
         const currentUser = req.user;
@@ -676,7 +641,7 @@ passport.use(new Strategy({
     usernameField: 'email',  // The name of the input field in the form for the email
     passwordField: 'password'  // The name of the input field in the form for the password
 }, async function verify(email, password, cb) {
-    console.log("Strategy called with:", email, password);
+
     try {
         const result = await db.query("SELECT * FROM users WHERE email = $1", [email]);
         if (result.rows.length > 0) {
@@ -706,7 +671,7 @@ passport.use(new Strategy({
 
 app.post("/login", (req, res, next) => {
 
-    console.log("Received credentials:", req.body);
+
     passport.authenticate("local", (err, user, info) => {
         if (err) {
             console.error("Authentication error:", err);
@@ -721,7 +686,7 @@ app.post("/login", (req, res, next) => {
                 console.error("Error logging in:", err);
                 return res.redirect("/login");
             }
-            console.log("User successfully logged in");
+
             return res.redirect("/main");
         });
     })(req, res, next);
@@ -741,44 +706,7 @@ app.get("/logout", (req, res, next) => {
     });
 });
 
-//user Profile
-// app.get("/profile", async (req, res) => {
-//     if (!req.isAuthenticated()) {
-//         return res.redirect("/login");
-//     }
-//
-//     try {
-//         const currentUser = {
-//             first_name: req.user.first_name,
-//             last_name: req.user.last_name,
-//             email: req.user.email,
-//             subscription_type: req.user.subscription_type,
-//             bio: req.user.bio,
-//             created_at: req.user.created_at,
-//             address: req.user.address,
-//             user_id: req.user.user_id // Make sure we have the user_id
-//         };
-//
-//         // Fetch the student's assignment attempts
-//         const assignmentAttempts = await db.query(`
-//             SELECT aa.*, u.first_name, u.last_name, u.email
-//             FROM assignment_attempts aa
-//             JOIN users u ON aa.user_id = u.user_id
-//             WHERE aa.user_id = $1
-//             ORDER BY aa.attempt_date DESC
-//         `, [currentUser.user_id]);
-//
-//         res.render("profile.ejs", {
-//             currentUser,
-//             assignmentAttempts: assignmentAttempts.rows,
-//             user: "user Present"
-//         });
-//
-//     } catch (error) {
-//         console.error("Error loading profile:", error);
-//         res.status(500).send("Error loading profile");
-//     }
-// });
+
 app.get("/profile", async (req, res) => {
     if (!req.isAuthenticated()) {
         return res.redirect("/login");
@@ -922,7 +850,7 @@ app.get("/delete", (req, res) => {
             if (err) {
                 console.error("Error updating item:", err.stack);
             } else {
-                console.log("Item updated successfully!");
+
                 const booksResult = await db.query("SELECT * FROM readBooks WHERE userid = $1", [user_id]);
                 const books = booksResult.rows;
                 //res.render("welcome.ejs", { user: user_id !== -1 ? "user Present" : null,books: books });
@@ -943,7 +871,7 @@ app.get("/edit", async (req, res) => {
         const bookId = parseInt(req.query.id, 10); // Ensure bookId is an integer
         const result = await db.query("SELECT * FROM readBooks WHERE id = $1", [bookId]); // Use parameterized queries to prevent SQL injection
 
-        console.log(result.rows[0]); // This will log the fetched book
+
 
         if (result.rows.length > 0) {
             res.render("editBook.ejs", { user: user_id !== -1 ? "user Present" : null,book: result.rows[0] });
@@ -1016,12 +944,12 @@ app.post("/addItem", (req, res) => {
 app.post("/editItem", (req, res) => {
     if(req.isAuthenticated())
     {
-        console.log(req.body);
+
         db.query("UPDATE items SET title = $1 WHERE id = $2",[req.body.updatedItemTitle,req.body.updatedItemId],(err, result) => {
             if (err) {
                 console.error("Error updating item:", err.stack);
             } else {
-                console.log("Item updated successfully!");
+
                 res.redirect("/todo-list");
             }
         });
@@ -1035,14 +963,13 @@ app.post("/editItem", (req, res) => {
 app.post("/deleteItem", (req, res) => {
     if(req.isAuthenticated())
     {
-        //needs to change to delete not post
-        console.log(req.body);
+
 
         db.query("Delete FROM items WHERE id = $1",[req.body.deleteItemId],(err, result) => {
             if (err) {
                 console.error("Error updating item:", err.stack);
             } else {
-                console.log("Item updated successfully!");
+
                 res.redirect("/todo-list");
             }
         });
@@ -1136,144 +1063,6 @@ app.post('/addAdminCommentForum', async (req, res) => {
 });
 
 
-//The course
-// app.get("/course/:subject", async (req, res) => {
-//     if(req.isAuthenticated())
-//     {
-//         const currentUser = req.user;
-//         const subscription_type = currentUser.subscription_type;
-//         const subject = req.params.subject;
-//         const slidesPath = path.join(__dirname, "public", "Course", subject, "slides");
-//         currentSubject = subject;
-//
-//
-//
-//         let slides = [];
-//
-//         try {
-//             // Read all slide filenames in the subject's slides folder
-//             slides = fs.readdirSync(slidesPath)
-//                 .filter(file => file.endsWith(".pdf")) // Adjust file type if needed
-//                 .sort((a, b) => a.localeCompare(b, undefined, { numeric: true })); // Sort numerically (Lecture 01, 02...)
-//
-//         } catch (error) {
-//             console.error("Error reading slides:", error);
-//         }
-//         const slidesPathPersonal = path.join(__dirname, "Workstation", String(user_id), subject, "slides");
-//
-//         let personalslides = [];
-//         try {
-//             // Read all slide filenames in the subject's slides folder
-//             personalslides = fs.readdirSync(slidesPathPersonal)
-//                 .filter(file => file.endsWith(".pdf")) // Adjust file type if needed
-//                 .sort((a, b) => a.localeCompare(b, undefined, { numeric: true })); // Sort numerically (Lecture 01, 02...)
-//
-//         } catch (error) {
-//             console.error("Error reading slides:", error);
-//         }
-//
-//
-//
-//         // Render course.ejs with the subject and slides
-//         res.render("course.ejs", { subject, slides,personalslides,userid:user_id, user: user_id !== -1 ? "user Present" : null,subscription_type });
-//     }
-//     else{
-//         res.redirect("/login");
-//     }
-//
-//
-// });
-
-
-// app.get("/course/:subject", async (req, res) => {
-//     if(req.isAuthenticated())
-//     {
-//         const currentUser = req.user;
-//         const subscription_type = currentUser.subscription_type;
-//         const subject = req.params.subject;
-//         const slidesPath = path.join(__dirname, "public", "Course", subject, "slides");
-//         currentSubject = subject;
-//
-//
-//
-//         let slides = [];
-//
-//         try {
-//             // Read all slide filenames in the subject's slides folder
-//             slides = fs.readdirSync(slidesPath)
-//                 .filter(file => file.endsWith(".pdf")) // Adjust file type if needed
-//                 .sort((a, b) => a.localeCompare(b, undefined, { numeric: true })); // Sort numerically (Lecture 01, 02...)
-//
-//         } catch (error) {
-//             console.error("Error reading slides:", error);
-//         }
-//         const slidesPathPersonal = path.join(__dirname, "Workstation", String(user_id), subject, "slides");
-//
-//         let personalslides = [];
-//         try {
-//             // Read all slide filenames in the subject's slides folder
-//             personalslides = fs.readdirSync(slidesPathPersonal)
-//                 .filter(file => file.endsWith(".pdf")) // Adjust file type if needed
-//                 .sort((a, b) => a.localeCompare(b, undefined, { numeric: true })) // Sort numerically (Lecture 01, 02...)
-//                 .map(file => ({ file_path: file, isApproved: "Pending" })); // Default to false
-//
-//             console.log(personalslides);
-//             console.log(slidesPathPersonal);
-//             // Fetch approval status from the database
-//             const results = await db.query("SELECT file_directory, file_name, isApproved FROM pdfUploads WHERE file_directory = $1", [slidesPathPersonal]);
-//             console.log(results);
-//             // Create a lookup table from the database results
-//             const approvalMap = new Map(results.rows.map(row => [path.basename(row.file_name), row.isapproved])); // Ensure you're mapping from results.rows
-//
-//             console.log("Approval Map:", approvalMap);
-//             // Update personalslides with database approval status if found
-//             personalslides = personalslides.map(slide => ({
-//                 file_path: slide.file_path,
-//                 isApproved: approvalMap.has(slide.file_path)
-//                     ? (approvalMap.get(slide.file_path) === 'Approved' ? 'Approved' : (approvalMap.get(slide.file_path) === 'Declined' ? 'Declined' : 'Pending'))
-//                     : 'Pending'
-//             }));
-//             console.log("Updated Personal Slides:", personalslides);
-//         } catch (error) {
-//             console.error("Error reading slides:", error);
-//         }
-//
-//         //reading the file name
-//         const assignmentsDir = path.join(__dirname, "public", "Course", subject, "assignments");
-//
-//         // Read assignments if directory exists
-//         let assignments = [];
-//         if (fs.existsSync(assignmentsDir)) {
-//             const assignmentFiles = fs.readdirSync(assignmentsDir)
-//                 .filter(f => f.endsWith(".json"))
-//                 .map(file => {
-//                     const filePath = path.join(assignmentsDir, file);
-//                     const data = JSON.parse(fs.readFileSync(filePath));
-//                     return {
-//                         filename: file,
-//                         title: data.title,
-//                         questionCount: data.questions.length,
-//                         totalMarks: data.questions.reduce((sum, q) => sum + q.marks, 0)
-//                     };
-//                 });
-//             assignments = assignmentFiles;
-//         }
-//
-//
-//         const userEmail =  req.user.email;
-//         var AdminFlag = "";
-//         if(userEmail == "admin@gmail.com"){
-//             AdminFlag = "The admin is here";
-//         }
-//         // Render course.ejs with the subject and slides
-//         res.render("course.ejs", { subject,assignments, slides,personalslides,userid:user_id, user: user_id !== -1 ? "user Present" : null,subscription_type,isAdmin:AdminFlag,existingAssignment: null, filename: null });
-//     }
-//     else{
-//         res.redirect("/login");
-//     }
-//
-//
-// });
 app.get("/course/:subject", async (req, res) => {
     if(req.isAuthenticated())
     {
@@ -1304,15 +1093,13 @@ app.get("/course/:subject", async (req, res) => {
                 .sort((a, b) => a.localeCompare(b, undefined, { numeric: true })) // Sort numerically (Lecture 01, 02...)
                 .map(file => ({ file_path: file, isApproved: "Pending" })); // Default to false
 
-            console.log(personalslides);
-            console.log(slidesPathPersonal);
+
             // Fetch approval status from the database
             const results = await db.query("SELECT file_directory, file_name, isApproved FROM pdfUploads WHERE file_directory = $1", [slidesPathPersonal]);
-            console.log(results);
+
             // Create a lookup table from the database results
             const approvalMap = new Map(results.rows.map(row => [path.basename(row.file_name), row.isapproved])); // Ensure you're mapping from results.rows
 
-            console.log("Approval Map:", approvalMap);
             // Update personalslides with database approval status if found
             personalslides = personalslides.map(slide => ({
                 file_path: slide.file_path,
@@ -1320,7 +1107,7 @@ app.get("/course/:subject", async (req, res) => {
                     ? (approvalMap.get(slide.file_path) === 'Approved' ? 'Approved' : (approvalMap.get(slide.file_path) === 'Declined' ? 'Declined' : 'Pending'))
                     : 'Pending'
             }));
-            console.log("Updated Personal Slides:", personalslides);
+
         } catch (error) {
             console.error("Error reading slides:", error);
         }
@@ -1456,13 +1243,10 @@ app.post("/progress/update", async (req, res) => {
 
 
 app.post("/uploadPdf", upload.single('pdfFile'),  async (req, res) => {
-    // if (!req.file) {
-    //     return res.status(400).send('No file uploaded.');
-    // }
     if(req.isAuthenticated())
     {
 
-        console.log("We are uploading");
+
         const filePath = path.join(`/Users/harveyfossil/Desktop/BME 4th Sem/Web development/Project-Lab/Workstation/${global.user_id}/${global.currentSubject}/slides`, req.file.originalname);
         const fileName = req.file.originalname;
         const fileDirectory = path.dirname(filePath);
@@ -1488,9 +1272,7 @@ app.post("/uploadPdf", upload.single('pdfFile'),  async (req, res) => {
 
 });
 app.post("/AdminuploadPdf", Adminupload.single('pdfFile'),  async (req, res) => {
-    // if (!req.file) {
-    //     return res.status(400).send('No file uploaded.');
-    // }
+
     if(req.isAuthenticated())
     {
 
@@ -1527,10 +1309,8 @@ app.get('/timetable', async (req, res) => {
                 `SELECT * FROM timetable WHERE userid = $1`,
                 [user_id]
             );
-            console.log(user_id);
-            const timetable = result.rows; // Extract results
 
-            console.log(timetable); // Debugging: print fetched timetable
+            const timetable = result.rows; // Extract results
 
             res.render('timetable.ejs', { timetable,user: user_id !== -1 ? "user Present" : null });
         } catch (err) {
@@ -1597,10 +1377,6 @@ app.post("/deleteSubject", async (req, res) => {
     if(req.isAuthenticated())
     {
         const { subject, day, startTime,subjectID } = req.body;
-        console.log("We are deleting");
-        console.log(req.body);
-        //const user_id = req.session.user_id || 1; // Replace with actual session user ID
-
         try {
 
             await db.query(`DELETE FROM timetable  WHERE userid = $1 AND subject = $2 AND day = $3 AND id = $4`, [user_id, subject, day,subjectID]);
@@ -1618,50 +1394,14 @@ app.post("/deleteSubject", async (req, res) => {
 
 });
 
-//PDF viewer
-// app.get('/pdfview/:document', async (req, res) => {
-//     if(req.isAuthenticated())
-//     {
-//         console.log(req.params); // Logs: { document: 'BUSINESS LAW 1 - Introduction to law.pdf' }
-//
-//         const document = req.params.document;
-//         const slidesPath = path.join(__dirname, "public", "Course", currentSubject, "slides");
-//
-//         // Construct the relative URL for the PDF
-//         const pdfUrl = path.join('/Course', currentSubject, 'slides', document); // relative path
-//
-//         // Get all the PDF files in the directory
-//         const filess = fs.readdirSync(slidesPath).filter(file => file.endsWith('.pdf'));
-//
-//         // Filter the files to find the specific document by matching the name
-//         const files = filess.find(file => file.replace('.pdf', '') === document.replace('.pdf', ''));
-//
-//         if (!files) {
-//             return res.status(404).send('PDF file not found');
-//         }
-//
-//         console.log(pdfUrl); // Logs the relative URL
-//
-//         res.render('pdfviewer.ejs', { pdfUrl,user: user_id !== -1 ? "user Present" : null }); // Pass pdfUrl to the template
-//     }
-//     else{
-//         res.redirect("/login");
-//     }
-//
-//
-// });
 app.get('/pdfview/:document', async (req, res) => {
     if (req.isAuthenticated()) {
-        console.log(req.params); // Logs: { document: 'BUSINESS LAW 1 - Introduction to law.pdf' }
+
         const document = req.params.document;
 
         // Define paths for both program slides and personal slides
         const filePath = path.join(__dirname, "public", "Course", global.currentSubject, "slides", document);
         const dir = path.join(__dirname, `./Workstation/${global.user_id}/${global.currentSubject}/slides/${document}`);
-
-        console.log("Checking paths:");
-        console.log("Program Slide Path:", filePath);
-        console.log("Personal Slide Path:", dir);
 
         let finalPath = null;
         let pdfUrl = null;
@@ -1677,7 +1417,6 @@ app.get('/pdfview/:document', async (req, res) => {
             return res.status(404).send("PDF file not found.");
         }
 
-        console.log("Serving PDF:", pdfUrl);
         res.render("pdfviewer.ejs", {
             pdfUrl,
             user: global.user_id !== -1 ? "user Present" : null,
@@ -1687,64 +1426,15 @@ app.get('/pdfview/:document', async (req, res) => {
     }
 });
 
-
-//flash-cards for Questions
-// app.get('/generateQuestions/:document', async (req, res) => {
-//     if (req.isAuthenticated()) {
-//         console.log(req.params); // Logs: { document: 'BUSINESS LAW 1 - Introduction to law.pdf' }
-//
-//         const document = req.params.document;
-//         const filePath = path.join(__dirname, "public", "Course", currentSubject, "slides", document); // relative path
-//         const dir = path.join(__dirname, `./Workstation/${global.user_id}/${global.currentSubject}/slides/${document}`);
-//         console.log(dir);
-//         console.log(filePath);
-//
-//         try {
-//             if (!fs.existsSync(filePath)) {
-//                 return res.status(404).send('File not found.');
-//             }
-//
-//             console.log("We are in the right track");
-//
-//             const text = await extractTextFromPDF(filePath);
-//             const questions = await generateQuestions(text);
-//             const jsonObject = JSON.parse(questions);
-//
-//             const filePath2 = 'public/jsons/questions_and_answers.json';
-//
-//             // Write the data to the JSON file asynchronously
-//             fs.writeFile(filePath2, JSON.stringify(jsonObject, null, 4), (err) => {
-//                 if (err) {
-//                     console.log("Error writing to file:", err);
-//                     return res.status(500).send('Error saving questions.');
-//                 }
-//
-//                 console.log(`Data has been saved to ${filePath2}`);
-//
-//                 // Make sure to send the response here
-//                 return res.redirect("/flashcards"); // or another route as needed
-//             });
-//         } catch (error) {
-//             console.error("Error generating questions:", error);
-//             return res.status(500).send('Error generating questions: ' + error.message);
-//         }
-//     } else {
-//         res.redirect("/login");
-//     }
-// });
-
 app.get('/generateQuestions/:document', async (req, res) => {
     if (req.isAuthenticated()) {
-        console.log(req.params); // Logs: { document: 'BUSINESS LAW 1 - Introduction to law.pdf' }
+
         const document = req.params.document;
 
         // Define paths
         const filePath = path.join(__dirname, "public", "Course", global.currentSubject, "slides", document);
         const dir = path.join(__dirname, `./Workstation/${global.user_id}/${global.currentSubject}/slides/${document}`);
 
-        console.log("Checking paths:");
-        console.log("Program Slide Path:", filePath);
-        console.log("Personal Slide Path:", dir);
 
         let finalPath = null;
 
@@ -1758,10 +1448,10 @@ app.get('/generateQuestions/:document', async (req, res) => {
         }
 
         try {
-            console.log("Processing file:", finalPath);
+
             const text = await extractTextFromPDF(finalPath);
             const questions = await generateQuestions(text);
-            console.log("Raw Questions Data:", questions);
+
             const jsonObject = JSON.parse(questions);
 
             const filePath2 = 'public/jsons/questions_and_answers.json';
@@ -1770,7 +1460,7 @@ app.get('/generateQuestions/:document', async (req, res) => {
                     console.error("Error writing to file:", err);
                     return res.status(500).send("Error saving questions.");
                 }
-                console.log(`Data saved to ${filePath2}`);
+
                 return res.redirect("/flashcards");
             });
         } catch (error) {
@@ -1827,9 +1517,6 @@ app.get("/summarize/:document", async (req, res) => {
         const filePath = path.join(__dirname, "public", "Course", global.currentSubject, "slides", document);
         const dir = path.join(__dirname, `./Workstation/${global.user_id}/${global.currentSubject}/slides/${document}`);
 
-        console.log("Checking paths:");
-        console.log("Program Slide Path:", filePath);
-        console.log("Personal Slide Path:", dir);
 
         let finalPath = null;
 
@@ -1843,13 +1530,13 @@ app.get("/summarize/:document", async (req, res) => {
         }
 
         try {
-            console.log("File found, extracting text...");
+
             const text = await extractTextFromPDF(finalPath);
 
-            console.log("Generating summary...");
+
             const summary = await generateSummarize(text);
 
-            console.log("Summary generated:", summary);
+
             res.render("summarize.ejs", {
                 summary,
                 user: global.user_id !== -1 ? "user Present" : null
@@ -1872,10 +1559,6 @@ app.get("/youtubeRecommendation/:document", async (req, res) => {
         const filePath = path.join(__dirname, "public", "Course", global.currentSubject, "slides", document);
         const dir = path.join(__dirname, `./Workstation/${global.user_id}/${global.currentSubject}/slides/${document}`);
 
-        console.log("Checking paths:");
-        console.log("Program Slide Path:", filePath);
-        console.log("Personal Slide Path:", dir);
-
         let finalPath = null;
 
         // Determine the correct file path
@@ -1888,13 +1571,13 @@ app.get("/youtubeRecommendation/:document", async (req, res) => {
         }
 
         try {
-            console.log("File found, extracting text...");
+
             const text = await extractTextFromPDF(finalPath);
 
-            console.log("Generating summary...");
+
             const searchTitle = await generateYoutubeSearch(text);
 
-            console.log("Search text generated:", searchTitle);
+
             res.render("videoRecommendation.ejs", {
                 searchTitle,
                 user: global.user_id !== -1 ? "user Present" : null
@@ -1932,10 +1615,10 @@ app.get("/upgrade", async (req, res) => {
     }
 });
 app.post("/upgrade", async (req, res) => {
-    console.log(req.body);
+
     if (req.isAuthenticated()) {
         const { subscription_type } = req.body;  // Get the selected subscription plan
-        console.log(req.body);
+
 
         try {
             // Update the user's subscription plan in the database
@@ -2131,16 +1814,17 @@ app.get('/Course/:subject/assignments/:filename', async (req, res) => {
             `SELECT 1 FROM assignment_attempts WHERE user_id = $1 AND filename = $2`,
             [userId, filename + ".json"]
         );
+        console.log(attempt);
 
-        if (attempt.rows.length > 0) {
-            return res.status(403).send("You have already attempted this assignment.");
-        }
+        const alreadyAttempted = attempt.rows.length > 0;
 
         res.render('assignmentView.ejs', {
             assignment: assignmentData,
             subject: subject,
             filename: filename,
-            isAdmin: userEmail === "admin@gmail.com"
+            isAdmin: userEmail === "admin@gmail.com",
+            attempted: alreadyAttempted,
+            grade: alreadyAttempted ? attempt.rows[0].grade : null
         });
     } catch (err) {
         console.error('Error loading assignment:', err);
@@ -2152,7 +1836,6 @@ app.get('/Course/:subject/assignments/:filename', async (req, res) => {
 app.delete("/course/:subject/assignments/:filename", (req, res) => {
     const { subject, filename } = req.params;
     const filePath = path.join(__dirname, "public", "Course", subject, "assignments", filename);
-    console.log("Attempting to read:", filePath); // Debug log
     try {
         fs.unlinkSync(filePath);
         res.json({ success: true });
@@ -2162,92 +1845,7 @@ app.delete("/course/:subject/assignments/:filename", (req, res) => {
     }
 });
 
-// //grading
-// app.post("/assignments/submit/:filename", async (req, res) => {
-//     if (!req.isAuthenticated()) {
-//         return res.status(401).json({ message: "Not authenticated" });
-//     }
-//
-//     const { filename } = req.params;
-//     const { answers } = req.body; // Now this will be an array
-//     const userId = req.user.user_id;
-//
-//     try {
-//         // 1. Load the assignment
-//         const assignmentPath = path.join(__dirname, "public", "Course", currentSubject, "assignments", filename+".json");
-//         const assignmentData = JSON.parse(fs.readFileSync(assignmentPath, 'utf-8'));
-//
-//         // 2. Check if already attempted
-//         const existingAttempt = await db.query(
-//             `SELECT * FROM assignment_attempts
-//              WHERE user_id = $1 AND filename = $2`,
-//             [userId, filename+".json"] // Make sure this matches your filename format
-//         );
-//
-//         if (existingAttempt.rows.length > 0) {
-//             return res.status(400).json({
-//                 message: "You have already submitted this assignment"
-//             });
-//         }
-//
-//         // 3. Grade the assignment
-//         let totalScore = 0;
-//         let maxScore = 0;
-//         const gradedAnswers = [];
-//
-//         assignmentData.questions.forEach((question, index) => {
-//             maxScore += question.marks;
-//             const studentAnswer = answers[index]; // Now using simple array index
-//             let isCorrect = false;
-//             let score = 0;
-//
-//             if (question.type === 'mcq' || question.type === 'truefalse') {
-//                 isCorrect = studentAnswer === question.correct;
-//                 score = isCorrect ? question.marks : 0;
-//             } else {
-//                 // For written answers, we'll just give partial credit
-//                 score = question.marks * 0.5; // 50% for attempting
-//                 isCorrect = null; // Manual grading needed
-//             }
-//
-//             totalScore += score;
-//             gradedAnswers.push({
-//                 question: question.question,
-//                 correctAnswer: question.correct,
-//                 studentAnswer,
-//                 isCorrect,
-//                 marks: question.marks,
-//                 awardedMarks: score
-//             });
-//         });
-//
-//         const grade = Math.round((totalScore / maxScore) * 100);
-//
-//         // 4. Save to database
-//          await db.query(
-//             `INSERT INTO assignment_attempts
-//              (user_id, subject, assignment_title, filename, grade)
-//              VALUES ($1, $2, $3, $4, $5)`,
-//             [
-//                 userId,
-//                 currentSubject,
-//                 assignmentData.title,
-//                 filename+".json", // Consistent filename format
-//                 grade,
-//
-//             ]
-//         );
-//
-//         res.redirect('/main');
-//
-//     } catch (error) {
-//         console.error("Error submitting assignment:", error);
-//         res.status(500).json({
-//             message: "Error submitting assignment",
-//             error: error.message
-//         });
-//     }
-// });
+
 app.post("/assignments/submit/:filename", async (req, res) => {
     if (!req.isAuthenticated()) {
         return res.status(401).json({ message: "Not authenticated" });
@@ -2421,7 +2019,6 @@ app.post('/admin/decline/:fileName', async (req, res) => {
 // Route to search for study videos
 app.get('/search', async (req, res) => {
     try {
-        console.log(req.query.q);
         const query = req.query.q || 'study videos'; // Default search
         const response = await youtube.search.list({
             part: 'snippet',

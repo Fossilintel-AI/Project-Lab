@@ -1,305 +1,124 @@
 <%- include('header.ejs') %>
-<!-- Modern Video Search Section -->
+
 <div class="container py-5">
-    <!-- Premium Header -->
-    <div class="header-container mb-5 ">
-        <!-- Centered Logo & Title -->
-        <div class="text-center mb-4">
-            <div class="logo-container mx-auto">
-                <i class="fas fa-play-circle logo-icon"></i>
-                <span class="logo-text">StudyStream</span>
-            </div>
-            <p class="header-tagline">Your premium learning destination</p>
+    <!-- Hero Section -->
+    <section class="hero-section text-center mb-5">
+        <div class="logo-container">
+            <i class="fas fa-play-circle logo-icon"></i>
+            <span class="logo-text">StudyStream</span>
         </div>
+        <p class="header-tagline">Your premium learning destination ✨</p>
 
-        <!-- Top Right Date & Slogan -->
-        <div class="top-right-info">
-            <div class="current-datetime">
-                <span id="current-date"></span>
-                <span id="current-time"></span>
-            </div>
-            <div class="current-datetime">
-                <i class="fas fa-lightbulb"></i>
-                <span>Learn Without Limits</span>
-            </div>
+        <!-- Date & Slogan -->
+        <div class="meta-info mt-3">
+            <span id="current-date"></span> • <span id="current-time"></span>
+            <div class="slogan"><i class="fas fa-lightbulb"></i> Learn Without Limits</div>
         </div>
+    </section>
 
+    <!-- Category Buttons -->
+    <section class="categories mb-5">
+        <div class="d-flex flex-wrap justify-content-center gap-3">
+            <button class="btn btn-category" data-query="Education"><i class="fas fa-graduation-cap"></i> Education</button>
+            <button class="btn btn-category" data-query="Entertainment"><i class="fas fa-film"></i> Entertainment</button>
+            <button class="btn btn-category" data-query="Music"><i class="fas fa-music"></i> Music</button>
+            <button class="btn btn-category" data-query="Exams"><i class="fas fa-pen"></i> Exams</button>
+            <button class="btn btn-category" data-query="Science"><i class="fas fa-flask"></i> Science</button>
+            <button class="btn btn-category" data-query="Technology"><i class="fas fa-microchip"></i> Tech</button>
+            <button class="btn btn-category" data-query="Coding"><i class="fas fa-code"></i> Coding</button>
+            <button class="btn btn-category" data-query="Productivity"><i class="fas fa-clock"></i> Productivity</button>
+        </div>
+    </section>
 
-        <!-- Centered Quick Search Categories -->
-        <div class="quick-search-header text-center mt-4">
-            <div class="d-flex flex-wrap justify-content-center gap-2 quick-search-buttons">
-                <button class="btn btn-category" data-query="Education">Education</button>
-                <button class="btn btn-category" data-query="Entertainment">Entertainment</button>
-                <button class="btn btn-category" data-query="Music">Music</button>
-                <button class="btn btn-category" data-query="Exams">Exams</button>
-                <button class="btn btn-category" data-query="Science">Science</button>
-                <button class="btn btn-category" data-query="Technology">Technology</button>
-                <button class="btn btn-category" data-query="Coding">Coding</button>
-                <button class="btn btn-category" data-query="Productivity">Productivity</button>
+    <!-- Search Bar -->
+    <section class="search-section mb-5">
+        <form id="searchForm" class="modern-search">
+            <div class="search-container glassy">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" class="search-input" id="query" value="How to study" placeholder="What do you want to learn today?" required>
+                <button class="search-button" type="submit"><i class="fas fa-arrow-right"></i></button>
             </div>
-        </div>
-
-    </div>
-
-
-
-
-    <!-- Modern Search Form -->
-    <div class="row justify-content-center mb-5">
-        <div class="col-12">
-            <form id="searchForm" class="modern-search">
-                <div class="search-container">
-                    <i class="fas fa-search search-icon"></i>
-                    <input type="text"
-                           class="search-input"
-                           id="query"
-                           value="How to study"
-                           placeholder="What do you want to learn today?"
-                           required>
-                    <button class="search-button" type="submit">
-                        <i class="fas fa-arrow-right"></i> Search
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
+        </form>
+    </section>
 
     <!-- Video Grid -->
     <div id="results" class="video-grid"></div>
 
     <!-- Empty State -->
-    <div id="emptyState" class="text-center py-5">
-        <div class="empty-state-container">
-            <div class="empty-state-icon">
-                <i class="fas fa-video"></i>
-            </div>
-            <h4>Discover Educational Content</h4>
-            <p class="text-muted">Search for topics or browse categories above</p>
-        </div>
+    <div id="emptyState" class="empty-state text-center py-5">
+        <i class="fas fa-video empty-state-icon"></i>
+        <h4>Discover Educational Content</h4>
+        <p class="text-muted">Search for topics or browse categories above</p>
     </div>
 </div>
 
 
-
-<script>
-    // Update current date and time
-    function updateDateTime() {
-        const now = new Date();
-
-        // Format date (e.g., "Friday, July 14, 2023")
-        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-        document.getElementById('current-date').textContent = now.toLocaleDateString('en-US', options);
-
-        // Format time (e.g., "11:45 AM")
-        document.getElementById('current-time').textContent = now.toLocaleTimeString('en-US', { hour: '2-digit', minute:'2-digit' });
-    }
-
-    // Update immediately and then every minute
-    updateDateTime();
-    setInterval(updateDateTime, 60000);
-
-    // [Rest of your existing JavaScript remains the same]
-    document.addEventListener('DOMContentLoaded', function() {
-        performSearch("How to study");
-    });
-
-    document.querySelectorAll('.btn-category').forEach(button => {
-        button.addEventListener('click', function() {
-            const query = this.getAttribute('data-query');
-            document.getElementById('query').value = query;
-            performSearch(query);
-        });
-    });
-
-    document.getElementById('searchForm').addEventListener('submit', function(event) {
-        event.preventDefault();
-        const query = document.getElementById('query').value;
-        performSearch(query);
-    });
-
-    async function performSearch(query) {
-        const resultsDiv = document.getElementById('results');
-        const emptyState = document.getElementById('emptyState');
-
-        emptyState.style.display = 'none';
-        resultsDiv.innerHTML = `
-      <div class="w-100 text-center py-5">
-        <div class="spinner">
-          <div class="bounce1"></div>
-          <div class="bounce2"></div>
-          <div class="bounce3"></div>
-        </div>
-      </div>
-    `;
-
-        try {
-            const response = await fetch(`/search?q=${encodeURIComponent(query)}`);
-            const data = await response.json();
-            let html = '';
-
-            if (data.length === 0) {
-                html = `
-          <div class="w-100 text-center py-5">
-            <div class="empty-state-container">
-              <div class="empty-state-icon no-results">
-                <i class="fas fa-video-slash"></i>
-              </div>
-              <h4>No videos found</h4>
-              <p class="text-muted">Try different search terms</p>
-            </div>
-          </div>
-        `;
-            } else {
-                data.forEach(video => {
-                    html += `
-            <div class="video-card">
-              <div class="video-thumbnail">
-                <iframe src="https://www.youtube.com/embed/${video.id.videoId}"
-                      frameborder="0"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowfullscreen
-                      loading="lazy"></iframe>
-              </div>
-              <div class="video-info">
-                <h3>${video.snippet.title}</h3>
-                <p class="channel-name">${video.snippet.channelTitle}</p>
-              </div>
-            </div>
-          `;
-                });
-            }
-
-            resultsDiv.innerHTML = html;
-
-        } catch (error) {
-            resultsDiv.innerHTML = `
-        <div class="w-100">
-          <div class="error-state">
-            <i class="fas fa-exclamation-circle"></i>
-            <div>Error loading videos. Please try again.</div>
-          </div>
-        </div>
-      `;
-            console.error('Search error:', error);
-        }
-    }
-</script>
-
-
-
 <style>
-    /* Modern Color Scheme */
+    /* Color Palette */
     :root {
         --primary: #6D4C41;
-        --primary-light: #A58B69;
         --primary-dark: #4E342E;
         --accent: #FFAB40;
         --bg: #FAF5F0;
-        --card-bg: #FFFFFF;
-        --text: #333333;
-        --text-light: #777777;
+        --glass: rgba(255, 255, 255, 0.25);
     }
 
-    /* Header Container */
-    .header-container {
-        position: relative;
+    body {
+        background: linear-gradient(to bottom right, #FAF5F0, #f1e4d9);
+        font-family: 'Inter', sans-serif;
     }
 
-    /* Centered Logo */
+    /* Hero */
     .logo-container {
-        display: inline-flex;
+        display: flex;
         align-items: center;
+        justify-content: center;
         gap: 12px;
     }
 
     .logo-icon {
-        font-size: 2.5rem;
+        font-size: 3rem;
         color: var(--primary);
+        animation: pop 1s ease;
     }
 
     .logo-text {
-        font-size: 2.2rem;
+        font-size: 2.5rem;
         font-weight: 800;
-        background: linear-gradient(90deg, var(--primary), var(--primary-light));
+        background: linear-gradient(90deg, var(--primary), var(--accent));
         -webkit-background-clip: text;
-        background-clip: text;
-        color: transparent;
+        -webkit-text-fill-color: transparent;
         letter-spacing: -0.5px;
     }
 
     .header-tagline {
         font-size: 1.1rem;
-        color: var(--text-light);
-        margin-top: 8px;
-        font-weight: 400;
+        color: #555;
+        margin-top: 10px;
     }
 
-    /* Top Right Info */
-    .top-right-info {
-        position: absolute;
-        top: 0;
-        right: 0;
-        text-align: right;
-    }
-
-    .current-datetime {
-        background: rgba(109, 76, 65, 0.08);
-        padding: 8px 12px;
-        border-radius: 8px;
-        display: inline-block;
-        margin-bottom: 8px;
-    }
-
-    #current-date {
-        font-size: 0.9rem;
-        color: var(--primary);
-        font-weight: 500;
-        margin-right: 8px;
-    }
-
-    #current-time {
+    .meta-info {
         font-size: 0.9rem;
         color: var(--primary-dark);
-        font-weight: 600;
+        margin-top: 8px;
     }
 
     .slogan {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        background: linear-gradient(135deg, rgba(165, 139, 105, 0.1), rgba(165, 139, 105, 0.2));
-        padding: 8px 16px;
-        border-radius: 20px;
+        margin-top: 6px;
         font-weight: 600;
-        color: var(--primary-dark);
-    }
-
-    .slogan i {
-        color: var(--accent);
-    }
-
-    /* Quick Search Header */
-    .quick-search-header {
-        margin-top: 30px;
-    }
-
-    .quick-search-buttons {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 0.5rem;
-    }
-
-
-    .btn-category {
-        background: var(--card-bg);
         color: var(--primary);
-        border: 1px solid rgba(109, 76, 65, 0.15);
-        border-radius: 8px;
-        padding: 10px 18px;
-        font-size: 14px;
+    }
+
+    /* Categories */
+    .btn-category {
+        background: white;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 50px;
         font-weight: 500;
-        transition: all 0.3s ease;
+        color: var(--primary);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        transition: all 0.3s;
         display: flex;
         align-items: center;
         gap: 8px;
@@ -308,241 +127,159 @@
     .btn-category:hover {
         background: var(--primary);
         color: white;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(109, 76, 65, 0.15);
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.15);
     }
 
-    .btn-category i {
-        font-size: 0.9rem;
-    }
-
-    /* Rest of your existing CSS remains the same */
-    .modern-search {
-        max-width: 800px;
-        margin: 0 auto;
+    /* Search */
+    .glassy {
+        background: var(--glass);
+        backdrop-filter: blur(10px);
     }
 
     .search-container {
         display: flex;
         align-items: center;
-        background: var(--card-bg);
         border-radius: 50px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
         overflow: hidden;
-        height: 56px;
-    }
-
-    .search-icon {
-        padding: 0 20px;
-        color: var(--primary-light);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
     }
 
     .search-input {
         flex: 1;
         border: none;
         outline: none;
-        padding: 0 10px;
-        height: 100%;
+        padding: 12px 16px;
         font-size: 16px;
         background: transparent;
     }
 
     .search-button {
         background: var(--primary);
-        color: white;
         border: none;
-        padding: 0 25px;
-        height: 100%;
-        font-weight: 600;
+        color: white;
+        padding: 0 20px;
         cursor: pointer;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 56px;
+        transition: all 0.3s;
     }
 
     .search-button:hover {
         background: var(--primary-dark);
     }
 
+    /* Video Grid */
     .video-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        gap: 24px;
+        gap: 28px;
         margin-top: 30px;
     }
 
     .video-card {
-        background: var(--card-bg);
-        border-radius: 12px;
+        background: white;
+        border-radius: 16px;
         overflow: hidden;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
     }
 
     .video-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+        transform: translateY(-6px);
+        box-shadow: 0 10px 24px rgba(0,0,0,0.12);
     }
 
     .video-thumbnail {
         position: relative;
         padding-top: 56.25%;
-        background: #000;
     }
 
     .video-thumbnail iframe {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        border: none;
+        position: absolute; top: 0; left: 0;
+        width: 100%; height: 100%;
     }
 
     .video-info {
-        padding: 16px;
+        padding: 14px;
     }
 
     .video-info h3 {
-        font-size: 16px;
-        margin-bottom: 8px;
-        line-height: 1.4;
+        font-size: 1rem;
         font-weight: 600;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
+        color: var(--primary-dark);
+        margin-bottom: 6px;
     }
 
     .channel-name {
-        font-size: 14px;
-        color: var(--text-light);
-        margin-bottom: 0;
+        font-size: 0.9rem;
+        color: #777;
     }
 
-    .empty-state-container {
-        max-width: 400px;
-        margin: 0 auto;
-    }
-
+    /* Empty State */
     .empty-state-icon {
-        width: 80px;
-        height: 80px;
-        background: rgba(165, 139, 105, 0.1);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 20px;
-        color: var(--primary-light);
-        font-size: 32px;
+        font-size: 2.5rem;
+        color: var(--primary);
+        margin-bottom: 12px;
     }
 
-    .empty-state-icon.no-results {
-        color: #ff6b6b;
-        background: rgba(255, 107, 107, 0.1);
+    /* Animations */
+    @keyframes pop {
+        0% { transform: scale(0.6); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
     }
-
-    .spinner {
-        margin: 20px auto;
-        width: 70px;
-        text-align: center;
-    }
-
-    .spinner > div {
-        width: 18px;
-        height: 18px;
-        background-color: var(--primary);
-        border-radius: 100%;
-        display: inline-block;
-        animation: bounce 1.4s infinite ease-in-out both;
-    }
-
-    .spinner .bounce1 {
-        animation-delay: -0.32s;
-    }
-
-    .spinner .bounce2 {
-        animation-delay: -0.16s;
-    }
-
-    @keyframes bounce {
-        0%, 80%, 100% { transform: scale(0); }
-        40% { transform: scale(1.0); }
-    }
-
-    .error-state {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        color: #ff6b6b;
-        font-weight: 500;
-    }
-
-    /* Responsive Adjustments */
-    @media (max-width: 992px) {
-        .logo-text {
-            font-size: 1.8rem;
-        }
-
-        .header-tagline {
-            font-size: 1rem;
-        }
-
-        .top-right-info {
-            position: static;
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        .current-datetime, .slogan {
-            display: inline-block;
-            margin: 0 5px 10px;
-        }
-    }
-
-    @media (max-width: 768px) {
-        .logo-container {
-            gap: 8px;
-        }
-
-        .logo-icon {
-            font-size: 2rem;
-        }
-
-        .logo-text {
-            font-size: 1.6rem;
-        }
-
-        .btn-category {
-            padding: 8px 12px;
-            font-size: 13px;
-        }
-
-        .btn-category i {
-            display: none;
-        }
-    }
-
-    @media (max-width: 576px) {
-        .logo-text {
-            font-size: 1.4rem;
-        }
-
-        .quick-search-buttons {
-            gap: 8px;
-        }
-
-        .btn-category {
-            padding: 6px 10px;
-            font-size: 12px;
-        }
-    }
-
-
 </style>
+
+<script>
+    // Update current date & time
+    function updateDateTime() {
+        const now = new Date();
+        document.getElementById('current-date').textContent = now.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
+        document.getElementById('current-time').textContent = now.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit' });
+    }
+    updateDateTime();
+    setInterval(updateDateTime, 60000);
+
+    document.addEventListener('DOMContentLoaded', () => performSearch("How to study"));
+
+    document.querySelectorAll('.btn-category').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const q = btn.getAttribute('data-query');
+            document.getElementById('query').value = q;
+            performSearch(q);
+        });
+    });
+
+    document.getElementById('searchForm').addEventListener('submit', e => {
+        e.preventDefault();
+        performSearch(document.getElementById('query').value);
+    });
+
+    async function performSearch(query) {
+        const resultsDiv = document.getElementById('results');
+        const emptyState = document.getElementById('emptyState');
+
+        emptyState.style.display = 'none';
+        resultsDiv.innerHTML = `<div class="text-center py-5"><div class="spinner-border text-brown" role="status"></div></div>`;
+
+        try {
+            const response = await fetch(`/search?q=${encodeURIComponent(query)}`);
+            const data = await response.json();
+            resultsDiv.innerHTML = data.length
+                ? data.map(video => `
+          <div class="video-card">
+            <div class="video-thumbnail">
+              <iframe src="https://www.youtube.com/embed/${video.id.videoId}" frameborder="0" allowfullscreen></iframe>
+            </div>
+            <div class="video-info">
+              <h3>${video.snippet.title}</h3>
+              <p class="channel-name">${video.snippet.channelTitle}</p>
+            </div>
+          </div>
+        `).join('')
+                : `<div class="empty-state"><i class="fas fa-video-slash empty-state-icon"></i><h4>No videos found</h4></div>`;
+        } catch (err) {
+            resultsDiv.innerHTML = `<div class="text-danger text-center">Error loading videos.</div>`;
+        }
+    }
+</script>
 
 <%- include('footer.ejs') %>

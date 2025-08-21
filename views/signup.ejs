@@ -194,7 +194,7 @@
             document.getElementById("loading").style.display = "none";
             document.getElementById("successMessage").style.display = "block";
         }, 2000); // Simulate 2 seconds of processing
-        return false; // Prevent immediate form submission
+        document.getElementById("signupForm").submit();
     }
 
     function showSuccessMessage() {
