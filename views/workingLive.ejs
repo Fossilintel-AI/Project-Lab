@@ -1,0 +1,256 @@
+here is a proper working version.
+Update it to be of high class and best modern version.
+Colour tone can be around dark like it is now.
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Live Class Room</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            margin: 0; padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #18191A; color: #fff;
+        }
+        h2 { text-align: center; margin: 20px 0; font-weight: 500; }
+        #videos-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .video-card {
+            position: relative;
+            background: #1e1e1e;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.2s;
+        }
+        .video-card:hover { transform: scale(1.03); }
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background: black;
+        }
+        .overlay {
+            position: absolute; bottom: 0;
+            width: 100%; padding: 8px;
+            background: rgba(0,0,0,0.5);
+            display: flex; flex-direction: column; text-align: left;
+        }
+        .overlay h4 { margin: 0; font-size: 14px; font-weight: 500; }
+        .overlay p { margin: 0; font-size: 12px; color: #ccc; }
+        .toolbar {
+            position: fixed; bottom: 20px; left: 50%;
+            transform: translateX(-50%);
+            display: flex; gap: 15px;
+            background: rgba(0,0,0,0.6); padding: 10px 20px;
+            border-radius: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            z-index: 100;
+        }
+        .toolbar button {
+            background: #3b3b3b; border: none; color: #fff;
+            font-size: 18px; padding: 10px 16px; border-radius: 50%; cursor: pointer;
+            transition: background 0.2s;
+        }
+        .toolbar button:hover { background: #4cd137; }
+
+
+        .video-card.large {
+            grid-column: span 2;
+            grid-row: span 2;
+            z-index: 10;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+
+<h2>Live Class Room: <%= sessionId %></h2>
+
+<div id="videos-container">
+    <!-- Self video -->
+    <div class="video-card" id="self-card">
+        <video id="localVideo" autoplay playsinline muted></video>
+        <div class="overlay">
+            <h4><%= username %></h4>
+            <p>You</p>
+        </div>
+    </div>
+</div>
+
+<div class="toolbar">
+    <button onclick="toggleMute()"><i class="fas fa-microphone"></i></button>
+    <button onclick="toggleVideo()"><i class="fas fa-video"></i></button>
+    <button onclick="toggleScreenShare()"><i class="fas fa-desktop"></i></button>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/simple-peer@9.11.1/simplepeer.min.js"></script>
+<script>
+    const socket = io();
+    const peers = {};
+    const roomId = "<%= sessionId %>";
+    const username = "<%= username %>";
+    let localStream;
+    let screenStream;
+    let screenCardId = 'screen-share';
+
+    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+        .then(stream => {
+            localStream = stream;
+            document.getElementById('localVideo').srcObject = stream;
+            socket.emit('join-room', { roomId, username });
+
+            socket.on('user-joined', ({ userId, username }) => {
+                const peer = new SimplePeer({ initiator: true, trickle: false, stream: localStream });
+                setupPeer(peer, userId, username);
+                peers[userId] = peer;
+            });
+
+            socket.on('signal', ({ from, signal }) => {
+                if (!peers[from]) {
+                    const peer = new SimplePeer({ initiator: false, trickle: false, stream: localStream });
+                    setupPeer(peer, from, "Participant");
+                    peers[from] = peer;
+                }
+                peers[from].signal(signal);
+            });
+
+            socket.on('user-left', userId => {
+                if (peers[userId]) {
+                    peers[userId].destroy();
+                    delete peers[userId];
+                    document.getElementById(userId)?.remove();
+                }
+            });
+        }).catch(err => console.error('Media error:', err));
+
+    function setupPeer(peer, userId, username) {
+        peer.on('signal', signal => socket.emit('signal', { to: userId, signal }));
+        peer.on('stream', stream => addRemoteVideo(userId, username, stream));
+        peer.on('error', err => console.error('Peer error:', err));
+    }
+
+    function addRemoteVideo(userId, name, stream) {
+        if (document.getElementById(userId)) return;
+
+        const container = document.getElementById('videos-container');
+        const card = document.createElement('div');
+        card.classList.add('video-card');
+        card.id = userId;
+
+        const video = document.createElement('video');
+        video.autoplay = true;
+        video.playsinline = true;
+        video.srcObject = stream;
+
+        const overlay = document.createElement('div');
+        overlay.classList.add('overlay');
+        overlay.innerHTML = `<h4>${name}</h4><p>Participant</p>`;
+
+        card.appendChild(video);
+        card.appendChild(overlay);
+        container.appendChild(card);
+    }
+
+    // Screen share as separate card
+    async function toggleScreenShare() {
+        if (!screenStream) {
+            try {
+                screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+                addScreenShareCard(screenStream);
+
+                // Broadcast screen to all peers
+                Object.values(peers).forEach(peer => {
+                    const sender = peer.streams[0].getTracks().find(t => t.kind === "video");
+                    if (sender) {
+                        const track = screenStream.getVideoTracks()[0];
+                        peer.replaceTrack(sender, track, peer.streams[0]);
+                    }
+                });
+
+                screenStream.getVideoTracks()[0].onended = () => removeScreenShareCard();
+            } catch (err) { console.error("Screen share error:", err); }
+        } else {
+            removeScreenShareCard();
+        }
+    }
+
+    function addScreenShareCard(stream) {
+        if (document.getElementById(screenCardId)) return;
+        const container = document.getElementById('videos-container');
+        const card = document.createElement('div');
+        card.classList.add('video-card');
+        card.id = screenCardId;
+
+        const video = document.createElement('video');
+        video.autoplay = true;
+        video.playsinline = true;
+        video.srcObject = stream;
+
+        const overlay = document.createElement('div');
+        overlay.classList.add('overlay');
+        overlay.innerHTML = `<h4>${username}</h4><p>Screen Share</p>`;
+
+        card.appendChild(video);
+        card.appendChild(overlay);
+        container.appendChild(card);
+    }
+
+    function removeScreenShareCard() {
+        if (!screenStream) return;
+        document.getElementById(screenCardId)?.remove();
+        screenStream.getTracks().forEach(track => track.stop());
+        screenStream = null;
+    }
+
+    function toggleMute() {
+        if (!localStream) return;
+        localStream.getAudioTracks()[0].enabled = !localStream.getAudioTracks()[0].enabled;
+    }
+
+    function toggleVideo() {
+        if (!localStream) return;
+        localStream.getVideoTracks()[0].enabled = !localStream.getVideoTracks()[0].enabled;
+    }
+
+    // Inside addScreenShareCard(stream)
+    function addScreenShareCard(stream) {
+        if (document.getElementById(screenCardId)) return;
+        const container = document.getElementById('videos-container');
+        const card = document.createElement('div');
+        card.classList.add('video-card');
+        card.id = screenCardId;
+
+        const video = document.createElement('video');
+        video.autoplay = true;
+        video.playsinline = true;
+        video.srcObject = stream;
+
+        const overlay = document.createElement('div');
+        overlay.classList.add('overlay');
+        overlay.innerHTML = `<h4>${username}</h4><p>Screen Share</p>`;
+
+        card.appendChild(video);
+        card.appendChild(overlay);
+        container.appendChild(card);
+
+        // Click to expand/reduce
+        card.addEventListener('click', () => {
+            card.classList.toggle('large');
+        });
+    }
+</script>
+</body>
+</html>

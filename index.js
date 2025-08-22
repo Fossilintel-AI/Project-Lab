@@ -27,6 +27,9 @@ import nodemailer from "nodemailer";
 //allow all domains
 import cors from "cors";
 
+import http from 'http';
+import { Server } from 'socket.io';
+
 
 //Youtube and google
 import { google } from 'googleapis';
@@ -1189,7 +1192,22 @@ app.get("/course/:subject", async (req, res) => {
         const videoList = getVideosForSubject(subject);
 
         const subjectVideos = videoList.filter(v => v.subject === subject);
+        var sessions;
 
+        try {
+            const result = await db.query(
+                'SELECT * FROM sessions WHERE subject = $1 ORDER BY id DESC',
+                [global.currentSubject]
+            );
+
+            const session = result.rows;
+            sessions =session;
+
+        } catch (err) {
+            console.error(err);
+            res.status(500).send("Error fetching sessions");
+        }
+        console.log(sessions);
         // Render course.ejs with the subject and slides
         res.render("course.ejs", {
             subject,
@@ -1203,7 +1221,8 @@ app.get("/course/:subject", async (req, res) => {
             isAdmin: AdminFlag,
             existingAssignment: null,
             filename: null,
-            videos: subjectVideos
+            videos: subjectVideos,
+            sessions
         });
     }
     else{
@@ -2102,6 +2121,116 @@ app.post("/deleteVideo/:id", (req, res) => {
 
 
 
+
+
+const server = http.createServer(app);
+const io = new Server(server);
+
+app.set('view engine', 'ejs');
+app.use(express.urlencoded({ extended: true }));
+
+
+
+// ✅ Create Session (Admin)
+app.post('/liveClass/create', async (req, res) => {
+    const { title, description, sessionId } = req.body;
+    if (!title || !sessionId) {
+        return res.status(400).send("Missing required fields");
+    }
+
+    try {
+        await db.query(
+            'INSERT INTO sessions (title, description, session_id,subject) VALUES ($1, $2, $3,$4)',
+            [title, description, sessionId,global.currentSubject]
+        );
+        res.redirect('/');
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error creating session");
+    }
+});
+
+// ✅ Delete Session (Admin)
+app.post('/liveClass/delete/:sessionId', async (req, res) => {
+    const { sessionId } = req.params;
+    try {
+        await db.query('DELETE FROM sessions WHERE session_id = $1', [sessionId]);
+        res.redirect('/');
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error deleting session");
+    }
+});
+
+app.post('/liveClass/join', async (req, res) => {
+    const { sessionId, username } = req.body; // <- capture student name
+    if (!username || username.trim() === "") {
+        return res.status(400).send("Please enter your name");
+    }
+    try {
+        const result = await db.query(
+            'SELECT * FROM sessions WHERE session_id = $1',
+            [sessionId]
+        );
+        if (result.rows.length === 0) {
+            return res.status(404).send("Session not found");
+        }
+        // pass username to live session
+        res.redirect(`/live/${sessionId}?username=${encodeURIComponent(username)}`);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error joining session");
+    }
+});
+
+// Live Session Page
+app.get('/live/:sessionId', (req, res) => {
+    const { sessionId } = req.params;
+    const userEmail =  req.user.email;
+    var AdminFlag = "";
+    if(userEmail == "admin@gmail.com"){
+        AdminFlag = "The admin is here";
+    }
+    const username = req.query.username || "Student";
+    res.render('live.ejs', { sessionId, username,isAdmin: AdminFlag });
+});
+
+// ---- SOCKET.IO for WebRTC signaling ----
+// ---- SOCKET.IO for WebRTC signaling ----
+io.on('connection', socket => {
+    console.log('User connected:', socket.id);
+
+    socket.on('join-room', roomId => {
+        socket.join(roomId);
+        socket.to(roomId).emit('user-joined', socket.id);
+
+        socket.on('signal', data => {
+            io.to(data.to).emit('signal', { from: socket.id, signal: data.signal });
+        });
+
+        socket.on('screen-share-start', ({ to, signal }) => {
+            io.to(to).emit('screen-share-start', { from: socket.id, signal });
+        });
+
+        socket.on('screen-signal', ({ to, signal }) => {
+            io.to(to).emit('screen-signal', { from: socket.id, signal });
+        });
+
+        socket.on('screen-share-stopped', (userId) => {
+            socket.to(roomId).emit('screen-share-stopped', userId);
+        });
+
+        socket.on('disconnect', () => {
+            socket.to(roomId).emit('user-left', socket.id);
+        });
+    });
+});
+
+
+
+
+
+
 //sessions and passport
 passport.serializeUser((user, cb) => {
     cb(null, user);
@@ -2112,7 +2241,7 @@ passport.deserializeUser((user, cb) => {
     cb(null, user);
 });
 
-app.listen(port, () => {
+server.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });
 

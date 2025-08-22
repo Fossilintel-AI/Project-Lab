@@ -33,6 +33,7 @@
             <button class="tab-btn" onclick="openTab('upload-section')">Upload Notes</button>
             <button class="tab-btn" onclick="openTab('assignment-section')">Assignments</button>
             <button class="tab-btn" onclick="openTab('video-section')">Lecture Videos</button>
+            <button class="tab-btn" onclick="openTab('LiveClass-section')">Live Classes</button>
 
         </div>
 
@@ -382,6 +383,81 @@
             <% } %>
         </div>
 
+        <!-- Live Class Section -->
+        <!-- Live Class Section -->
+        <div id="LiveClass-section" class="tab-content">
+            <div class="section-header">
+                <h2><i class="fas fa-video"></i> Live Classes</h2>
+                <p>Join or manage live sessions</p>
+            </div>
+
+            <% if (isAdmin) { %>
+                <!-- ✅ Admin Interface -->
+                <div class="card">
+                    <h3>Create New Session</h3>
+                    <form action="/liveClass/create" method="POST" class="form-card">
+                        <input type="text" name="title" placeholder="Session Title" required>
+                        <input type="text" name="description" placeholder="Session Description">
+                        <input type="text" name="sessionId" placeholder="Session ID" required>
+                        <button type="submit" class="btn-primary">Create Session</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h3>Existing Sessions</h3>
+                    <% if (sessions && sessions.length > 0) { %>
+                        <ul class="session-list">
+                            <% sessions.forEach(session => { %>
+                                <li>
+                                    <div>
+                                        <b><%= session.title %></b> - <%= session.description %>
+                                        <span class="session-id">ID: <%= session.session_id %></span>
+                                    </div>
+                                    <form action="/liveClass/delete/<%= session.session_id %>" method="POST">
+                                        <button type="submit" class="btn-danger">Delete</button>
+                                    </form>
+                                </li>
+                            <% }) %>
+                        </ul>
+                    <% } else { %>
+                        <p>No sessions available</p>
+                    <% } %>
+                </div>
+
+            <% }  %>
+                <!-- ✅ Student Interface -->
+                <div class="card">
+                    <h3>Available Sessions</h3>
+                    <% if (sessions && sessions.length > 0) { %>
+                        <ul class="session-list">
+                            <% sessions.forEach(session => { %>
+                                <li>
+                                    <b><%= session.title %></b> - <%= session.description %>
+                                    <span class="session-id">ID: <%= session.session_id %></span>
+                                </li>
+                            <% }) %>
+                        </ul>
+                    <% } else { %>
+                        <p>No sessions created yet</p>
+                    <% } %>
+                </div>
+
+
+            <% if ( sessions.length > 0) { %>
+                <div class="card">
+                    <h3>Join Session</h3>
+                    <form action="/liveClass/join" method="POST" class="form-card">
+                        <input type="text" name="username" placeholder="Enter Your Name" required>
+                        <input type="text" name="sessionId" placeholder="Enter Session ID" required>
+                        <button type="submit" class="btn-primary">Join Session</button>
+                    </form>
+                </div>
+            <% } %>
+
+        </div>
+
+
+
 
     </div>
 </div>
@@ -473,6 +549,128 @@
 
 
 <style>
+    /* ---------------- LiveClass-section Styles ---------------- */
+    #LiveClass-section {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        color: #4b2e2e; /* dark brown text */
+        background-color: #f9f5f2; /* light warm background */
+        padding: 30px;
+    }
+
+    #LiveClass-section .section-header h2 {
+        font-size: 28px;
+        margin-bottom: 5px;
+        color: #8b4513; /* deep brown accent */
+    }
+
+    #LiveClass-section .section-header p {
+        color: #7a5a45;
+        margin-bottom: 25px;
+    }
+
+    #LiveClass-section .card {
+        background: #fff1e6; /* light cream card */
+        border-radius: 12px;
+        padding: 25px;
+        margin: 20px 0;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    #LiveClass-section .card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 25px rgba(0,0,0,0.15);
+    }
+
+    #LiveClass-section .form-card input {
+        width: 100%;
+        padding: 12px 15px;
+        margin-bottom: 15px;
+        border-radius: 8px;
+        border: 1px solid #d1b89d;
+        background: #fffaf5;
+        color: #4b2e2e;
+        font-size: 14px;
+    }
+
+    #LiveClass-section .form-card input:focus {
+        border-color: #8b4513;
+        outline: none;
+    }
+
+    #LiveClass-section .form-card button {
+        padding: 12px 20px;
+        background: #8b4513; /* brown theme */
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        color: #fff;
+        transition: background 0.2s ease;
+    }
+
+    #LiveClass-section .form-card button:hover {
+        background: #a0522d;
+    }
+
+    #LiveClass-section .session-list {
+        list-style: none;
+        padding: 0;
+    }
+
+    #LiveClass-section .session-list li {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 15px;
+        background: #fff5eb; /* light warm card item */
+        margin-bottom: 12px;
+        border-radius: 8px;
+        transition: background 0.2s;
+        color: #4b2e2e;
+    }
+
+    #LiveClass-section .session-list li:hover {
+        background: #ffe8d6;
+    }
+
+    #LiveClass-section .session-id {
+        font-size: 12px;
+        color: #7a5a45;
+    }
+
+    #LiveClass-section .btn-danger {
+        background: #c0392b;
+        color: #fff;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+    #LiveClass-section .btn-danger:hover {
+        background: #e74c3c;
+    }
+
+    #LiveClass-section .btn-primary {
+        background: #8b4513; /* brown theme */
+        color: #fff;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+
+    #LiveClass-section .btn-primary:hover {
+        background: #a0522d;
+    }
+
+
+
+
+
+
 
     .btn-brown {
         background-color: #6b4c3b;
