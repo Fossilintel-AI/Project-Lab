@@ -250,7 +250,7 @@ Text:${text}
 `;
 
         const response = await cohere.chat({
-            model: 'command-r-plus',
+            model: 'command-r-plus-08-2024',
             messages: [
                 { role: 'user', content: prompt }
             ]
@@ -285,7 +285,7 @@ Text:${text}
 `;
 
         const response = await cohere.chat({
-            model: 'command-r-plus',
+            model: 'command-r-plus-08-2024',
             messages: [
                 { role: 'user', content: prompt }
             ]
@@ -311,7 +311,7 @@ async function generateYoutubeSearch(text) {
 :${text}`;
 
         const response = await cohere.chat({
-            model: 'command-r-plus',
+            model: 'command-r-plus-08-2024',
             messages: [
                 { role: 'user', content: prompt }
             ]
