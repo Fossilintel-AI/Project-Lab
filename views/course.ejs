@@ -371,7 +371,7 @@
 
 
                         <% if (locals.isAdmin) { %>
-                                <form action="/deleteVideo/<%= video.id %>" method="POST" style="margin-top:10px;">
+                                <form action="/deleteVideo/<%= video.title%>" method="POST" style="margin-top:10px;">
                                     <button type="submit" class="btn btn-sm btn-danger">
                                         <i class="fas fa-trash"></i> Delete
                                     </button>

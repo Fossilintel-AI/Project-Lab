@@ -1354,9 +1354,6 @@ app.post('/addSubject', async(req, res) => {
         // Get color for subject
         const color = getSubjectColor(subject);
 
-        // Generate new ID
-        //const newId = timetable.length ? Math.max(...timetable.map(entry => entry.id)) + 1 : 1;
-
         // Validate that startTime is before endTime
         if (startTime >= endTime) {
             return res.render('timetable.ejs', { timetable: [], errorMessage: "Start time must be before end time.",user: user_id !== -1 ? "user Present" : null });
@@ -2054,7 +2051,7 @@ app.get('/search', async (req, res) => {
 
 // Route to search for study videos
 app.get('/studystream', async (req, res) => {
-    res.render("videos.ejs");
+    res.render("videos.ejs",  {user: user_id !== -1 ? "user Present" : null});
 });
 // Multer storage
 const Videostorage = multer.diskStorage({
@@ -2096,22 +2093,27 @@ app.post("/uploadVideo", Videoupload.single("videoFile"), (req, res) => {
 });
 
 // Delete video route
-app.post("/deleteVideo/:id", (req, res) => {
-    const videoId = parseInt(req.params.id);
-    const video = videos.find((v) => v.id === videoId);
+app.post("/deleteVideo/:title", (req, res) => {
+
+    const videoTitle = req.params.title;
+    videos = getVideosForSubject(global.currentSubject);
+    console.log("Available videos:", videos);
+    console.log( "Video Title:", videoTitle);
+
+    const video = videos.find((v) => v.title === videoTitle);
 
     if (!video) {
         return res.status(404).send("Video not found.");
     }
 
     // Delete file
-    const filePath = path.join(__dirname, "public", "Course", video.filename);
+    const filePath = path.join(__dirname, "public", "Course", video.subject, "videos", video.filename);
     if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
     }
 
     // Remove from array
-    videos = videos.filter((v) => v.id !== videoId);
+    videos = videos.filter((v) => v.title !== videoTitle);
 
     res.redirect("back");
 });

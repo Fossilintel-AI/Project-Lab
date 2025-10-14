@@ -1,42 +1,102 @@
 [
     {
-        "question": "What is the name of the course?",
-        "answer": "Business Law"
-    },
-    {
-        "question": "Who is the instructor?",
-        "answer": "Dr. Zoltan Vig"
-    },
-    {
-        "question": "What is the instructor's email address?",
+        "question": "What is the email address for Dr. Zoltan Vig?",
         "answer": "jogasz@gmail.com"
     },
     {
-        "question": "When is the first class?",
-        "answer": "February 10"
+        "question": "What is the subject of the course?",
+        "answer": "Business Law"
     },
     {
-        "question": "What is the topic of the first class?",
-        "answer": "Introduction to Law"
+        "question": "What is the date of the first lecture?",
+        "answer": "February 10th"
     },
     {
-        "question": "How many tests are there in total?",
-        "answer": "2"
+        "question": "What is the topic of the lecture on February 17th?",
+        "answer": "IP Law I"
     },
     {
-        "question": "What is the format of the tests?",
-        "answer": "25 multiple-choice questions, 25 minutes each"
+        "question": "What is the topic of the lecture on March 10th?",
+        "answer": "International conference on Technology Transfer and Investment Law"
     },
     {
-        "question": "Can you retake the tests?",
-        "answer": "Yes, you can retake both tests, but the last result counts."
+        "question": "When is the first test scheduled?",
+        "answer": "March 31st"
     },
     {
-        "question": "Are there any additional scores for class participation?",
-        "answer": "Yes, you can get 1 additional point for each attendance."
+        "question": "What is the grading system for the Moodle tests?",
+        "answer": "Each correct answer is one point, with a total of 25 questions and a maximum score of 50 points. Grades are assigned based on the score range: 25-31 = Grade 2, 32-37 = Grade 3, 38-42 = Grade 4, 43-50 = Grade 5."
     },
     {
-        "question": "What are the two main sources of EU law?",
-        "answer": "Regulations and directives"
+        "question": "Can you retake the Moodle tests?",
+        "answer": "Yes, you can retake both tests, but the last result counts. Test makeup and retake are during the retake week."
+    },
+    {
+        "question": "Is class participation obligatory?",
+        "answer": "No, but you can earn additional scores for attendance."
+    },
+    {
+        "question": "What is the email address for questions related to the course?",
+        "answer": "vig.zoltan@gtk.bme.hu, with 'Business Law' included in the subject line."
+    },
+    {
+        "question": "What are the two types of law that govern the functioning of a state and relationships between individuals and entities?",
+        "answer": "Public Law and Private Law"
+    },
+    {
+        "question": "What is the difference between public and private law?",
+        "answer": "Public law governs issues related to the state, with natural and legal persons subordinated to the state. Private law deals with relationships between natural and legal persons, sometimes including the state as an equal entity."
+    },
+    {
+        "question": "What are some branches of public law?",
+        "answer": "Constitutional Law, Administrative Law, Tax Law, and Criminal Law"
+    },
+    {
+        "question": "What are some areas of private law?",
+        "answer": "Civil Law, Company Law, and International Trade Law"
+    },
+    {
+        "question": "What is the difference between substantive law and procedural law?",
+        "answer": "Substantive law establishes rights and obligations, while procedural law lays down the ways to enforce those rights and obligations."
+    },
+    {
+        "question": "What are some examples of substantive law?",
+        "answer": "Civil Code, Criminal Code, and Labour Code"
+    },
+    {
+        "question": "What are some examples of procedural law?",
+        "answer": "Code on Civil Procedure and Code on Criminal Procedure"
+    },
+    {
+        "question": "What are the four scopes of effectivity in law?",
+        "answer": "Material scope, personal scope, temporal scope, and territorial scope"
+    },
+    {
+        "question": "What does the material scope of a law refer to?",
+        "answer": "The subject matter or area covered by the law, such as public transportation, education, or trade."
+    },
+    {
+        "question": "What is the personal scope of a law?",
+        "answer": "The individuals or entities to whom the law applies, which can be general or specific to certain roles like official persons or traders."
+    },
+    {
+        "question": "What is the temporal scope of a law?",
+        "answer": "The period during which the law is applicable, usually starting from its publication until a new law on the same subject matter is enacted or as specified in the law itself."
+    },
+    {
+        "question": "What is the territorial scope of a law?",
+        "answer": "The geographical area or jurisdiction where the law applies, which can vary in federal states, unitary states, and municipalities."
+    },
+    {
+        "question": "What are the sources of business law?",
+        "answer": "Constitution, international treaties, national laws, conflict of laws rules, decrees, and other lower legal acts."
+    },
+    {
+        "question": "What are the two important sources of EU law mentioned?",
+        "answer": "Regulations and Directives"
+    },
+    {
+        "question": "What is the difference between an EU regulation and a directive?",
+        "answer": "A regulation is a binding legislative act that must be applied across the EU, while a directive sets a goal and allows individual countries to create their own laws to achieve it."
     }
 ]
