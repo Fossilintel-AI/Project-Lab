@@ -2197,37 +2197,118 @@ app.get('/live/:sessionId', (req, res) => {
     res.render('live.ejs', { sessionId, username,isAdmin: AdminFlag });
 });
 
+
 // ---- SOCKET.IO for WebRTC signaling ----
-// ---- SOCKET.IO for WebRTC signaling ----
+
+const rooms = {}; // store users per room
+
 io.on('connection', socket => {
     console.log('User connected:', socket.id);
 
-    socket.on('join-room', roomId => {
+    socket.on('join-room', (roomId, username, role) => {
         socket.join(roomId);
-        socket.to(roomId).emit('user-joined', socket.id);
 
-        socket.on('signal', data => {
-            io.to(data.to).emit('signal', { from: socket.id, signal: data.signal });
+        // Initialize room if not exists
+        if (!rooms[roomId]) rooms[roomId] = {};
+
+        // Save username and role with socket ID as key
+        rooms[roomId][socket.id] = {
+            id: socket.id, // Use socket ID as unique identifier
+            username: username,
+            role: role || 'Student'
+        };
+
+        socket.on('send-chat-message', (roomId, message) => {
+            // Broadcast the message to everyone in the room
+            io.to(roomId).emit('receive-chat-message', {
+                sender: rooms[roomId][socket.id].username,
+                message: message,
+                timestamp: new Date()
+            });
         });
 
+        // Notify others a user joined
+        socket.to(roomId).emit('user-joined', socket.id, username, role);
+
+        // Send updated participant list with roles
+        const participants = Object.values(rooms[roomId]);
+        io.to(roomId).emit('update-participants', participants);
+
+        // Handle incoming WebRTC signals
+        socket.on('signal', data => {
+            io.to(data.to).emit('signal', {
+                from: socket.id,
+                signal: data.signal,
+                name: rooms[roomId][socket.id].username,
+                role: rooms[roomId][socket.id].role
+            });
+        });
+
+        // Screen share events
         socket.on('screen-share-start', ({ to, signal }) => {
-            io.to(to).emit('screen-share-start', { from: socket.id, signal });
+            io.to(to).emit('screen-share-start', {
+                from: socket.id,
+                signal,
+                name: rooms[roomId][socket.id].username,
+                role: rooms[roomId][socket.id].role
+            });
         });
 
         socket.on('screen-signal', ({ to, signal }) => {
-            io.to(to).emit('screen-signal', { from: socket.id, signal });
+            io.to(to).emit('screen-signal', {
+                from: socket.id,
+                signal,
+                name: rooms[roomId][socket.id].username,
+                role: rooms[roomId][socket.id].role
+            });
         });
 
-        socket.on('screen-share-stopped', (userId) => {
+        // In your backend, make sure screen-share-stopped is broadcast correctly
+        socket.on('screen-share-stopped', userId => {
+            console.log('Broadcasting screen share stopped for:', userId);
+            // Broadcast to everyone in the room except the sender
             socket.to(roomId).emit('screen-share-stopped', userId);
         });
 
+        // Disconnect handler
         socket.on('disconnect', () => {
-            socket.to(roomId).emit('user-left', socket.id);
+            console.log('User disconnected:', socket.id);
+            if (rooms[roomId]) {
+                delete rooms[roomId][socket.id];
+                socket.to(roomId).emit('user-left', socket.id);
+
+                // Send updated participant list
+                const remainingParticipants = Object.values(rooms[roomId]);
+                io.to(roomId).emit('update-participants', remainingParticipants);
+
+                if (Object.keys(rooms[roomId]).length === 0) delete rooms[roomId];
+            }
         });
+
+        // Leave room manually
+        socket.on('leave-room', () => {
+            if (rooms[roomId]) {
+                delete rooms[roomId][socket.id];
+                socket.leave(roomId);
+                socket.to(roomId).emit('user-left', socket.id);
+
+                // Send updated participant list
+                const remainingParticipants = Object.values(rooms[roomId]);
+                io.to(roomId).emit('update-participants', remainingParticipants);
+
+                if (Object.keys(rooms[roomId]).length === 0) delete rooms[roomId];
+            }
+        });
+        // Send welcome message after a short delay
+        setTimeout(() => {
+            socket.emit('receive-chat-message', {
+                sender: 'System',
+                message: `Welcome to the classroom, ${username}!`,
+                timestamp: new Date()
+            });
+        }, 1000);
     });
 });
-
 
 
 
