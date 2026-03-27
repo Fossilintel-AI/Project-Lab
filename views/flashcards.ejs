@@ -1,0 +1,247 @@
+<%- include('header.ejs') %>
+<div class="flashcard-app">
+    <div class="container">
+        <h1 class="subject-title"><%= currentSubject %></h1>
+
+        <div class="flashcard-container">
+            <div id="card" class="flashcard">
+                <div class="card-front">
+                    <div class="card-content">
+                        <div class="question">
+                            <p>Click to see the answer</p>
+                        </div>
+                    </div>
+                    <div class="card-icon">?</div>
+                </div>
+                <div class="card-back">
+                    <div class="card-content">
+                        <div class="answer">
+                            <p>The answer will appear here!</p>
+                        </div>
+                    </div>
+                    <div class="card-icon">✓</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flashcard-controls">
+            <button id="prev" class="control-btn">
+                <i class="fas fa-chevron-left"></i> Previous
+            </button>
+            <span class="card-counter"></span>
+            <button id="next" class="control-btn">
+                Next <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script src="js/flashcards.js"></script>
+<%- include('footer.ejs') %>
+
+<style>
+    /* Base Styles */
+    :root {
+        --primary-color: #4361ee;
+        --secondary-color: #3f37c9;
+        --accent-color: #4cc9f0;
+        --light-color: #f8f9fa;
+        --dark-color: #212529;
+        --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f5f7ff;
+    }
+
+    /* Flashcard App Container */
+    .flashcard-app {
+        padding: 2rem;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background: linear-gradient(135deg, #f5f7ff 0%, #e8ecff 100%);
+    }
+
+    .container {
+        width: 100%;
+        max-width: 800px;
+    }
+
+    /* Subject Title */
+    .subject-title {
+        text-align: center;
+        color: var(--dark-color);
+        margin-bottom: 2rem;
+        font-weight: 700;
+        font-size: 2.5rem;
+        position: relative;
+        padding-bottom: 0.5rem;
+    }
+
+    .subject-title::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100px;
+        height: 4px;
+        background: var(--primary-color);
+        border-radius: 2px;
+    }
+
+    /* Flashcard Container */
+    .flashcard-container {
+        perspective: 1000px;
+        margin-bottom: 2rem;
+    }
+
+    /* Flashcard Styling */
+    .flashcard {
+        position: relative;
+        width: 100%;
+        height: 400px;
+        transform-style: preserve-3d;
+        transition: var(--transition);
+        cursor: pointer;
+        border-radius: 20px;
+        box-shadow: var(--shadow);
+    }
+
+    .flashcard.flipped {
+        transform: rotateY(180deg);
+    }
+
+    .card-front, .card-back {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
+        border-radius: 20px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .card-front {
+        background: white;
+        color: var(--dark-color);
+    }
+
+    .card-back {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        color: white;
+        transform: rotateY(180deg);
+    }
+
+    .card-content {
+        padding: 2rem;
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+    }
+
+    .question p, .answer p {
+        font-size: 1.8rem;
+        line-height: 1.5;
+        margin: 0;
+    }
+
+    .card-icon {
+        padding: 1rem;
+        text-align: center;
+        font-size: 2rem;
+        font-weight: bold;
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .card-front .card-icon {
+        color: var(--primary-color);
+    }
+
+    .card-back .card-icon {
+        color: white;
+    }
+
+    /* Controls */
+    .flashcard-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 2rem;
+    }
+
+    .control-btn {
+        padding: 0.8rem 1.5rem;
+        border: none;
+        border-radius: 50px;
+        background: white;
+        color: var(--primary-color);
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(67, 97, 238, 0.2);
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .control-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(67, 97, 238, 0.3);
+    }
+
+    .control-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: 0 4px 15px rgba(67, 97, 238, 0.2);
+    }
+
+    .card-counter {
+        font-weight: 600;
+        color: var(--dark-color);
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .flashcard {
+        animation: fadeIn 0.5s ease-out;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .flashcard {
+            height: 350px;
+        }
+
+        .question p, .answer p {
+            font-size: 1.5rem;
+        }
+
+        .subject-title {
+            font-size: 2rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .flashcard {
+            height: 300px;
+        }
+
+        .card-content {
+            padding: 1.5rem;
+        }
+    }
+</style>

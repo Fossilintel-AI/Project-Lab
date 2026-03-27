@@ -1,0 +1,1738 @@
+<%- include('header.ejs') %>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- Bootstrap CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<!-- Bootstrap Bundle JS (includes modal) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Add this helper function at the top of your EJS file -->
+<% function truncateText(text, maxLength) {
+    if (text.length > maxLength) {
+        return text.substring(0, maxLength) + '...';
+    }
+    return text;
+} %>
+
+<div class="lecture-dashboard">
+    <!-- Header Section -->
+    <div class="dashboard-header">
+        <h1><i class="fas fa-chalkboard-teacher"></i> <%= subject %> Learning Materials</h1>
+        <p class="subtitle">Access lecture slides, generate study aids, and manage your personal notes</p>
+    </div>
+
+    <!-- Main Content Tabs -->
+    <div class="dashboard-tabs">
+        <div class="tab-nav">
+            <button class="tab-btn active" onclick="openTab('official-slides')">Official Slides</button>
+
+            <% if (!locals.isAdmin) { %>
+                <button class="tab-btn" onclick="openTab('personal-notes')">Personal Notes</button>
+            <% } %>
+            <button class="tab-btn" onclick="openTab('upload-section')">Upload Notes</button>
+            <button class="tab-btn" onclick="openTab('assignment-section')">Assignments</button>
+            <button class="tab-btn" onclick="openTab('video-section')">Lecture Videos</button>
+            <button class="tab-btn" onclick="openTab('LiveClass-section')">Live Classes</button>
+
+        </div>
+
+        <!-- Official Slides Tab -->
+        <div id="official-slides" class="tab-content active-tab">
+            <div class="section-header">
+                <h2><i class="fas fa-file-pdf"></i> Lecture Slides</h2>
+                <p>Course-provided presentation materials</p>
+            </div>
+
+            <% if (slides.length === 0) { %>
+                <div class="empty-state">
+                    <i class="fas fa-folder-open"></i>
+                    <p>No slides available for this course</p>
+                </div>
+            <% } else { %>
+                <div class="lecture-grid">
+                    <% slides.forEach((slide, index) => { %>
+                        <div class="lecture-card">
+                            <div class="lecture-info">
+                                <div class="lecture-number">Lecture <%= index + 1 %></div>
+                                <h3 title="<%= slide.replace('.pdf', '') %>">
+                                    <%= truncateText(slide.replace('.pdf', ''), 50) %>
+                                </h3>
+                            </div>
+                            <div class="lecture-actions">
+                                <a href="/Course/<%= subject %>/slides/<%= encodeURIComponent(slide) %>" target="_blank" class="action-btn download">
+                                    <i class="fas fa-download"></i> Download
+                                </a>
+                                <a href="/pdfview/<%= encodeURIComponent(slide) %>" class="action-btn download">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+
+                                <% if (!locals.isAdmin) { %>
+
+                                    <!-- ✅ Progress Checkbox -->
+                                    <form action="/progress/update" method="POST" style="display:inline;">
+                                        <input type="hidden" name="subject" value="<%= subject %>">
+                                        <input type="hidden" name="content_name" value="<%= slide %>">
+                                        <input type="hidden" name="is_completed" value="false">
+
+                                        <div class="form-check form-switch d-inline-flex align-items-center">
+                                            <input class="form-check-input" type="checkbox" name="is_completed" value="true"
+                                                   onchange="this.form.submit()"
+                                                    <%= completedSlides.includes(slide) ? 'checked' : '' %>>
+                                            <label class="form-check-label ms-2">
+                                                <i class=""></i> Done
+                                            </label>
+                                        </div>
+                                    </form>
+
+                                <% } %>
+
+
+                                <% if (subscription_type === 'Enterprise') { %>
+                                    <div class="premium-actions">
+
+                                        <a href="/youtubeRecommendation/<%= encodeURIComponent(slide) %>" class="action-btn download">
+                                            <i class="fas fa-video"></i>
+                                        </a>
+                                        <a href="/generateQuestions/<%= encodeURIComponent(slide) %>" class="action-btn download">
+                                            <i class="fas fa-bolt"></i> Flashcards
+                                        </a>
+                                        <a href="/summarize/<%= encodeURIComponent(slide) %>" class="action-btn download">
+                                            <i class="fas fa-file-alt"></i> Summary
+                                        </a>
+
+
+                                    </div>
+                                <% } else { %>
+                                    <div class="premium-locked">
+                                        <button class="action-btn locked" onclick="showUpgradePopup()">
+                                            <i class="fas fa-crown"></i> Upgrade for More
+                                        </button>
+                                    </div>
+                                <% } %>
+                            </div>
+                        </div>
+                    <% }); %>
+                </div>
+            <% } %>
+
+
+
+
+        </div>
+
+        <!-- Personal Notes Tab -->
+        <div id="personal-notes" class="tab-content">
+            <div class="section-header">
+                <h2><i class="fas fa-user-edit"></i> Personal Notes</h2>
+                <p>Your uploaded study materials</p>
+            </div>
+
+            <% if (personalslides.length === 0) { %>
+                <div class="empty-state">
+                    <i class="fas fa-upload"></i>
+                    <p>You haven't uploaded any personal notes yet</p>
+                    <button class="primary-btn" onclick="openTab('upload-section')">
+                        <i class="fas fa-plus"></i> Upload Notes
+                    </button>
+                </div>
+            <% } else { %>
+                <div class="lecture-grid">
+                    <% personalslides.forEach((slide, index) => { %>
+                        <div class="lecture-card <%= slide.isApproved !== 'Approved' ? 'pending' : '' %>">
+                            <div class="lecture-info">
+                                <div class="lecture-number">Note <%= index + 1 %></div>
+                                <h3 title="<%= slide.file_path ? slide.file_path.replace('.pdf', '') : 'Untitled' %>">
+                                    <%= truncateText(slide.file_path ? slide.file_path.replace('.pdf', '') : 'Untitled', 50) %>
+                                </h3>
+                                <div class="status-badge <%= slide.isApproved.toLowerCase() %>">
+                                    <% if (slide.isApproved === 'Approved') { %>
+                                        <i class="fas fa-check-circle"></i> Approved
+                                    <% } else if (slide.isApproved === 'Declined') { %>
+                                        <i class="fas fa-times-circle"></i> Declined
+                                    <% } else { %>
+                                        <i class="fas fa-hourglass-half"></i> Pending
+                                    <% } %>
+                                </div>
+                            </div>
+
+                            <% if (slide.isApproved === 'Approved') { %>
+                                <div class="lecture-actions">
+                                    <a href="/Workstation/<%= userid %>/<%= subject %>/slides/<%= encodeURIComponent(slide.file_path) %>" target="_blank" class="action-btn download">
+                                        <i class="fas fa-download"></i> Download
+                                    </a>
+                                    <a href="/pdfview/<%= slide.file_path %>" class="action-btn download">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
+                                    <% if (subscription_type === 'Enterprise') { %>
+                                        <div class="premium-actions">
+                                            <a href="/youtubeRecommendation/<%= slide.file_path %>" class="action-btn download">
+                                                <i class="fas fa-video"></i>
+                                            </a>
+
+                                            <a href="/generateQuestions/<%= slide.file_path %>" class="action-btn download">
+                                                <i class="fas fa-bolt"></i> Flashcards
+                                            </a>
+                                            <a href="/summarize/<%= slide.file_path %>" class="action-btn download">
+                                                <i class="fas fa-file-alt"></i> Summary
+                                            </a>
+                                        </div>
+                                    <% } else { %>
+                                        <div class="premium-locked">
+                                            <button class="action-btn locked" onclick="showUpgradePopup()">
+                                                <i class="fas fa-crown"></i> Upgrade for More
+                                            </button>
+                                        </div>
+                                    <% } %>
+                                </div>
+                            <% } %>
+                        </div>
+                    <% }); %>
+                </div>
+            <% } %>
+        </div>
+
+        <!-- Upload Section Tab -->
+        <div id="upload-section" class="tab-content">
+
+            <% if (locals.isAdmin) { %>
+                <div class="upload-container">
+                    <div class="upload-card">
+                        <div class="upload-header">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <h2>Upload Lecture Slides</h2>
+
+                        </div>
+                        <form action="/AdminuploadPdf" method="POST" enctype="multipart/form-data" class="upload-form">
+                            <div class="file-upload">
+                                <input type="file" id="pdfFile" name="pdfFile" accept="application/pdf" required>
+                                <label for="pdfFile">
+                                    <i class="fas fa-file-pdf"></i>
+                                    <span>Choose PDF File</span>
+                                </label>
+                            </div>
+                            <button type="submit" class="primary-btn upload-btn">
+                                <i class="fas fa-upload"></i> Upload Notes
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                <% } else { %>
+
+            <div class="upload-container">
+                <div class="upload-card">
+                    <div class="upload-header">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <h2>Upload Personal Notes</h2>
+                        <p>Share your study materials in PDF format</p>
+                    </div>
+                    <form action="/uploadPdf" method="POST" enctype="multipart/form-data" class="upload-form">
+                        <div class="file-upload">
+                            <input type="file" id="pdfFile" name="pdfFile" accept="application/pdf" required>
+                            <label for="pdfFile">
+                                <i class="fas fa-file-pdf"></i>
+                                <span>Choose PDF File</span>
+                            </label>
+                        </div>
+                        <button type="submit" class="primary-btn upload-btn">
+                            <i class="fas fa-upload"></i> Upload Notes
+                        </button>
+                    </form>
+                </div>
+            </div>
+                <% } %>
+        </div>
+
+        <!-- Assignment Section Tab -->
+        <div id="assignment-section" class="tab-content py-4">
+
+            <!-- Section Header -->
+            <div class="section-header text-center mb-5">
+                <h2 class="fw-bold text-brown">
+                    <i class="fas fa-tasks me-2"></i>Assignments
+                </h2>
+                <p class="text-muted fs-6">View and submit your course assignments</p>
+            </div>
+
+            <% if (locals.isAdmin) { %>
+                <!-- Admin Controls -->
+                <div class="admin-assignment-controls mb-4 text-end">
+                    <button class="btn btn-brown btn-sm shadow-sm" onclick="showCreateAssignmentModal()">
+                        <i class="fas fa-plus me-1"></i> New Assignment
+                    </button>
+                </div>
+            <% } %>
+
+            <% if (assignments.length > 0) { %>
+                <!-- Assignment List -->
+                <div class="assignment-list">
+                    <% assignments.forEach(assignment => { %>
+                        <div class="assignment-item p-3 mb-3 shadow-sm rounded-3 d-flex justify-content-between align-items-center">
+                            <div class="assignment-info">
+                                <h5 class="mb-1 fw-bold"><%= assignment.title %></h5>
+                                <div class="text-muted fs-7">
+                                    <span><i class="far fa-clock me-1"></i> Deadline: <%= assignment.deadline ? new Date(assignment.deadline).toLocaleString() : 'No deadline' %></span>
+                                    <% if (assignment.isTimed) { %> | <span><i class="fas fa-hourglass-half me-1"></i> Timed: <%= assignment.timeLimit %> mins</span><% } %>
+                                </div>
+                                <div class="text-muted fs-7 mt-1">
+                                    <span><i class="fas fa-list-ol me-1"></i> <%= assignment.questionCount %> questions</span> |
+                                    <span><i class="fas fa-star me-1"></i> <%= assignment.totalMarks %> marks</span>
+                                </div>
+                                <% if (!locals.isAdmin && assignment.attempted) { %>
+                                    <div class="mt-1 text-success fw-semibold fs-7">Completed - Grade: <%= assignment.grade %>%</div>
+                                <% } %>
+                            </div>
+
+                            <div class="assignment-actions d-flex align-items-center">
+                                <% if (!locals.isAdmin && !assignment.attempted) { %>
+                                    <button class="btn btn-outline-primary" onclick="viewAssignment('<%= assignment.filename %>')">
+                                        Begin
+                                    </button>
+
+                            <% } else { %>
+                                    <button class="btn btn-outline-primary btn-sm me-2" onclick="viewAssignment('<%= assignment.filename %>')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                <% } %>
+
+                                <% if (locals.isAdmin) { %>
+                                    <button class="btn btn-outline-danger btn-sm" onclick="deleteAssignment('<%= assignment.filename %>')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                <% } %>
+                            </div>
+                        </div>
+                    <% }) %>
+                </div>
+
+        <% } else { %>
+                <div class="empty-state mt-5 text-center text-muted">
+                    <i class="fas fa-tasks fa-3x mb-2"></i>
+                    <p class="mb-0 fs-6">No assignments available</p>
+                </div>
+            <% } %>
+
+        </div>
+
+        <style>
+            .text-brown { color: #6b4c3b; }
+            .btn-brown { background-color: #6b4c3b; color: #fff; border: none; transition: 0.2s; }
+            .btn-brown:hover { background-color: #8a674f; }
+            .assignment-item { background-color: #fff; transition: 0.2s; }
+            .assignment-item:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.08); }
+            .assignment-actions button { min-width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; padding: 0; }
+        </style>
+
+
+        <!-- Video Section Tab -->
+        <div id="video-section" class="tab-content">
+            <div class="section-header">
+                <h2><i class="fas fa-video"></i> Course Videos</h2>
+                <p>Watch uploaded course videos</p>
+            </div>
+
+            <% if (locals.isAdmin) { %>
+                <!-- Admin Upload Form -->
+                <div class="upload-container mb-4">
+                    <div class="upload-card">
+                        <div class="upload-header">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <h3>Upload Video</h3>
+                            <p>Share recorded lectures or related videos</p>
+                        </div>
+                        <form action="/uploadVideo" method="POST" enctype="multipart/form-data" class="upload-form">
+                            <input type="text" name="title" placeholder="Video Title" required class="form-control mb-2">
+                            <input type="file" name="videoFile" accept="video/*" required class="form-control mb-2">
+                            <button type="submit" class="primary-btn upload-btn">
+                                <i class="fas fa-upload"></i> Upload Video
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            <% } %>
+
+            <% if (videos.length === 0) { %>
+                <div class="empty-state">
+                    <i class="fas fa-video-slash"></i>
+                    <p>No videos available yet</p>
+                </div>
+            <% } else { %>
+                <div class="lecture-grid">
+                    <% videos.forEach((video, index) => { %>
+                        <div class="lecture-card">
+                            <div class="lecture-info">
+                                <div class="lecture-number">Video <%= index + 1 %></div>
+                                <h3><%= video.title %></h3>
+                            </div>
+                            <video width="100%" height="240" controls>
+                                <source src="/Course/<%= subject %>/videos/<%= video.filename %>" type="video/mp4">
+                                Your browser does not support the video tag.
+                            </video>
+
+
+                        <% if (locals.isAdmin) { %>
+                                <form action="/deleteVideo/<%= video.title%>" method="POST" style="margin-top:10px;">
+                                    <button type="submit" class="btn btn-sm btn-danger">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </form>
+                            <% } %>
+                        </div>
+                    <% }) %>
+                </div>
+            <% } %>
+        </div>
+
+        <!-- Live Class Section -->
+        <!-- Live Class Section -->
+        <div id="LiveClass-section" class="tab-content">
+            <div class="section-header">
+                <h2><i class="fas fa-video"></i> Live Classes</h2>
+                <p>Join or manage live sessions</p>
+            </div>
+
+            <% if (isAdmin) { %>
+                <!-- ✅ Admin Interface -->
+                <div class="card">
+                    <h3>Create New Session</h3>
+                    <form action="/liveClass/create" method="POST" class="form-card">
+                        <input type="text" name="title" placeholder="Session Title" required>
+                        <input type="text" name="description" placeholder="Session Description">
+                        <input type="text" name="sessionId" placeholder="Session ID" required>
+                        <button type="submit" class="btn-primary">Create Session</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h3>Existing Sessions</h3>
+                    <% if (sessions && sessions.length > 0) { %>
+                        <ul class="session-list">
+                            <% sessions.forEach(session => { %>
+                                <li>
+                                    <div>
+                                        <b><%= session.title %></b> - <%= session.description %>
+                                        <span class="session-id">ID: <%= session.session_id %></span>
+                                    </div>
+                                    <form action="/liveClass/delete/<%= session.session_id %>" method="POST">
+                                        <button type="submit" class="btn-danger">Delete</button>
+                                    </form>
+                                </li>
+                            <% }) %>
+                        </ul>
+                    <% } else { %>
+                        <p>No sessions available</p>
+                    <% } %>
+                </div>
+
+            <% }  %>
+                <!-- ✅ Student Interface -->
+                <div class="card">
+                    <h3>Available Sessions</h3>
+                    <% if (sessions && sessions.length > 0) { %>
+                        <ul class="session-list">
+                            <% sessions.forEach(session => { %>
+                                <li>
+                                    <b><%= session.title %></b> - <%= session.description %>
+                                    <span class="session-id">ID: <%= session.session_id %></span>
+                                </li>
+                            <% }) %>
+                        </ul>
+                    <% } else { %>
+                        <p>No sessions created yet</p>
+                    <% } %>
+                </div>
+
+
+            <% if ( sessions.length > 0) { %>
+                <div class="card">
+                    <h3>Join Session</h3>
+                    <form action="/liveClass/join" method="POST" class="form-card">
+                        <input type="text" name="username" placeholder="Enter Your Name" required>
+                        <input type="text" name="sessionId" placeholder="Enter Session ID" required>
+                        <button type="submit" class="btn-primary">Join Session</button>
+                    </form>
+                </div>
+            <% } %>
+
+        </div>
+
+
+
+
+    </div>
+</div>
+
+
+
+<!-- New ends here -->
+<!-- Add this modal at the bottom of your course.ejs file, before the closing body tag -->
+<!-- Create Assignment Modal -->
+<div id="createAssignmentModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><%= existingAssignment ? "Edit Assignment" : "Create Assignment" %></h3>
+            <span class="close" onclick="closeModal('createAssignmentModal')">&times;</span>
+        </div>
+        <div class="modal-body">
+            <form id="assignmentForm">
+                <div class="form-group">
+                    <label>Assignment Title:</label>
+                    <input type="text" class="form-control" name="title" id="assignmentTitle" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="deadline">Deadline:</label>
+                    <input type="datetime-local" class="form-control" id="deadline" name="deadline" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="isTimed">Is this a timed assignment?</label>
+                    <select id="isTimed" name="isTimed" class="form-control" onchange="toggleDurationInput()">
+                        <option value="no">No</option>
+                        <option value="yes">Yes</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="durationGroup" style="display: none;">
+                    <label for="timeLimit">Time Limit (minutes):</label>
+                    <input type="number" class="form-control" id="timeLimit" name="timeLimit" min="1">
+                </div>
+
+
+                <div id="questions" class="questions-container"></div>
+                <div class="form-group text-center mt-3">
+                    <button type="button" class="btn btn-outline-primary" onclick="addQuestion()">
+                        <i class="fas fa-plus"></i> Add Question
+                    </button>
+                </div>
+                <input type="hidden" id="filename" value="<%= filename || '' %>">
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('createAssignmentModal')">Cancel</button>
+            <button class="btn btn-primary" onclick="submitAssignment()">Save Assignment</button>
+        </div>
+    </div>
+</div>
+
+
+<!-- Success Modal -->
+<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-success">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="successModalLabel">Success</h5>
+                <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="successMessage">
+                Assignment created successfully!
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Error Modal -->
+<div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-danger">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="errorModalLabel">Error</h5>
+                <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="errorMessage">
+                Failed to create assignment.
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<style>
+    /* ---------------- LiveClass-section Styles ---------------- */
+    #LiveClass-section {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        color: #4b2e2e; /* dark brown text */
+        background-color: #f9f5f2; /* light warm background */
+        padding: 30px;
+    }
+
+    #LiveClass-section .section-header h2 {
+        font-size: 28px;
+        margin-bottom: 5px;
+        color: #8b4513; /* deep brown accent */
+    }
+
+    #LiveClass-section .section-header p {
+        color: #7a5a45;
+        margin-bottom: 25px;
+    }
+
+    #LiveClass-section .card {
+        background: #fff1e6; /* light cream card */
+        border-radius: 12px;
+        padding: 25px;
+        margin: 20px 0;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    #LiveClass-section .card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 25px rgba(0,0,0,0.15);
+    }
+
+    #LiveClass-section .form-card input {
+        width: 100%;
+        padding: 12px 15px;
+        margin-bottom: 15px;
+        border-radius: 8px;
+        border: 1px solid #d1b89d;
+        background: #fffaf5;
+        color: #4b2e2e;
+        font-size: 14px;
+    }
+
+    #LiveClass-section .form-card input:focus {
+        border-color: #8b4513;
+        outline: none;
+    }
+
+    #LiveClass-section .form-card button {
+        padding: 12px 20px;
+        background: #8b4513; /* brown theme */
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        color: #fff;
+        transition: background 0.2s ease;
+    }
+
+    #LiveClass-section .form-card button:hover {
+        background: #a0522d;
+    }
+
+    #LiveClass-section .session-list {
+        list-style: none;
+        padding: 0;
+    }
+
+    #LiveClass-section .session-list li {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 15px;
+        background: #fff5eb; /* light warm card item */
+        margin-bottom: 12px;
+        border-radius: 8px;
+        transition: background 0.2s;
+        color: #4b2e2e;
+    }
+
+    #LiveClass-section .session-list li:hover {
+        background: #ffe8d6;
+    }
+
+    #LiveClass-section .session-id {
+        font-size: 12px;
+        color: #7a5a45;
+    }
+
+    #LiveClass-section .btn-danger {
+        background: #c0392b;
+        color: #fff;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+    #LiveClass-section .btn-danger:hover {
+        background: #e74c3c;
+    }
+
+    #LiveClass-section .btn-primary {
+        background: #8b4513; /* brown theme */
+        color: #fff;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+
+    #LiveClass-section .btn-primary:hover {
+        background: #a0522d;
+    }
+
+
+
+
+
+
+
+    .btn-brown {
+        background-color: #6b4c3b;
+        color: #fff;
+        border: none;
+        transition: 0.3s;
+    }
+
+    .btn-brown:hover {
+        background-color: #8a674f;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+    }
+
+    .btn-begin {
+        padding: 0.5rem 1.2rem;
+        font-weight: 600;
+        border-radius: 50px; /* pill shape */
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+
+
+    /* Assignment Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1050;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.4);
+    }
+
+    .modal-content {
+        background-color: #fefefe;
+        margin: 5% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+        max-width: 800px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .modal-header {
+        padding: 10px 0;
+        border-bottom: 1px solid #eee;
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .modal-header h3 {
+        margin: 0;
+        color: #333;
+    }
+
+    .close {
+        color: #aaa;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .close:hover {
+        color: #333;
+    }
+
+    .modal-body {
+        padding: 10px 0;
+        max-height: 70vh;
+        overflow-y: auto;
+    }
+
+    .modal-footer {
+        padding: 15px 0 0;
+        border-top: 1px solid #eee;
+        text-align: right;
+    }
+
+    /* Question Block Styles */
+    .question-block {
+        background: #f9f9f9;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 20px;
+        border: 1px solid #eee;
+    }
+
+    .question-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .question-header h5 {
+        margin: 0;
+        color: #333;
+    }
+
+    .questions-container {
+        margin-top: 20px;
+    }
+
+    /* Form Styles */
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+
+    textarea.form-control {
+        min-height: 100px;
+    }
+
+    .option-list {
+        margin-bottom: 10px;
+    }
+
+    .input-group-text {
+        min-width: 40px;
+        justify-content: center;
+    }
+
+</style>
+
+
+
+
+<!-- Confirm Assignment Start Modal -->
+<div class="modal fade" id="confirmStartModal" tabindex="-1" aria-labelledby="confirmStartLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-3 shadow">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title" id="confirmStartLabel">Start Assignment?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Once you open this assignment, you can't go back or retake it. Do you want to begin?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmStartBtn">Yes, Begin</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    //viewing java
+    let selectedAssignmentFilename = "";
+
+    async function viewAssignment(filename) {
+        selectedAssignmentFilename = filename.replace(/\.json$/i, '');
+
+        // 🔍 Check deadline before showing modal
+        const subject = '<%= subject %>';
+        const response = await fetch(`/assignments/info/${selectedAssignmentFilename}`);
+        const result = await response.json();
+
+        if (result.status === 'late') {
+            // ⏰ Past deadline – auto submit with grade 0
+            const submitResponse = await fetch(`/assignments/force-submit/${selectedAssignmentFilename}`, {
+                method: "POST"
+            });
+
+            if (submitResponse.ok) {
+                const modalHtml = `
+                <div class="modal fade" id="deadlineModal" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header bg-warning text-dark">
+                                <h5 class="modal-title">Deadline Passed</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p>The deadline for this assignment has passed. A submission with a grade of 0 has been recorded automatically.</p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">OK</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+                const deadlineModal = new bootstrap.Modal(document.getElementById('deadlineModal'));
+                deadlineModal.show();
+            }
+        } else {
+            // 🟢 Show confirm start modal
+            const modal = new bootstrap.Modal(document.getElementById('confirmStartModal'));
+            modal.show();
+        }
+    }
+
+
+    document.getElementById("confirmStartBtn").addEventListener("click", async function () {
+        const subject = '<%= subject %>';
+        const cleanFilename = selectedAssignmentFilename;
+
+        // Hide modal
+        const modalEl = document.getElementById('confirmStartModal');
+        const modalInstance = bootstrap.Modal.getInstance(modalEl);
+        modalInstance.hide();
+
+        // Check if already attempted
+        const response = await fetch(`/assignments/check/${cleanFilename}`);
+        const result = await response.json();
+
+        // if (result.attempted) {
+        //     alert("You have already attempted this assignment. You cannot access it again.");
+        //     return;
+        // }
+
+        sessionStorage.setItem(`started-${cleanFilename}`, Date.now());
+        window.location.href = `/Course/${subject}/assignments/${encodeURIComponent(cleanFilename)}`;
+    });
+
+    function deleteAssignment(filename) {
+        if (confirm('Are you sure you want to delete this assignment?')) {
+            fetch(`/course/<%= subject %>/assignments/${filename}`, {
+                method: 'DELETE'
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error: ' + (data.message || 'Failed to delete assignment'));
+                    }
+                })
+                .catch(err => {
+                    console.error("Error deleting assignment:", err);
+                    alert('Failed to delete assignment');
+                });
+        }
+    }
+
+
+
+    // Assignment-related JavaScript
+    const existingAssignment = <%- JSON.stringify(existingAssignment || null) %>;
+    const assignmentFilename = "<%= filename || '' %>";
+    let questionIndex = 0;
+
+    function showCreateAssignmentModal() {
+        document.getElementById('questions').innerHTML = '';
+        questionIndex = 0;
+        document.getElementById('assignmentTitle').value = '';
+
+        if (existingAssignment && existingAssignment.questions) {
+            document.getElementById("assignmentTitle").value = existingAssignment.title || "";
+            existingAssignment.questions.forEach(q => addQuestion(q));
+        }
+
+        document.getElementById('createAssignmentModal').style.display = 'block';
+    }
+
+    function addQuestion(existing = null) {
+        const container = document.getElementById("questions");
+        const qDiv = document.createElement("div");
+        qDiv.className = "question-block";
+        qDiv.dataset.index = questionIndex;
+        qDiv.id = `question-${questionIndex}`;
+
+        const type = existing?.type || "mcq";
+        const questionText = existing?.question || "";
+        const marks = existing?.marks || "";
+
+        qDiv.innerHTML = `
+            <div class="question-header">
+                <h5>Question ${questionIndex + 1}</h5>
+                <button type="button" class="btn btn-sm btn-danger" onclick="removeQuestion(${questionIndex})">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            </div>
+            <div class="form-group">
+                <label>Question Type:</label>
+                <select class="form-control" name="questions[${questionIndex}][type]" onchange="updateOptions(this)">
+                    <option value="mcq" ${type === "mcq" ? "selected" : ""}>Multiple Choice</option>
+                    <option value="truefalse" ${type === "truefalse" ? "selected" : ""}>True/False</option>
+                    <option value="written" ${type === "written" ? "selected" : ""}>Written Answer</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Question:</label>
+                <textarea class="form-control" name="questions[${questionIndex}][question]" rows="3" required>${questionText}</textarea>
+            </div>
+            <div class="options"></div>
+            <div class="form-group">
+                <label>Marks:</label>
+                <input type="number" class="form-control" name="questions[${questionIndex}][marks]" value="${marks}" required>
+            </div>
+        `;
+
+        container.appendChild(qDiv);
+        const optionsDiv = qDiv.querySelector(".options");
+        addOptionsBlock(optionsDiv, type, questionIndex, existing);
+        questionIndex++;
+    }
+
+    function removeQuestion(index) {
+        const question = document.getElementById(`question-${index}`);
+        if (question) {
+            question.remove();
+        }
+    }
+
+    function updateOptions(select) {
+        const block = select.closest(".question-block");
+        const index = block.dataset.index;
+        const optionsDiv = block.querySelector(".options");
+        optionsDiv.innerHTML = "";
+        addOptionsBlock(optionsDiv, select.value, index);
+    }
+
+    function addOptionsBlock(container, type, qIndex, existing = null) {
+        if (type === "mcq") {
+            const opts = existing?.options || [];
+            const correct = existing?.correct || "A";
+            let html = `<div class="form-group">
+                <label>Options:</label>
+                <div class="option-list" id="option-list-${qIndex}">`;
+
+            for (let i = 0; i < Math.max(opts.length, 2); i++) {
+                html += renderLabeledOption(qIndex, i, opts[i] || "");
+            }
+
+            html += `</div>
+                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="addOption(${qIndex})">
+                    <i class="fas fa-plus"></i> Add Option
+                </button>
+                <div class="form-group mt-2">
+                    <label>Correct Answer:</label>
+                    <select class="form-control" name="questions[${qIndex}][correct]" id="correct-select-${qIndex}" required>`;
+
+            for (let i = 0; i < Math.max(opts.length, 2); i++) {
+                const letter = String.fromCharCode(65 + i);
+                html += `<option value="${letter}" ${correct === letter ? "selected" : ""}>${letter}</option>`;
+            }
+
+            html += `</select>
+                </div>
+            </div>`;
+            container.innerHTML = html;
+        } else if (type === "truefalse") {
+            const correct = existing?.correct || "True";
+            container.innerHTML = `
+                <div class="form-group">
+                    <label>Options:</label>
+                    <ul class="list-unstyled">
+                        <li>A. True</li>
+                        <li>B. False</li>
+                    </ul>
+                </div>
+                <div class="form-group">
+                    <label>Correct Answer:</label>
+                    <select class="form-control" name="questions[${qIndex}][correct]" required>
+                        <option value="True" ${correct === "True" ? "selected" : ""}>True</option>
+                        <option value="False" ${correct === "False" ? "selected" : ""}>False</option>
+                    </select>
+                </div>
+            `;
+        } else {
+            container.innerHTML = ""; // Written answer has no options or correct answer
+        }
+    }
+
+    function renderLabeledOption(qIndex, optIndex, value = "") {
+        const letter = String.fromCharCode(65 + optIndex);
+        return `
+            <div class="input-group mb-2">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">${letter}.</span>
+                </div>
+                <input type="text" class="form-control" name="questions[${qIndex}][options][]" value="${value}"
+                       oninput="refreshCorrectOptions(${qIndex})" required>
+            </div>`;
+    }
+
+    function addOption(qIndex) {
+        const list = document.getElementById(`option-list-${qIndex}`);
+        const count = list.querySelectorAll("input").length;
+        const letter = String.fromCharCode(65 + count);
+
+        const optionDiv = document.createElement('div');
+        optionDiv.className = 'input-group mb-2';
+        optionDiv.innerHTML = `
+            <div class="input-group-prepend">
+                <span class="input-group-text">${letter}.</span>
+            </div>
+            <input type="text" class="form-control" name="questions[${qIndex}][options][]"
+                   oninput="refreshCorrectOptions(${qIndex})" required>
+        `;
+
+        list.appendChild(optionDiv);
+        refreshCorrectOptions(qIndex);
+    }
+
+    function refreshCorrectOptions(qIndex) {
+        const list = document.getElementById(`option-list-${qIndex}`);
+        const inputs = list.querySelectorAll("input");
+        const select = document.getElementById(`correct-select-${qIndex}`);
+        if (!select) return;
+        select.innerHTML = "";
+        inputs.forEach((input, i) => {
+            const letter = String.fromCharCode(65 + i);
+            const option = document.createElement("option");
+            option.value = letter;
+            option.textContent = letter;
+            select.appendChild(option);
+        });
+    }
+
+    function toggleDurationInput() {
+        const isTimed = document.getElementById('isTimed').value;
+        const durationGroup = document.getElementById('durationGroup');
+        durationGroup.style.display = isTimed === 'yes' ? 'block' : 'none';
+    }
+
+
+    function submitAssignment() {
+        const title = document.getElementById('assignmentTitle').value;
+        const filename = document.getElementById('filename').value;
+        const subject = '<%= subject %>';
+        const deadline = document.getElementById('deadline').value;
+        const isTimed = document.getElementById('isTimed').value === 'yes';
+        const timeLimit = isTimed ? parseInt(document.getElementById('timeLimit').value) : null;
+
+        const questions = [];
+        for (let i = 0; i < questionIndex; i++) {
+            const block = document.getElementById(`question-${i}`);
+            if (!block) continue;
+            const type = block.querySelector(`select[name="questions[${i}][type]"]`).value;
+            const question = block.querySelector(`textarea[name="questions[${i}][question]"]`).value;
+            const marks = parseInt(block.querySelector(`input[name="questions[${i}][marks]"]`).value);
+            let options = [];
+            let correct = null;
+
+            if (type === "mcq") {
+                const optionInputs = block.querySelectorAll(`input[name="questions[${i}][options][]"]`);
+                optionInputs.forEach(input => options.push(input.value));
+                correct = block.querySelector(`select[name="questions[${i}][correct]"]`).value;
+            } else if (type === "truefalse") {
+                correct = block.querySelector(`select[name="questions[${i}][correct]"]`).value;
+            }
+
+            questions.push({ type, question, marks, options, correct });
+        }
+
+        const url = filename ? `/course/${subject}/assignments/${filename}` : '/assignment/save';
+        const method = filename ? 'PUT' : 'POST';
+
+        fetch(url, {
+            method: method,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ title, questions, filename, subject, deadline, isTimed, timeLimit })
+        })
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('successMessage').textContent = `Assignment ${filename ? 'updated' : 'created'} successfully!`;
+                    const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+                    successModal.show();
+                    closeModal('createAssignmentModal');
+                    setTimeout(() => location.reload(), 1500); // optional auto-reload
+                } else {
+                    throw new Error(data.message || 'Operation failed');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('errorMessage').textContent = `Failed to ${filename ? 'update' : 'create'} assignment: ${error.message}`;
+                const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+                errorModal.show();
+            });
+    }
+
+
+
+    function closeModal(modalId) {
+        document.getElementById(modalId).style.display = 'none';
+    }
+</script>
+
+<!-- Upgrade Modal -->
+<div id="upgradeModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <i class="fas fa-crown"></i>
+            <h3>Upgrade Required</h3>
+            <span class="close" onclick="closeModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <p>This feature is only available with an Enterprise subscription.</p>
+            <p>Upgrade now to unlock powerful study tools including flashcard generation and AI-powered summaries.</p>
+        </div>
+        <div class="modal-footer">
+            <button class="secondary-btn" onclick="closeModal()">Maybe Later</button>
+            <button class="primary-btn" onclick="window.location.href='/upgrade'">View Plans</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .modal-backdrop {
+        z-index: 1040 !important;
+    }
+    .modal {
+        z-index: 1050 !important;
+    }
+</style>
+
+
+<script>
+    // Tab functionality
+    function openTab(tabId) {
+        // Hide all tab contents
+        document.querySelectorAll('.tab-content').forEach(tab => {
+            tab.classList.remove('active-tab');
+        });
+
+        // Remove active class from all tab buttons
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+
+        // Show selected tab content
+        document.getElementById(tabId).classList.add('active-tab');
+
+        // Add active class to clicked button
+        event.currentTarget.classList.add('active');
+    }
+
+    // Truncate long text with ellipsis
+    function truncateText(text, maxLength) {
+        if (text.length > maxLength) {
+            return text.substring(0, maxLength) + '...';
+        }
+        return text;
+    }
+
+    // Modal functionality
+    function showUpgradePopup() {
+        document.getElementById('upgradeModal').style.display = 'flex';
+    }
+
+    function closeModal(modalId) {
+        document.getElementById(modalId).style.display = 'none';
+    }
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+        if (event.target == document.getElementById('upgradeModal')) {
+            closeModal();
+        }
+    }
+
+</script>
+
+<style>
+    /* Modern Dashboard Styles */
+    :root {
+        --primary-brown: #8B4513;
+        --dark-brown: #5D4037;
+        --light-brown: #D2B48C;
+        --pale-beige: #F5F5DC;
+        --off-white: #FFFDFA;
+        --gold: #FFD700;
+        --silver: #C0C0C0;
+        --bronze: #CD7F32;
+        --shadow-sm: 0 1px 3px rgba(0,0,0,0.12);
+        --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+        --shadow-lg: 0 10px 25px rgba(139, 69, 19, 0.1);
+        --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    * {
+        box-sizing: border-box;
+        font-family: 'Inter', sans-serif;
+    }
+
+    body {
+        margin: 0;
+        padding: 0;
+    }
+
+    .lecture-dashboard {
+        width: 100%;
+        margin: 0 auto;
+        padding: 2rem;
+        background-color: #f9f9f9;
+        min-height: 100vh;
+    }
+
+    .dashboard-header {
+        text-align: center;
+        margin-bottom: 2rem;
+        max-width: 1200px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .dashboard-header h1 {
+        color: var(--dark-brown);
+        font-size: 2.2rem;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+    }
+
+    .dashboard-header .subtitle {
+        color: var(--primary-brown);
+        font-size: 1.1rem;
+        opacity: 0.8;
+    }
+
+    /* Tab Navigation */
+    .tab-nav {
+        display: flex;
+        border-bottom: 1px solid var(--light-brown);
+        margin-bottom: 2rem;
+        max-width: 1200px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .tab-btn {
+        padding: 0.75rem 1.5rem;
+        background: transparent;
+        border: none;
+        border-bottom: 3px solid transparent;
+        font-weight: 600;
+        color: var(--dark-brown);
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+    .tab-btn.active {
+        border-bottom-color: var(--primary-brown);
+        color: var(--primary-brown);
+    }
+
+    .tab-btn:hover:not(.active) {
+        color: var(--primary-brown);
+    }
+
+    .tab-content {
+        display: none;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .tab-content.active-tab {
+        display: block;
+        animation: fadeIn 0.5s ease;
+    }
+
+    /* Section Headers */
+    .section-header {
+        margin-bottom: 1.5rem;
+    }
+
+    .section-header h2 {
+        color: var(--dark-brown);
+        font-size: 1.5rem;
+        margin-bottom: 0.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .section-header p {
+        color: var(--primary-brown);
+        margin: 0;
+    }
+
+    /* Lecture Grid */
+    .lecture-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 1.5rem;
+        width: 100%;
+    }
+
+    /* Lecture Card */
+    .lecture-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: var(--shadow-md);
+        transition: var(--transition);
+        border: 1px solid rgba(139, 69, 19, 0.1);
+    }
+
+    .lecture-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .lecture-card.pending {
+        opacity: 0.7;
+        background: rgba(255, 255, 255, 0.7);
+    }
+
+    .lecture-info {
+        margin-bottom: 1rem;
+    }
+
+    .lecture-number {
+        font-size: 0.9rem;
+        color: var(--primary-brown);
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+    }
+
+    .lecture-card h3 {
+        color: var(--dark-brown);
+        margin: 0 0 0.5rem;
+        font-size: 1.2rem;
+        word-break: break-word;
+        white-space: normal;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+
+    /* Status Badges */
+    .status-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        margin-top: 0.5rem;
+    }
+
+    .status-badge.approved {
+        background: rgba(40, 167, 69, 0.1);
+        color: #28a745;
+    }
+
+    .status-badge.declined {
+        background: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
+    }
+
+    .status-badge.pending {
+        background: rgba(255, 193, 7, 0.1);
+        color: #ffc107;
+    }
+
+    /* Lecture Actions */
+    .lecture-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+
+    .action-btn {
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+        transition: var(--transition);
+    }
+
+    .action-btn.download {
+        background: var(--primary-brown);
+        color: white;
+    }
+
+    .action-btn.view {
+        background: #007bff;
+        color: white;
+    }
+
+    .action-btn.premium {
+        background: var(--gold);
+        color: var(--dark-brown);
+    }
+
+    .action-btn.locked {
+        background: rgba(139, 69, 19, 0.1);
+        color: var(--primary-brown);
+    }
+
+    .action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .premium-actions {
+        display: flex;
+        gap: 0.75rem;
+        width: 100%;
+        margin-top: 0.5rem;
+    }
+
+    .premium-locked {
+        width: 100%;
+        margin-top: 0.5rem;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        background: rgba(139, 69, 19, 0.05);
+        border-radius: 12px;
+        border: 1px dashed var(--light-brown);
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        color: var(--light-brown);
+        margin-bottom: 1rem;
+    }
+
+    .empty-state p {
+        color: var(--dark-brown);
+        margin-bottom: 1.5rem;
+    }
+
+    /* Upload Section */
+    .upload-container {
+        display: flex;
+        justify-content: center;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .upload-card {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: var(--shadow-md);
+        width: 100%;
+        max-width: 500px;
+        text-align: center;
+        border: 1px solid rgba(139, 69, 19, 0.1);
+    }
+
+    .upload-header i {
+        font-size: 3rem;
+        color: var(--primary-brown);
+        margin-bottom: 1rem;
+    }
+
+    .upload-header h2 {
+        color: var(--dark-brown);
+        margin: 0 0 0.5rem;
+    }
+
+    .upload-header p {
+        color: var(--primary-brown);
+        margin: 0 0 1.5rem;
+    }
+
+    .file-upload {
+        margin-bottom: 1.5rem;
+    }
+
+    .file-upload input[type="file"] {
+        display: none;
+    }
+
+    .file-upload label {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        border: 2px dashed var(--light-brown);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+    .file-upload label:hover {
+        border-color: var(--primary-brown);
+    }
+
+    .file-upload label i {
+        font-size: 2rem;
+        color: var(--primary-brown);
+        margin-bottom: 0.5rem;
+    }
+
+    .file-upload label span {
+        color: var(--dark-brown);
+        font-weight: 500;
+    }
+
+    /* Buttons */
+    .primary-btn {
+        padding: 0.75rem 1.5rem;
+        background: var(--primary-brown);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .primary-btn:hover {
+        background: var(--dark-brown);
+        transform: translateY(-2px);
+    }
+
+    .secondary-btn {
+        padding: 0.75rem 1.5rem;
+        background: white;
+        color: var(--dark-brown);
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+    .secondary-btn:hover {
+        background: #f8f9fa;
+    }
+
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-content {
+        background: white;
+        border-radius: 12px;
+        width: 100%;
+        max-width: 450px;
+        overflow: hidden;
+        box-shadow: var(--shadow-lg);
+    }
+
+    .modal-header {
+        padding: 1.5rem;
+        background: var(--pale-beige);
+        text-align: center;
+        position: relative;
+    }
+
+    .modal-header i {
+        font-size: 2rem;
+        color: var(--gold);
+        margin-bottom: 1rem;
+    }
+
+    .modal-header h3 {
+        margin: 0;
+        color: var(--dark-brown);
+    }
+
+    .close {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        font-size: 1.5rem;
+        color: #999;
+        cursor: pointer;
+    }
+
+    .modal-body {
+        padding: 1.5rem;
+        text-align: center;
+    }
+
+    .modal-body p {
+        margin: 0 0 1rem;
+        color: #666;
+    }
+
+    .modal-footer {
+        display: flex;
+        padding: 1rem 1.5rem;
+        gap: 0.75rem;
+        justify-content: center;
+        background: #f9f9f9;
+        border-top: 1px solid #eee;
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .lecture-dashboard {
+            padding: 1rem;
+        }
+
+        .lecture-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .tab-nav {
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .dashboard-header h1 {
+            font-size: 1.8rem;
+        }
+
+        .lecture-actions {
+            flex-direction: column;
+        }
+
+        .action-btn, .premium-actions {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+
+<%- include('footer.ejs') %>

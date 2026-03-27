@@ -1,0 +1,22 @@
+{
+  "title": "mixer",
+  "subject": "Business Law",
+  "deadline": "2025-08-08T17:53",
+  "isTimed": false,
+  "timeLimit": null,
+  "questions": [
+    {
+      "type": "mcq",
+      "question": "xcv",
+      "marks": 2,
+      "options": [
+        "x",
+        "xx"
+      ],
+      "correct": "A"
+    }
+  ],
+  "filename": "mixer.json",
+  "createdAt": "2025-08-02T15:53:35.154Z",
+  "updatedAt": "2025-08-02T15:53:35.154Z"
+}

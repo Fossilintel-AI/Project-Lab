@@ -1,0 +1,665 @@
+<%- include('header.ejs') %>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+
+
+<div class="container">
+    <div class="profile-container">
+        <!-- Profile Card -->
+        <div class="profile-card">
+            <div class="profile-header-card">
+                <div class="profile-avatar">
+                    <div class="avatar-circle">
+                        <%= currentUser.first_name.charAt(0).toUpperCase() %><%= currentUser.last_name.charAt(0).toUpperCase() %>
+                    </div>
+                    <div class="profile-status"></div>
+                </div>
+                <h1 class="profile-name"><%= currentUser.first_name %> <%= currentUser.last_name %></h1>
+                <p class="profile-email"><i class="fas fa-envelope"></i> <%= currentUser.email %></p>
+                <div class="profile-badge">
+                        <span class="badge <%= currentUser.subscription_type.toLowerCase() %>">
+                            <i class="fas fa-crown"></i> <%= currentUser.subscription_type %>
+                        </span>
+                </div>
+            </div>
+
+            <div class="profile-details">
+                <div class="detail-section">
+                    <h3><i class="fas fa-user-circle"></i> About</h3>
+                    <div class="detail-item">
+                        <p class="detail-content"><%= currentUser.bio || 'No bio added yet' %></p>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h3><i class="fas fa-map-marker-alt"></i> Address</h3>
+                    <div class="detail-item">
+                        <p class="detail-content"><%= currentUser.address || 'No address provided' %></p>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h3><i class="fas fa-calendar-alt"></i> Account Information</h3>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <span class="detail-label">Member Since</span>
+                            <span class="detail-value"><%= new Date(currentUser.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) %></span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Last Active</span>
+                            <span class="detail-value">Just now</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="profile-actions">
+                <a href="/edit-profile" class="action-btn edit-btn">
+                    <i class="fas fa-user-edit"></i> Edit Profile
+                </a>
+                <a href="/logout" class="action-btn logout-btn">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </div>
+
+        <!-- Content Section -->
+        <div class="content-main">
+            <!-- Progress Section -->
+            <div class="content-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-chart-line"></i> Your Learning Progress</h2>
+                </div>
+
+                <% if (progressSummary.length > 0) { %>
+                    <% progressSummary.forEach(p => {
+                        const percent = Math.round((p.completed / p.total) * 100);
+                    %>
+                    <div class="progress-item">
+                        <div class="progress-header">
+                            <span><%= p.subject %></span>
+                            <span><%= p.completed %>/<%= p.total %> (<%= percent %>%)</span>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" style="width: <%= percent %>%;"><%= percent %>%</div>
+                        </div>
+                    </div>
+                    <% }); %>
+                <% } else { %>
+                    <div class="no-data">
+                        <i class="fas fa-chart-pie"></i>
+                        <p>No progress tracked yet.</p>
+                    </div>
+                <% } %>
+            </div>
+
+            <!-- Grades Section -->
+            <div class="content-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-tasks"></i> My Assignment Grades</h2>
+                </div>
+
+                <% if (assignmentAttempts && assignmentAttempts.length > 0) { %>
+                    <div class="grades-table-container">
+                        <table class="grades-table">
+                            <thead>
+                            <tr>
+                                <th>Subject</th>
+                                <th>Assignment</th>
+                                <th>Grade</th>
+                                <th>Submitted</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <% assignmentAttempts.forEach(attempt => { %>
+                                <tr>
+                                    <td><%= attempt.subject %></td>
+                                    <td><%= attempt.assignment_title %></td>
+                                    <td>
+                                                <span class="grade-badge <%= attempt.grade >= 70 ? 'good' : (attempt.grade >= 50 ? 'average' : 'poor') %>">
+                                                    <%= attempt.grade %>%
+                                                </span>
+                                    </td>
+                                    <td>
+                                        <%= new Date(attempt.attempt_date).toLocaleDateString() %>
+                                        <br>
+                                        <small><%= new Date(attempt.attempt_date).toLocaleTimeString() %></small>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                            </tbody>
+                        </table>
+                    </div>
+                <% } else { %>
+                    <div class="no-data">
+                        <i class="fas fa-book-open"></i>
+                        <p>No assignment grades yet</p>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<script>
+    // Simple animation for progress bars
+    document.addEventListener('DOMContentLoaded', function() {
+        const progressBars = document.querySelectorAll('.progress-bar');
+
+        progressBars.forEach(bar => {
+            const width = bar.style.width;
+            bar.style.width = '0';
+
+            setTimeout(() => {
+                bar.style.width = width;
+            }, 300);
+        });
+    });
+</script>
+
+<style>
+    :root {
+        --primary-brown: #7B4B2A;
+        --dark-brown: #52321C;
+        --light-brown: #A67C52;
+        --pale-beige: #F9F5F0;
+        --cream: #FDF8F2;
+        --accent-gold: #D4A76A;
+        --text-dark: #2D2D2D;
+        --text-light: #757575;
+        --success: #4CAF50;
+        --warning: #FFC107;
+        --danger: #F44336;
+        --shadow-sm: 0 2px 8px rgba(91, 57, 32, 0.1);
+        --shadow-md: 0 4px 12px rgba(91, 57, 32, 0.15);
+        --shadow-lg: 0 10px 25px rgba(91, 57, 32, 0.2);
+        --border-radius: 12px;
+        --transition: all 0.3s ease;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: var(--pale-beige);
+        color: var(--text-dark);
+        line-height: 1.6;
+        padding: 0;
+        margin: 0;
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+    /* Header styling */
+    .profile-header {
+        background: linear-gradient(135deg, var(--primary-brown) 0%, var(--dark-brown) 100%);
+        padding: 2rem 0;
+        color: white;
+        margin-bottom: 2rem;
+    }
+
+    .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .logo {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: white;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .logo-icon {
+        color: var(--accent-gold);
+    }
+
+    .nav-links {
+        display: flex;
+        gap: 2rem;
+    }
+
+    .nav-link {
+        color: rgba(255, 255, 255, 0.85);
+        text-decoration: none;
+        font-weight: 500;
+        transition: var(--transition);
+    }
+
+    .nav-link:hover {
+        color: white;
+    }
+
+    /* Profile container */
+    .profile-container {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        gap: 2rem;
+        margin-bottom: 3rem;
+    }
+
+    /* Profile card */
+    .profile-card {
+        background: white;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--shadow-md);
+        height: fit-content;
+    }
+
+    .profile-header-card {
+        background: linear-gradient(135deg, var(--primary-brown) 0%, var(--dark-brown) 100%);
+        padding: 2rem;
+        text-align: center;
+        color: white;
+        position: relative;
+    }
+
+    .profile-avatar {
+        margin-bottom: 1rem;
+        position: relative;
+        display: inline-block;
+    }
+
+    .avatar-circle {
+        width: 100px;
+        height: 100px;
+        background-color: var(--cream);
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: var(--primary-brown);
+        margin: 0 auto;
+        border: 4px solid rgba(255, 255, 255, 0.3);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .profile-status {
+        position: absolute;
+        bottom: 5px;
+        right: 5px;
+        width: 20px;
+        height: 20px;
+        background-color: var(--success);
+        border-radius: 50%;
+        border: 3px solid white;
+    }
+
+    .profile-name {
+        font-size: 1.8rem;
+        margin: 0.5rem 0;
+        font-weight: 700;
+    }
+
+    .profile-email {
+        margin: 0.5rem 0 1rem;
+        opacity: 0.9;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .profile-badge {
+        margin-top: 1rem;
+    }
+
+    .badge {
+        padding: 0.5rem 1.2rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .badge.premium {
+        background-color: var(--accent-gold);
+        color: var(--dark-brown);
+    }
+
+    .badge.pro {
+        background-color: #C0C0C0;
+        color: var(--dark-brown);
+    }
+
+    .badge.basic {
+        background-color: #CD7F32;
+        color: white;
+    }
+
+    .profile-details {
+        padding: 1.5rem;
+    }
+
+    .detail-section {
+        margin-bottom: 1.8rem;
+    }
+
+    .detail-section:last-child {
+        margin-bottom: 0;
+    }
+
+    .detail-section h3 {
+        color: var(--dark-brown);
+        font-size: 1.1rem;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--pale-beige);
+    }
+
+    .detail-section i {
+        color: var(--primary-brown);
+    }
+
+    .detail-item {
+        margin-bottom: 1rem;
+    }
+
+    .detail-content {
+        color: var(--text-dark);
+        line-height: 1.6;
+        padding: 0.75rem;
+        background-color: var(--cream);
+        border-radius: 8px;
+        border-left: 4px solid var(--light-brown);
+    }
+
+    .detail-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+
+    .detail-label {
+        display: block;
+        font-size: 0.9rem;
+        color: var(--text-light);
+        margin-bottom: 0.25rem;
+    }
+
+    .detail-value {
+        font-weight: 500;
+        color: var(--text-dark);
+    }
+
+    .profile-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1.5rem;
+        background-color: var(--cream);
+        border-top: 1px solid var(--pale-beige);
+    }
+
+    .action-btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        text-decoration: none;
+        text-align: center;
+    }
+
+    .edit-btn {
+        background-color: var(--primary-brown);
+        color: white;
+        border: none;
+    }
+
+    .edit-btn:hover {
+        background-color: var(--dark-brown);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .logout-btn {
+        background-color: transparent;
+        color: var(--danger);
+        border: 1px solid var(--danger);
+    }
+
+    .logout-btn:hover {
+        background-color: var(--danger);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-sm);
+    }
+
+    /* Content section */
+    .content-section {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-md);
+    }
+
+    .section-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid var(--pale-beige);
+    }
+
+    .section-header h2 {
+        font-size: 1.4rem;
+        color: var(--dark-brown);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .section-header i {
+        color: var(--primary-brown);
+    }
+
+    /* Progress section */
+    .progress-item {
+        margin-bottom: 1.5rem;
+    }
+
+    .progress-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+    }
+
+    .progress-bar-container {
+        height: 24px;
+        background-color: var(--pale-beige);
+        border-radius: 6px;
+        overflow: hidden;
+    }
+
+    .progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, var(--primary-brown) 0%, var(--accent-gold) 100%);
+        border-radius: 6px;
+        transition: width 1s ease;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        padding: 0 5px;
+        color: white;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    /* Grades section */
+    .grades-table-container {
+        overflow-x: auto;
+        border-radius: 8px;
+        border: 1px solid var(--pale-beige);
+    }
+
+    .grades-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 600px;
+    }
+
+    .grades-table th {
+        background-color: var(--pale-beige);
+        padding: 12px 16px;
+        text-align: left;
+        font-weight: 600;
+        color: var(--dark-brown);
+    }
+
+    .grades-table td {
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--pale-beige);
+    }
+
+    .grades-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .grades-table tr:hover {
+        background-color: var(--cream);
+    }
+
+    .grade-badge {
+        display: inline-block;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-weight: 600;
+        min-width: 60px;
+        text-align: center;
+    }
+
+    .grade-badge.good {
+        background-color: rgba(76, 175, 80, 0.15);
+        color: #2e7d32;
+    }
+
+    .grade-badge.average {
+        background-color: rgba(255, 193, 7, 0.15);
+        color: #b06d0c;
+    }
+
+    .grade-badge.poor {
+        background-color: rgba(244, 67, 54, 0.15);
+        color: #c62828;
+    }
+
+    .no-data {
+        text-align: center;
+        padding: 2rem;
+        color: var(--text-light);
+    }
+
+    .no-data i {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        color: var(--pale-beige);
+    }
+
+    /* Footer */
+    .footer {
+        background-color: var(--dark-brown);
+        color: white;
+        padding: 2rem 0;
+        margin-top: 3rem;
+    }
+
+    .footer-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .footer-links {
+        display: flex;
+        gap: 1.5rem;
+    }
+
+    .footer-link {
+        color: rgba(255, 255, 255, 0.8);
+        text-decoration: none;
+        transition: var(--transition);
+    }
+
+    .footer-link:hover {
+        color: white;
+    }
+
+    .copyright {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.9rem;
+    }
+
+    /* Responsive design */
+    @media (max-width: 900px) {
+        .profile-container {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .header-content {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .nav-links {
+            gap: 1.5rem;
+        }
+
+        .footer-content {
+            flex-direction: column;
+            gap: 1.5rem;
+            text-align: center;
+        }
+
+        .footer-links {
+            justify-content: center;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .nav-links {
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .profile-header-card {
+            padding: 1.5rem;
+        }
+
+        .profile-actions {
+            flex-direction: column;
+        }
+    }
+</style>
+
+<%- include('footer.ejs') %>

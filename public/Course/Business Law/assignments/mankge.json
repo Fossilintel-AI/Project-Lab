@@ -1,0 +1,22 @@
+{
+  "title": "mankge",
+  "subject": "Business Law",
+  "deadline": "2025-08-09T17:31",
+  "isTimed": true,
+  "timeLimit": 3,
+  "questions": [
+    {
+      "type": "mcq",
+      "question": "xcv",
+      "marks": 2,
+      "options": [
+        "x",
+        "x"
+      ],
+      "correct": "B"
+    }
+  ],
+  "filename": "mankge.json",
+  "createdAt": "2025-08-02T15:31:53.203Z",
+  "updatedAt": "2025-08-02T15:31:53.203Z"
+}

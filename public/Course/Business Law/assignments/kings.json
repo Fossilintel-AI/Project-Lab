@@ -1,0 +1,15 @@
+{
+  "title": "kings",
+  "questions": [
+    {
+      "type": "truefalse",
+      "question": "sdfs",
+      "marks": 1,
+      "options": [],
+      "correct": "True"
+    }
+  ],
+  "filename": "kings.json",
+  "createdAt": "2025-06-13T16:10:32.829Z",
+  "updatedAt": "2025-06-13T16:10:32.829Z"
+}

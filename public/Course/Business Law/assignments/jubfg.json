@@ -1,0 +1,15 @@
+{
+  "title": "jubfg",
+  "questions": [
+    {
+      "type": "truefalse",
+      "question": "fg fdh",
+      "marks": 1,
+      "options": [],
+      "correct": "True"
+    }
+  ],
+  "filename": "jubfg.json",
+  "createdAt": "2025-06-13T16:22:46.940Z",
+  "updatedAt": "2025-06-13T16:22:46.940Z"
+}

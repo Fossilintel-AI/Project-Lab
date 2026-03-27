@@ -1,0 +1,20 @@
+{
+  "title": "Ask",
+  "questions": [
+    {
+      "type": "mcq",
+      "question": "sss",
+      "marks": 1,
+      "options": [
+        "s",
+        "s"
+      ],
+      "correct": "A"
+    }
+  ],
+  "filename": "ask.json",
+  "isTimeBased": true,
+  "deadline": null,
+  "createdAt": "2025-08-02T14:39:33.905Z",
+  "updatedAt": "2025-08-02T14:39:33.905Z"
+}

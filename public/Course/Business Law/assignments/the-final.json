@@ -1,0 +1,22 @@
+{
+  "title": "the final",
+  "subject": "Business Law",
+  "deadline": "2025-08-22T15:39",
+  "isTimed": false,
+  "timeLimit": null,
+  "questions": [
+    {
+      "type": "mcq",
+      "question": "a",
+      "marks": 2,
+      "options": [
+        "a",
+        "a"
+      ],
+      "correct": "A"
+    }
+  ],
+  "filename": "the-final.json",
+  "createdAt": "2025-08-04T13:39:56.190Z",
+  "updatedAt": "2025-08-04T13:39:56.190Z"
+}

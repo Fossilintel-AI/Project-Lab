@@ -1,0 +1,20 @@
+{
+  "title": "kiss",
+  "questions": [
+    {
+      "type": "mcq",
+      "question": "sdf",
+      "marks": 1,
+      "options": [
+        "sd",
+        "sd"
+      ],
+      "correct": "A"
+    }
+  ],
+  "filename": "kiss.json",
+  "isTimeBased": true,
+  "deadline": null,
+  "createdAt": "2025-08-02T14:35:35.730Z",
+  "updatedAt": "2025-08-02T14:35:35.730Z"
+}

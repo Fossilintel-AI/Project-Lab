@@ -1,0 +1,229 @@
+<%- include('header.ejs') %>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+    body {
+        background-color: #f4f6f9;
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    .assignment-container {
+        max-width: 900px;
+        margin: 2rem auto;
+        padding: 2.5rem;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .assignment-header {
+        border-bottom: 1px solid #dee2e6;
+        padding-bottom: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .assignment-title {
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+
+    .subject-badge {
+        background: #e9ecef;
+        padding: 0.4rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .meta-info p {
+        margin-bottom: 0.3rem;
+        color: #6c757d;
+    }
+
+    .question-card {
+        border-left: 5px solid #0d6efd;
+        border-radius: 8px;
+        background: #fdfdff;
+    }
+
+    .question-card .card-body {
+        padding: 1.5rem;
+    }
+
+    textarea.form-control {
+        resize: vertical;
+    }
+
+    .btn-primary {
+        padding: 0.6rem 1.5rem;
+        font-weight: 600;
+        font-size: 1rem;
+    }
+
+    #timerDisplay {
+        font-weight: bold;
+        color: #d63384;
+    }
+</style>
+
+<div class="assignment-container">
+    <div class="assignment-header">
+        <h1 class="assignment-title"><%= assignment.title %></h1>
+        <span class="subject-badge"><%= subject %></span>
+    </div>
+
+    <div class="meta-info mb-4">
+        <p><i class="far fa-clock"></i> <strong>Deadline:</strong> <%= assignment.deadline ? new Date(assignment.deadline + ':00Z').toLocaleString() : 'No deadline' %></p>
+        <p><i class="fas fa-hourglass-half"></i> <strong>Timed:</strong> <%= assignment.isTimed ? `Yes (${assignment.timeLimit} min)` : 'No' %></p>
+        <% if (assignment.isTimed) { %>
+            <p><strong>Time Left:</strong> <span id="timerDisplay">--:--</span></p>
+        <% } %>
+    </div>
+
+    <form id="assignmentForm" method="POST" action="/assignments/submit/<%= filename %>">
+        <% assignment.questions.forEach((question, index) => { %>
+            <div class="card question-card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Question <%= index + 1 %> (<%= question.marks %> marks)</h5>
+                    <p class="card-text"><%= question.question %></p>
+
+                    <% if (question.type === 'mcq') { %>
+                        <% question.options.forEach((option, i) => { %>
+                            <div class="form-check mb-1">
+                                <input class="form-check-input" type="radio" name="answers[<%= index %>]" id="q<%= index %>-<%= i %>" value="<%= String.fromCharCode(65 + i) %>" required>
+                                <label class="form-check-label" for="q<%= index %>-<%= i %>">
+                                    <%= String.fromCharCode(65 + i) %>. <%= option %>
+                                </label>
+                            </div>
+                        <% }); %>
+
+                    <% } else if (question.type === 'truefalse') { %>
+                        <div class="form-check mb-1">
+                            <input class="form-check-input" type="radio" name="answers[<%= index %>]" id="q<%= index %>-true" value="True" required>
+                            <label class="form-check-label" for="q<%= index %>-true">True</label>
+                        </div>
+                        <div class="form-check mb-1">
+                            <input class="form-check-input" type="radio" name="answers[<%= index %>]" id="q<%= index %>-false" value="False" required>
+                            <label class="form-check-label" for="q<%= index %>-false">False</label>
+                        </div>
+
+                    <% } else { %>
+                        <textarea class="form-control mt-2" name="answers[<%= index %>]" rows="4" placeholder="Write your answer here..." required></textarea>
+                    <% } %>
+                </div>
+            </div>
+        <% }); %>
+
+        <% if (!locals.isAdmin) { %>
+                <% if (!attempted) { %>
+                    <button type="submit" class="btn btn-brown">Submit Assignment</button>
+                <% } else { %>
+                    <div class="alert alert-success mt-3">
+                        You have already completed this assignment.
+                    </div>
+                    <a href="/course/<%= subject %>" class="btn btn-secondary mt-2">Back to Assignments</a>
+                <% } %>
+
+            <% } %>
+    </form>
+</div>
+
+<!-- Tab Switch Modal -->
+<div class="modal fade" id="tabSwitchModal" tabindex="-1" aria-labelledby="tabSwitchLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title" id="tabSwitchLabel">⚠️ Tab Switch Detected</h5>
+            </div>
+            <div class="modal-body">
+                You switched tabs or minimized the browser. This is not allowed during the assignment.
+                <br><br>
+                Your assignment will now be submitted.
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="submitAfterTabSwitch" class="btn btn-danger">OK, Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Prevent tab switching
+    document.addEventListener("visibilitychange", () => {
+        if (document.hidden) {
+            const modal = new bootstrap.Modal(document.getElementById('tabSwitchModal'));
+            modal.show();
+            const submitButton = document.getElementById('submitAfterTabSwitch');
+            submitButton.addEventListener('click', () => {
+                document.getElementById('assignmentForm')?.submit();
+            }, { once: true });
+        }
+    });
+
+    // Warn on refresh/exit
+    window.addEventListener('beforeunload', function (e) {
+        e.preventDefault();
+        e.returnValue = '';
+    });
+
+    // Timer
+    <% if (assignment.isTimed) { %>
+    let timeRemaining = <%= assignment.timeLimit %> * 60;
+    const display = document.getElementById('timerDisplay');
+    function updateTimer() {
+        const minutes = Math.floor(timeRemaining / 60);
+        const seconds = timeRemaining % 60;
+        display.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        document.title = `⏱ ${minutes}:${seconds.toString().padStart(2, '0')} - Assignment`;
+        if (timeRemaining <= 0) {
+            //alert("Time's up! Submitting your assignment...");
+            document.getElementById('assignmentForm').submit();
+        } else {
+            timeRemaining--;
+            setTimeout(updateTimer, 1000);
+        }
+    }
+    updateTimer();
+    <% } %>
+
+        // Form Submission - Simplified version
+        document.getElementById('assignmentForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const form = e.target;
+        const formData = new FormData(form);
+        const answers = [];
+
+        // Collect all answers
+        <% assignment.questions.forEach((_, index) => { %>
+        const answer = formData.get(`answers[${<%= index %>}]`);
+        answers.push(answer);
+        <% }); %>
+
+        try {
+        const response = await fetch(form.action, {
+        method: 'POST',
+        headers: {
+        'Content-Type': 'application/json'
+    },
+        body: JSON.stringify({ answers })
+    });
+
+        if (response.ok) {
+        const result = await response.json();
+        //alert(`Assignment submitted! Your grade: ${result.grade}%`);
+        window.location.href = `/course/<%= subject %>`;
+    } else {
+        const error = await response.json();
+        alert(error.message || 'Submission failed');
+    }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Submission failed. Please try again.');
+    }
+    });
+
+</script>
+
+<%- include('footer.ejs') %>

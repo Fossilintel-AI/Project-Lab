@@ -1,0 +1,17 @@
+{
+  "title": "my work",
+  "questions": [
+    {
+      "type": "truefalse",
+      "question": "Iam old",
+      "marks": 1,
+      "options": [],
+      "correct": "True"
+    }
+  ],
+  "filename": "my-work.json",
+  "isTimeBased": true,
+  "deadline": null,
+  "createdAt": "2025-08-02T14:34:20.807Z",
+  "updatedAt": "2025-08-02T14:34:20.808Z"
+}

@@ -1,0 +1,369 @@
+<%- include('header.ejs') %>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<div class="edit-profile-container">
+    <div class="edit-profile-card">
+        <div class="edit-profile-header">
+            <h1><i class="fas fa-user-edit"></i> Edit Profile</h1>
+            <p>Update your personal information</p>
+        </div>
+
+        <form action="/edit-profile" method="POST" class="edit-profile-form">
+            <!-- Profile Picture Upload (Optional) -->
+            <div class="form-group profile-picture-group">
+                <div class="avatar-preview">
+                    <div class="avatar-circle">
+                        <%= currentUser.first_name.charAt(0).toUpperCase() %><%= currentUser.last_name.charAt(0).toUpperCase() %>
+                    </div>
+                    <label for="profile_picture" class="upload-btn">
+                        <i class="fas fa-camera"></i> Change Photo
+                        <input type="file" id="profile_picture" name="profile_picture" accept="image/*" style="display: none;">
+                    </label>
+                </div>
+            </div>
+
+            <!-- Personal Information -->
+            <div class="form-section">
+                <h3><i class="fas fa-id-card"></i> Personal Information</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="first_name">First Name</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-user"></i>
+                            <input type="text" id="first_name" name="first_name" value="<%= currentUser.first_name %>" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="last_name">Last Name</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-user"></i>
+                            <input type="text" id="last_name" name="last_name" value="<%= currentUser.last_name %>" required>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bio Section -->
+            <div class="form-section">
+                <h3><i class="fas fa-edit"></i> About You</h3>
+                <div class="form-group">
+                    <label for="bio">Bio</label>
+                    <textarea id="bio" name="bio" placeholder="Tell us about yourself..."><%= currentUser.bio || '' %></textarea>
+                    <div class="char-counter" id="bio-counter">0/200</div>
+                </div>
+            </div>
+
+            <!-- Address Section -->
+            <div class="form-section">
+                <h3><i class="fas fa-map-marker-alt"></i> Address</h3>
+                <div class="form-group">
+                    <label for="address">Full Address</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-home"></i>
+                        <textarea id="address" name="address" placeholder="Enter your full address"><%= currentUser.address || '' %></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="form-actions">
+                <a href="/profile" class="cancel-btn">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+                <button type="submit" class="save-btn">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Character counter for bio
+    const bioTextarea = document.getElementById('bio');
+    const bioCounter = document.getElementById('bio-counter');
+
+    if (bioTextarea && bioCounter) {
+        bioTextarea.addEventListener('input', function() {
+            const currentLength = this.value.length;
+            bioCounter.textContent = `${currentLength}/200`;
+
+            if (currentLength > 200) {
+                bioCounter.style.color = '#dc3545';
+            } else {
+                bioCounter.style.color = '#6c757d';
+            }
+        });
+
+        // Initialize counter
+        bioCounter.textContent = `${bioTextarea.value.length}/200`;
+    }
+
+    // Preview profile picture if uploaded
+    const profilePictureInput = document.getElementById('profile_picture');
+    const avatarCircle = document.querySelector('.avatar-circle');
+
+    if (profilePictureInput) {
+        profilePictureInput.addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    avatarCircle.style.backgroundImage = `url(${e.target.result})`;
+                    avatarCircle.style.backgroundSize = 'cover';
+                    avatarCircle.style.backgroundPosition = 'center';
+                    avatarCircle.textContent = '';
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+</script>
+
+<style>
+    /* Modern Edit Profile Styles */
+    :root {
+        --primary-brown: #8B4513;
+        --dark-brown: #5D4037;
+        --light-brown: #D2B48C;
+        --pale-beige: #F5F5DC;
+        --off-white: #FFFDFA;
+        --shadow-sm: 0 1px 3px rgba(0,0,0,0.12);
+        --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+        --shadow-lg: 0 10px 25px rgba(139, 69, 19, 0.1);
+        --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    .edit-profile-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: calc(100vh - 120px);
+        padding: 2rem;
+        background-color: var(--pale-beige);
+    }
+
+    .edit-profile-card {
+        width: 100%;
+        max-width: 800px;
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: var(--shadow-lg);
+        border: 1px solid var(--light-brown);
+    }
+
+    .edit-profile-header {
+        background: linear-gradient(135deg, var(--primary-brown) 0%, var(--dark-brown) 100%);
+        padding: 2rem;
+        color: white;
+    }
+
+    .edit-profile-header h1 {
+        margin: 0;
+        font-size: 1.8rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .edit-profile-header p {
+        margin: 0.5rem 0 0;
+        opacity: 0.9;
+    }
+
+    .edit-profile-form {
+        padding: 2rem;
+    }
+
+    .form-section {
+        margin-bottom: 2rem;
+    }
+
+    .form-section h3 {
+        color: var(--dark-brown);
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--light-brown);
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: var(--dark-brown);
+    }
+
+    .input-with-icon {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .input-with-icon i {
+        position: absolute;
+        left: 12px;
+        color: var(--primary-brown);
+    }
+
+    input, textarea {
+        width: 100%;
+        padding: 0.75rem 1rem 0.75rem 2.5rem;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: var(--transition);
+    }
+
+    input:focus, textarea:focus {
+        outline: none;
+        border-color: var(--primary-brown);
+        box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.1);
+    }
+
+    textarea {
+        min-height: 100px;
+        resize: vertical;
+    }
+
+    .profile-picture-group {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 2rem;
+    }
+
+    .avatar-preview {
+        text-align: center;
+    }
+
+    .avatar-circle {
+        width: 120px;
+        height: 120px;
+        background-color: var(--off-white);
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: var(--dark-brown);
+        margin: 0 auto 1rem;
+        border: 4px solid var(--light-brown);
+        overflow: hidden;
+    }
+
+    .upload-btn {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        background-color: var(--primary-brown);
+        color: white;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+    .upload-btn:hover {
+        background-color: var(--dark-brown);
+        transform: translateY(-2px);
+    }
+
+    .char-counter {
+        text-align: right;
+        font-size: 0.8rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--light-brown);
+    }
+
+    .save-btn {
+        padding: 0.75rem 1.5rem;
+        background-color: var(--primary-brown);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .save-btn:hover {
+        background-color: var(--dark-brown);
+        transform: translateY(-2px);
+    }
+
+    .cancel-btn {
+        padding: 0.75rem 1.5rem;
+        background-color: white;
+        color: #6c757d;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .cancel-btn:hover {
+        background-color: #f8f9fa;
+        transform: translateY(-2px);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .edit-profile-container {
+            padding: 1rem;
+        }
+
+        .edit-profile-header {
+            padding: 1.5rem;
+        }
+
+        .edit-profile-form {
+            padding: 1.5rem;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .form-actions {
+            flex-direction: column;
+        }
+
+        .save-btn, .cancel-btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+
+<%- include('footer.ejs') %>

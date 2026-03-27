@@ -1,0 +1,15 @@
+{
+  "title": "the fibal",
+  "questions": [
+    {
+      "type": "truefalse",
+      "question": "dfd",
+      "marks": 2,
+      "options": [],
+      "correct": "True"
+    }
+  ],
+  "filename": "the-fibal.json",
+  "createdAt": "2025-06-13T16:33:40.556Z",
+  "updatedAt": "2025-06-13T16:33:40.556Z"
+}

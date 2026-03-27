@@ -1,0 +1,22 @@
+{
+  "title": "deadline",
+  "subject": "Business Law",
+  "deadline": "2025-08-02T13:09",
+  "isTimed": false,
+  "timeLimit": null,
+  "questions": [
+    {
+      "type": "mcq",
+      "question": "sdf",
+      "marks": 2,
+      "options": [
+        "d",
+        "sd"
+      ],
+      "correct": "A"
+    }
+  ],
+  "filename": "deadline.json",
+  "createdAt": "2025-08-03T11:10:12.619Z",
+  "updatedAt": "2025-08-03T11:10:12.619Z"
+}

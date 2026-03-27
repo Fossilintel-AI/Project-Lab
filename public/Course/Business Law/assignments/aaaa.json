@@ -1,0 +1,20 @@
+{
+  "title": "aaaa",
+  "questions": [
+    {
+      "type": "mcq",
+      "question": "asd",
+      "marks": 2,
+      "options": [
+        "a",
+        "a"
+      ],
+      "correct": "A"
+    }
+  ],
+  "filename": "aaaa.json",
+  "isTimeBased": false,
+  "deadline": null,
+  "createdAt": "2025-08-02T14:40:50.973Z",
+  "updatedAt": "2025-08-02T14:40:50.973Z"
+}

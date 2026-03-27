@@ -1,0 +1,21 @@
+{
+  "title": "maths10",
+  "subject": "Economics",
+  "filename": "maths10.json",
+  "dueDate": "2025-08-08T14:56",
+  "timeLimit": 2,
+  "questions": [
+    {
+      "type": "mcq",
+      "question": "how old am I",
+      "marks": 3,
+      "options": [
+        "24",
+        "25"
+      ],
+      "correct": "B"
+    }
+  ],
+  "createdAt": "2025-08-02T12:56:38.525Z",
+  "updatedAt": "2025-08-02T12:56:38.525Z"
+}

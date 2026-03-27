@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Live Class</title>
+    <style>
+        /* Your existing styles remain unchanged */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1e1e2f;
+            color: #fff;
+            margin: 0;
+            padding: 0;
+        }
+        h2 {
+            text-align: center;
+            margin: 20px 0;
+        }
+        #videos-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+            gap: 15px;
+            padding: 20px;
+        }
+        .video-card {
+            background: #2c2c3e;
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+        }
+        .video-card:hover {
+            transform: scale(1.03);
+            box-shadow: 0 0 20px rgba(255,255,255,0.3);
+        }
+        .video-card video {
+            width: 100%;
+            height: auto;
+            border-bottom: 1px solid #444;
+        }
+        .video-info {
+            padding: 8px 10px;
+            text-align: center;
+        }
+        .video-info h4 {
+            margin: 0;
+            font-size: 16px;
+        }
+        .video-info p {
+            margin: 2px 0 0 0;
+            font-size: 12px;
+            color: #aaa;
+        }
+        .video-card.large {
+            grid-column: span 2;
+            grid-row: span 2;
+            z-index: 10;
+            transform: scale(1.05);
+        }
+        .screen-share-card {
+            grid-column: 1 / -1;
+            background: #1a1a2e;
+            border: 2px solid #ffcc00;
+        }
+        #controls {
+            position: fixed;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            background: rgba(0,0,0,0.6);
+            padding: 10px 20px;
+            border-radius: 30px;
+        }
+        #controls button {
+            background: #3a3a5e;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 50%;
+            cursor: pointer;
+            color: #fff;
+            font-size: 16px;
+            transition: background 0.2s;
+        }
+        #controls button:hover {
+            background: #5555aa;
+        }
+        .active {
+            background: #5555aa !important;
+        }
+    </style>
+</head>
+<body>
+<h2>Live Class Room</h2>
+<div id="videos-container">
+    <div class="video-card" id="localCard">
+        <video id="localVideo" autoplay playsinline muted></video>
+        <div class="video-info">
+            <h4><%= username %></h4>
+
+        </div>
+    </div>
+</div>
+<div id="controls">
+    <button id="muteBtn">🎤</button>
+    <button id="cameraBtn">📹</button>
+    <button id="screenBtn">🖥️</button>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/simple-peer@9.11.1/simplepeer.min.js"></script>
+<script>
+    const socket = io();
+    const peers = {};
+    const screenPeers = {};
+    const roomId = "classroom-101";
+    const container = document.getElementById('videos-container');
+    let localStream;
+    let isMuted = false;
+    let cameraOn = true;
+    let screenStream;
+    let isSharingScreen = false;
+
+    // Get the username and role from EJS template
+    const username = "<%= username %>";
+    const userRole = "<%= isAdmin ? 'Teacher' : 'Student' %>";
+
+    async function startLocalStream() {
+        try {
+            localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            document.getElementById('localVideo').srcObject = localStream;
+        } catch (error) {
+            console.error("Error accessing media devices:", error);
+        }
+    }
+
+    startLocalStream().then(initSocket);
+
+    function initSocket() {
+        socket.emit('join-room', roomId);
+
+        socket.on('user-joined', userId => {
+            console.log('User joined:', userId);
+            // Create peer for video/audio
+            const peer = new SimplePeer({ initiator: true, trickle: false, stream: localStream });
+            peers[userId] = peer;
+
+            peer.on('signal', signal => {
+                socket.emit('signal', { to: userId, signal });
+            });
+
+            peer.on('stream', remoteStream => {
+                addRemoteVideo(userId, remoteStream, ""); // Default to Student for others
+            });
+
+            // If we're sharing screen, create a screen peer for the new user
+            if (isSharingScreen && screenStream) {
+                const screenPeer = new SimplePeer({ initiator: true, trickle: false, stream: screenStream });
+                screenPeers[userId] = screenPeer;
+
+                screenPeer.on('signal', signal => {
+                    socket.emit('screen-share-start', { to: userId, signal });
+                });
+            }
+        });
+
+        socket.on('signal', ({ from, signal }) => {
+            if (!peers[from]) {
+                const peer = new SimplePeer({ initiator: false, trickle: false, stream: localStream });
+                peers[from] = peer;
+
+                peer.on('signal', sig => {
+                    socket.emit('signal', { to: from, signal: sig });
+                });
+
+                peer.on('stream', remoteStream => {
+                    addRemoteVideo(from, remoteStream, ""); // Default to Student for others
+                });
+            }
+            peers[from].signal(signal);
+        });
+
+        // SCREEN SHARE SIGNALING
+        socket.on('screen-share-start', ({ from, signal }) => {
+            if (!screenPeers[from]) {
+                const peer = new SimplePeer({ initiator: false, trickle: false });
+                screenPeers[from] = peer;
+
+                peer.on('signal', sig => {
+                    socket.emit('screen-signal', { to: from, signal: sig });
+                });
+
+                peer.on('stream', remoteStream => {
+                    addScreenShare(from, remoteStream);
+                });
+            }
+            screenPeers[from].signal(signal);
+        });
+
+        socket.on('screen-signal', ({ from, signal }) => {
+            if (screenPeers[from]) {
+                screenPeers[from].signal(signal);
+            }
+        });
+
+        socket.on('screen-share-stopped', userId => {
+            const card = document.getElementById('screen-' + userId);
+            if (card) card.remove();
+
+            if (screenPeers[userId]) {
+                screenPeers[userId].destroy();
+                delete screenPeers[userId];
+            }
+        });
+
+        socket.on('user-left', userId => {
+            if (peers[userId]) {
+                peers[userId].destroy();
+                delete peers[userId];
+                document.getElementById(userId)?.remove();
+            }
+
+            const screenCard = document.getElementById('screen-' + userId);
+            if (screenCard) screenCard.remove();
+
+            if (screenPeers[userId]) {
+                screenPeers[userId].destroy();
+                delete screenPeers[userId];
+            }
+        });
+    }
+
+    function addRemoteVideo(userId, stream, name) {
+        if (document.getElementById(userId)) return;
+
+        const card = document.createElement('div');
+        card.classList.add('video-card');
+        card.id = userId;
+
+        const video = document.createElement('video');
+        video.autoplay = true;
+        video.playsinline = true;
+        video.srcObject = stream;
+
+        const info = document.createElement('div');
+        info.classList.add('video-info');
+        info.innerHTML = `<h4>${name}</h4><p>Participant</p>`;
+
+        card.appendChild(video);
+        card.appendChild(info);
+        container.appendChild(card);
+    }
+
+    function addScreenShare(userId, stream) {
+        if (document.getElementById('screen-' + userId)) return;
+
+        const card = document.createElement('div');
+        card.classList.add('video-card', 'screen-share-card');
+        card.id = 'screen-' + userId;
+
+        const video = document.createElement('video');
+        video.autoplay = true;
+        video.playsinline = true;
+        video.srcObject = stream;
+        video.style.width = "100%";
+        video.style.cursor = "pointer";
+        video.onclick = () => video.classList.toggle('large');
+
+        const info = document.createElement('div');
+        info.classList.add('video-info');
+        info.innerHTML = `<h4>Screen Share</h4><p>${userId === 'self' ? 'Your Screen' : 'Participant Screen'}</p>`;
+
+        card.appendChild(video);
+        card.appendChild(info);
+        container.prepend(card);
+    }
+
+    // START SCREEN SHARE
+    document.getElementById('screenBtn').onclick = async () => {
+        if (!isSharingScreen) {
+            try {
+                screenStream = await navigator.mediaDevices.getDisplayMedia({
+                    video: { cursor: "always" },
+                    audio: true
+                });
+
+                isSharingScreen = true;
+                document.getElementById('screenBtn').classList.add('active');
+
+                // Create screen peers for all existing users
+                Object.keys(peers).forEach(userId => {
+                    const screenPeer = new SimplePeer({ initiator: true, trickle: false, stream: screenStream });
+                    screenPeers[userId] = screenPeer;
+
+                    screenPeer.on('signal', signal => {
+                        socket.emit('screen-share-start', { to: userId, signal });
+                    });
+                });
+
+                // Add local screen view
+                addScreenShare('self', screenStream);
+
+                // Handle when screen share ends
+                screenStream.getVideoTracks()[0].onended = () => {
+                    stopScreenShare();
+                };
+
+            } catch (error) {
+                console.error("Error sharing screen:", error);
+                isSharingScreen = false;
+                document.getElementById('screenBtn').classList.remove('active');
+            }
+        } else {
+            stopScreenShare();
+        }
+    };
+
+    function stopScreenShare() {
+        if (!screenStream) return;
+
+        // Notify others that screen share has stopped
+        socket.emit('screen-share-stopped', 'self');
+
+        // Stop all screen tracks
+        screenStream.getTracks().forEach(track => track.stop());
+        isSharingScreen = false;
+        document.getElementById('screenBtn').classList.remove('active');
+
+        // Remove local screen card
+        const localCard = document.getElementById('screen-self');
+        if (localCard) localCard.remove();
+
+        // Destroy all screen peers
+        Object.keys(screenPeers).forEach(userId => {
+            if (screenPeers[userId]) {
+                screenPeers[userId].destroy();
+                delete screenPeers[userId];
+            }
+        });
+    }
+
+    // Mute/unmute audio
+    document.getElementById('muteBtn').onclick = () => {
+        if (localStream) {
+            const audioTracks = localStream.getAudioTracks();
+            audioTracks.forEach(track => {
+                track.enabled = !track.enabled;
+            });
+            isMuted = !isMuted;
+            document.getElementById('muteBtn').classList.toggle('active', isMuted);
+        }
+    };
+
+    // Enable/disable camera
+    document.getElementById('cameraBtn').onclick = () => {
+        if (localStream) {
+            const videoTracks = localStream.getVideoTracks();
+            videoTracks.forEach(track => {
+                track.enabled = !track.enabled;
+            });
+            cameraOn = !cameraOn;
+            document.getElementById('cameraBtn').classList.toggle('active', !cameraOn);
+        }
+    };
+</script>
+</body>
+</html>

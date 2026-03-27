@@ -1,0 +1,307 @@
+<%- include('header.ejs') %>
+
+<!-- Video Recommendation Section -->
+<div class="container py-5">
+    <!-- Premium Header -->
+    <section class="hero-section text-center mb-5">
+        <div class="logo-container">
+            <i class="fas fa-play-circle logo-icon"></i>
+            <span class="logo-text">StudyStream</span>
+        </div>
+        <p class="header-tagline">Your premium learning destination ✨</p>
+
+        <!-- Date & Slogan -->
+        <div class="meta-info mt-3">
+            <span id="current-date"></span> • <span id="current-time"></span>
+            <div class="slogan"><i class="fas fa-lightbulb"></i> Learn Without Limits</div>
+        </div>
+    </section>
+
+
+
+    <!-- Video Grid -->
+    <div id="results" class="video-grid"></div>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="text-center py-5">
+        <div class="empty-state-container">
+            <div class="empty-state-icon">
+                <i class="fas fa-video"></i>
+            </div>
+            <h4>Discover Educational Content</h4>
+            <p class="text-muted">Search for topics or browse categories above</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Update current date and time
+    function updateDateTime() {
+        const now = new Date();
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        document.getElementById('current-date').textContent = now.toLocaleDateString('en-US', options);
+        document.getElementById('current-time').textContent = now.toLocaleTimeString('en-US', { hour: '2-digit', minute:'2-digit' });
+    }
+    updateDateTime();
+    setInterval(updateDateTime, 60000);
+
+    // Perform search on load
+    document.addEventListener('DOMContentLoaded', function() {
+        performSearch("<%= searchTitle %>");
+    });
+
+    // Quick category search
+    document.querySelectorAll('.btn-category').forEach(button => {
+        button.addEventListener('click', function() {
+            const query = this.getAttribute('data-query');
+            document.getElementById('query').value = query;
+            performSearch(query);
+        });
+    });
+
+    // Manual search
+    document.getElementById('searchForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const query = document.getElementById('query').value;
+        performSearch(query);
+    });
+
+    async function performSearch(query) {
+        const resultsDiv = document.getElementById('results');
+        const emptyState = document.getElementById('emptyState');
+        emptyState.style.display = 'none';
+        resultsDiv.innerHTML = `
+      <div class="w-100 text-center py-5">
+        <div class="spinner">
+          <div class="bounce1"></div>
+          <div class="bounce2"></div>
+          <div class="bounce3"></div>
+        </div>
+      </div>
+    `;
+        try {
+            const response = await fetch(`/search?q=${encodeURIComponent(query)}`);
+            const data = await response.json();
+            let html = '';
+            if (data.length === 0) {
+                html = `
+          <div class="w-100 text-center py-5">
+            <div class="empty-state-container">
+              <div class="empty-state-icon no-results">
+                <i class="fas fa-video-slash"></i>
+              </div>
+              <h4>No videos found</h4>
+              <p class="text-muted">Try different search terms</p>
+            </div>
+          </div>
+        `;
+            } else {
+                data.forEach(video => {
+                    html += `
+            <div class="video-card">
+              <div class="video-thumbnail">
+                <iframe src="https://www.youtube.com/embed/${video.id.videoId}"
+                        frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen
+                        loading="lazy"></iframe>
+              </div>
+              <div class="video-info">
+                <h3>${video.snippet.title}</h3>
+                <p class="channel-name">${video.snippet.channelTitle}</p>
+              </div>
+            </div>
+          `;
+                });
+            }
+            resultsDiv.innerHTML = html;
+        } catch (error) {
+            resultsDiv.innerHTML = `
+        <div class="w-100">
+          <div class="error-state">
+            <i class="fas fa-exclamation-circle"></i>
+            <div>Error loading videos. Please try again.</div>
+          </div>
+        </div>
+      `;
+            console.error('Search error:', error);
+        }
+    }
+</script>
+
+<style>
+    /* Color Palette */
+    :root {
+        --primary: #6D4C41;
+        --primary-dark: #4E342E;
+        --accent: #FFAB40;
+        --bg: #FAF5F0;
+        --glass: rgba(255, 255, 255, 0.25);
+    }
+
+    body {
+        background: linear-gradient(to bottom right, #FAF5F0, #f1e4d9);
+        font-family: 'Inter', sans-serif;
+    }
+
+    /* Hero */
+    .logo-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+    }
+
+    .logo-icon {
+        font-size: 3rem;
+        color: var(--primary);
+        animation: pop 1s ease;
+    }
+
+    .logo-text {
+        font-size: 2.5rem;
+        font-weight: 800;
+        background: linear-gradient(90deg, var(--primary), var(--accent));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: -0.5px;
+    }
+
+    .header-tagline {
+        font-size: 1.1rem;
+        color: #555;
+        margin-top: 10px;
+    }
+
+    .meta-info {
+        font-size: 0.9rem;
+        color: var(--primary-dark);
+        margin-top: 8px;
+    }
+
+    .slogan {
+        margin-top: 6px;
+        font-weight: 600;
+        color: var(--primary);
+    }
+
+    /* Categories */
+    .btn-category {
+        background: white;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 50px;
+        font-weight: 500;
+        color: var(--primary);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-category:hover {
+        background: var(--primary);
+        color: white;
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+    }
+
+    /* Search */
+    .glassy {
+        background: var(--glass);
+        backdrop-filter: blur(10px);
+    }
+
+    .search-container {
+        display: flex;
+        align-items: center;
+        border-radius: 50px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+
+    .search-input {
+        flex: 1;
+        border: none;
+        outline: none;
+        padding: 12px 16px;
+        font-size: 16px;
+        background: transparent;
+    }
+
+    .search-button {
+        background: var(--primary);
+        border: none;
+        color: white;
+        padding: 0 20px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .search-button:hover {
+        background: var(--primary-dark);
+    }
+
+    /* Video Grid */
+    .video-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 28px;
+        margin-top: 30px;
+    }
+
+    .video-card {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+    }
+
+    .video-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 10px 24px rgba(0,0,0,0.12);
+    }
+
+    .video-thumbnail {
+        position: relative;
+        padding-top: 56.25%;
+    }
+
+    .video-thumbnail iframe {
+        position: absolute; top: 0; left: 0;
+        width: 100%; height: 100%;
+    }
+
+    .video-info {
+        padding: 14px;
+    }
+
+    .video-info h3 {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--primary-dark);
+        margin-bottom: 6px;
+    }
+
+    .channel-name {
+        font-size: 0.9rem;
+        color: #777;
+    }
+
+    /* Empty State */
+    .empty-state-icon {
+        font-size: 2.5rem;
+        color: var(--primary);
+        margin-bottom: 12px;
+    }
+
+    /* Animations */
+    @keyframes pop {
+        0% { transform: scale(0.6); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+</style>
+
+<%- include('footer.ejs') %>

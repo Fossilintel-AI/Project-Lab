@@ -1,0 +1,403 @@
+<%- include('header.ejs') %>
+
+<div class="admin-dashboard">
+    <h1>📊 Admin Dashboard</h1>
+
+    <!-- Unapproved Documents Section -->
+    <% if (unapprovedDocuments.length > 0) { %>
+        <section class="section">
+            <h2>📂 Unapproved Documents</h2>
+            <div class="card-container">
+                <% unapprovedDocuments.forEach(doc => { %>
+                    <div class="card">
+                        <p><strong>Document:</strong> <%= doc.file_name %></p>
+                        <div class="btn-group">
+                            <a href="/view-document?path=<%= doc.file_directory %>/<%= encodeURIComponent(doc.file_name) %>"
+                               target="_blank" class="btn btn-view">
+                                <i class="bi bi-eye"></i> View
+                            </a>
+                            <button class="btn btn-approve" onclick="approveDocument('<%= doc.file_name %>')">Approve</button>
+                            <button class="btn btn-decline" onclick="declineDocument('<%= doc.file_name %>')">Decline</button>
+                        </div>
+                    </div>
+                <% }) %>
+            </div>
+        </section>
+    <% } else { %>
+        <p class="empty-state">✅ No documents pending approval.</p>
+    <% } %>
+
+    <!-- Student Messages Section -->
+    <section class="section">
+        <h2>📧 Student Messages</h2>
+        <% if (studentMessages.length > 0) { %>
+            <div class="card-container">
+                <% studentMessages.forEach(message => { %>
+                    <div class="card">
+                        <p><strong>Name:</strong> <%= message.name %></p>
+                        <p><strong>Email:</strong> <%= message.email %></p>
+                        <p><strong>Subject:</strong> <%= message.subject %></p>
+                        <p><strong>Message:</strong> <%= message.message %></p>
+                        <p><strong>Received:</strong> <%= new Date(message.created_at).toLocaleString() %></p>
+
+                        <button class="btn btn-reply" onclick="showReplyForm('<%= message.email %>')">Reply</button>
+
+                        <div class="reply-form" id="reply-form-<%= message.email %>" style="display: none;">
+                            <textarea id="reply-message-<%= message.email %>" placeholder="Write your reply here..."></textarea>
+                            <button class="btn btn-send" onclick="sendReply('<%= message.email %>')">Send Reply</button>
+                        </div>
+                    </div>
+                <% }) %>
+            </div>
+        <% } else { %>
+            <p class="empty-state">📭 No messages from students.</p>
+        <% } %>
+    </section>
+
+    <!-- Assignment Attempts Section -->
+    <section class="section">
+        <h2>📝 Assignment Submissions</h2>
+        <% if (assignmentAttempts && assignmentAttempts.length > 0) { %>
+            <div class="table-container">
+                <table class="attempts-table">
+                    <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Subject</th>
+                        <th>Assignment</th>
+                        <th>Grade</th>
+                        <th>Submitted</th>
+
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <% assignmentAttempts.forEach(attempt => { %>
+                        <tr>
+                            <td>
+                                <%= attempt.first_name %> <%= attempt.last_name %>
+                                <br><small><%= attempt.email %></small>
+                            </td>
+                            <td><%= attempt.subject %></td>
+                            <td><%= attempt.assignment_title %></td>
+                            <td class="grade-cell">
+                                <span class="grade-badge <%= attempt.grade >= 70 ? 'good' : (attempt.grade >= 50 ? 'average' : 'poor') %>">
+                                    <%= attempt.grade %>%
+                                </span>
+                            </td>
+                            <td>
+                                <%= new Date(attempt.attempt_date).toLocaleDateString() %>
+                                <br>
+                                <small><%= new Date(attempt.attempt_date).toLocaleTimeString() %></small>
+                            </td>
+
+                        </tr>
+                    <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        <% } else { %>
+            <p class="empty-state">📭 No assignment submissions yet.</p>
+        <% } %>
+    </section>
+</div>
+
+
+
+<!-- Modal for attempt details -->
+<div id="attemptModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeModal()">&times;</span>
+        <h3>Assignment Submission Details</h3>
+        <div id="attemptDetails"></div>
+    </div>
+</div>
+
+<%- include('footer.ejs') %>
+
+<script>
+    function showReplyForm(email) {
+        const form = document.getElementById(`reply-form-${email}`);
+        form.style.display = 'block';
+    }
+
+    function sendReply(email) {
+        const message = document.getElementById(`reply-message-${email}`).value;
+        if (!message.trim()) {
+            alert("Please write a reply.");
+            return;
+        }
+
+        fetch('/admin/send-reply', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, message })
+        })
+            .then(res => {
+                if (res.ok) {
+                    alert('Reply sent successfully.');
+                    location.reload();
+                } else {
+                    alert('Failed to send reply.');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Error sending reply.');
+            });
+    }
+
+    function approveDocument(fileName) {
+        fetch(`/admin/approve/${encodeURIComponent(fileName)}`, {
+            method: 'POST'
+        })
+            .then(res => {
+                if (res.ok) {
+                    location.reload();
+                } else {
+                    alert("Failed to approve document.");
+                }
+            })
+            .catch(() => alert("Failed to approve document."));
+    }
+
+    function declineDocument(fileName) {
+        fetch(`/admin/decline/${encodeURIComponent(fileName)}`, {
+            method: 'POST'
+        })
+            .then(res => {
+                if (res.ok) {
+                    location.reload();
+                } else {
+                    alert("Failed to decline document.");
+                }
+            })
+            .catch(() => alert("Failed to decline document."));
+    }
+
+
+
+
+
+
+</script>
+
+
+
+<style>
+
+    /* Add these styles to your existing style section */
+    .table-container {
+        overflow-x: auto;
+        margin-top: 1rem;
+    }
+
+    .attempts-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .attempts-table th,
+    .attempts-table td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid #eee;
+    }
+
+    .attempts-table th {
+        background-color: #8B4513;
+        color: white;
+        font-weight: 600;
+    }
+
+    .attempts-table tr:hover {
+        background-color: #f9f9f9;
+    }
+
+    .grade-badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-weight: bold;
+        min-width: 50px;
+        text-align: center;
+    }
+
+    .grade-badge.good {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .grade-badge.average {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+
+    .grade-badge.poor {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+    /* Modal styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+    }
+
+    .modal-content {
+        background-color: white;
+        margin: 5% auto;
+        padding: 20px;
+        border-radius: 10px;
+        width: 80%;
+        max-width: 700px;
+        max-height: 80vh;
+        overflow-y: auto;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+
+    .close-modal {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .close-modal:hover {
+        color: #333;
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f5f5f5;
+        color: #333;
+    }
+
+    .admin-dashboard {
+        padding: 2rem;
+        max-width: 1200px;
+        margin: auto;
+    }
+
+    h1 {
+        font-size: 2.5rem;
+        margin-bottom: 2rem;
+        color: #8B4513;
+    }
+
+    .section {
+        margin-top: 3rem;
+    }
+
+    h2 {
+        font-size: 1.8rem;
+        margin-bottom: 1.5rem;
+        border-left: 6px solid #8B4513;
+        padding-left: 10px;
+    }
+
+    .card-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+        gap: 20px;
+    }
+
+    .card {
+        background: white;
+        padding: 1.2rem;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        transition: transform 0.2s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-4px);
+    }
+
+    .btn-group {
+        margin-top: 1rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .btn {
+        border: none;
+        padding: 8px 14px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: background 0.3s;
+    }
+
+    .btn-view {
+        background-color: #6c757d;
+        color: white;
+    }
+
+    .btn-approve {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .btn-decline {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    .btn-reply {
+        background-color: #007bff;
+        color: white;
+        margin-top: 10px;
+    }
+
+    .btn-send {
+        background-color: #8B4513;
+        color: white;
+        margin-top: 10px;
+    }
+
+    .reply-form {
+        margin-top: 10px;
+    }
+
+    textarea {
+        width: 100%;
+        min-height: 80px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        padding: 10px;
+        margin-top: 10px;
+        font-family: inherit;
+    }
+
+    .empty-state {
+        font-style: italic;
+        color: #777;
+        margin-top: 1rem;
+    }
+
+    @media (max-width: 600px) {
+        h1 {
+            font-size: 2rem;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+        }
+
+        .card {
+            padding: 1rem;
+        }
+    }
+</style>

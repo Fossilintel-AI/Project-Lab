@@ -1,0 +1,22 @@
+{
+  "title": "test",
+  "subject": "Business Law",
+  "deadline": "2025-08-05T15:40",
+  "isTimed": false,
+  "timeLimit": null,
+  "questions": [
+    {
+      "type": "mcq",
+      "question": "z",
+      "marks": 1,
+      "options": [
+        "s",
+        "s"
+      ],
+      "correct": "A"
+    }
+  ],
+  "filename": "test.json",
+  "createdAt": "2025-08-04T13:40:22.644Z",
+  "updatedAt": "2025-08-04T13:40:22.644Z"
+}
